@@ -89,6 +89,10 @@ export const hasElectronDesktopBackend = (): boolean => {
     return typeof window !== "undefined" && window.electronDesktopBackend !== undefined;
 };
 
+export const hasElectronDesktopRuntime = (): boolean => {
+    return hasElectronHostBridge() || hasElectronDesktopBackend();
+};
+
 export const hasElectronNativeMenuBridge = (): boolean => {
     const host = typeof window === "undefined" ? undefined : window.electronHost;
 

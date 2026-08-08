@@ -611,6 +611,11 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 <Grid columns={["max-content", "minmax(0, 1fr)"]} rowGap={0} columnGap={0}>
                     {this.detailRows(this.orderCompactDetailRows(rows))}
                 </Grid>
+                <Button
+                    className="clientConnectionShowDetailsMoreButton"
+                    caption="Show More Details"
+                    onClick={this.handleShowDetails}
+                />
             </div>
         );
     };

@@ -2490,6 +2490,14 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
     margin: 0 0 8px;
 }
 
+.msg.performanceDashboard .slowQueriesReportHeader .performanceReportSectionTitle {
+    margin-bottom: 0;
+}
+
+.msg.performanceDashboard .slowQueriesReportHeader #slowQueriesOrderDropdown {
+    width: 200px;
+}
+
 .msg.performanceDashboard .performanceStatusOptionsButton.button {
     background: transparent;
     border: none;
@@ -2740,6 +2748,11 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
     flex: 1 1 auto;
     min-height: 0;
     overflow: auto;
+}
+
+.msg.performanceDashboard .slowQueriesTableHost {
+    flex: 0 0 auto;
+    overflow: visible;
 }
 
 .msg.performanceDashboard .performanceTableGrid {
@@ -3173,6 +3186,27 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
     min-height: 0;
 }
 
+.msg.performanceDashboard .tableSizesReportActions {
+    flex: 0 0 auto;
+    height: 20px;
+    margin-bottom: 0;
+}
+
+.msg.performanceDashboard .tableSizesReportActions #tableSizesBackButton.button {
+    background: transparent;
+    border: none;
+    color: var(--foreground);
+    height: 20px;
+    margin: 0;
+    min-width: 0;
+    padding: 0 4px;
+}
+
+.msg.performanceDashboard .tableSizesReportActions #tableSizesBackButton.button:not(.disabled):hover,
+.msg.performanceDashboard .tableSizesReportActions #tableSizesBackButton.button:not(.disabled):focus-visible {
+    background-color: var(--list-hoverBackground);
+}
+
 .msg.performanceDashboard .mysqlInspectorTreemapHost {
     flex: 1 1 auto;
     min-width: 0;
@@ -3212,8 +3246,9 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
     stroke-width: 1;
 }
 
-.msg.performanceDashboard .mysqlInspectorTableNode:hover .mysqlInspectorTableRect {
-    fill-opacity: 0.9;
+.msg.performanceDashboard .mysqlInspectorSchemaNode:not(.mysqlInspectorSchemaNodeSelected):hover
+    .mysqlInspectorSchemaRect {
+    fill-opacity: 0.2;
     stroke: var(--focusBorder);
     stroke-width: 2;
 }
@@ -3240,9 +3275,10 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 }
 
 .msg.performanceDashboard .mysqlInspectorTableComposition {
-    fill-opacity: 0.58;
+    fill-opacity: 0.9;
     font-size: 10px;
     font-weight: 500;
+    text-shadow: none;
 }
 
 .msg #dashboardGrid {
@@ -3612,6 +3648,11 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
     gap: 12px;
     padding: 12px;
     word-break: break-word;
+}
+
+.msg.clientConnections .clientConnectionShowDetailsMoreButton {
+    align-self: center;
+    margin: 0;
 }
 
 .msg.clientConnections .connectionDetailsSummary {

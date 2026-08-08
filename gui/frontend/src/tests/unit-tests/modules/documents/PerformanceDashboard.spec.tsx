@@ -785,6 +785,16 @@ describe("PerformanceDashboard Tests", (): void => {
         expect(executeService).toHaveBeenCalledWith(expect.stringContaining("limit 20"));
         expect(executeService).toHaveBeenCalledWith(expect.stringContaining("avg_latency desc"));
         expect(executeService).toHaveBeenCalledWith(expect.stringContaining("sys.format_time"));
+        fireEvent.click(container.querySelector("#slowQueriesOrderDropdown")!);
+        const orderPopup = document.querySelector("#slowQueriesOrderDropdownPopup")!;
+        expect(orderPopup.textContent).toContain("By Executions");
+        expect(orderPopup.textContent).toContain("Total Latency");
+        expect(orderPopup.textContent).toContain("Average Latency");
+        expect(orderPopup.textContent).toContain("Maximum Latency");
+        fireEvent.click(screen.getByText("By Executions"));
+        await waitFor(() => {
+            expect(executeService).toHaveBeenCalledWith(expect.stringContaining("exec_count desc"));
+        });
         await waitFor(() => {
             expect(screen.getByText("Selected Statement Details")).toBeTruthy();
             expect(container.querySelector("#slowQueryStatementHistogramGraph")).toBeTruthy();
@@ -806,8 +816,9 @@ describe("PerformanceDashboard Tests", (): void => {
         fireEvent.click(container.querySelector("#latency")!);
         expect(screen.getAllByText("Total Latency").length).toBeGreaterThan(0);
         expect(screen.getByText("Min Latency")).toBeTruthy();
-        expect(screen.getByText("Avg Latency")).toBeTruthy();
-        expect(screen.getByText("Max Latency")).toBeTruthy();
+        const latencySummary = container.querySelector(".slowQueryStatementHistogram .slowQueryDigestSummary");
+        expect(latencySummary?.textContent).toContain("Avg Latency");
+        expect(latencySummary?.textContent).toContain("Max Latency");
         const percentileSelector = ".slowQueryStatementHistogram .slowQueryPercentileSummaryItem";
         expect(container.querySelectorAll(percentileSelector)).toHaveLength(3);
         expect(screen.getByText("p95").getAttribute("data-tooltip")).toBe("inherit");

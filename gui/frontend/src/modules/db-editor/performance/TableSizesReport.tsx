@@ -29,6 +29,7 @@ import { ComponentChild, createRef } from "preact";
 import {
     ComponentBase, IComponentProperties, IComponentState,
 } from "../../../components/ui/Component/ComponentBase.js";
+import { Button } from "../../../components/ui/Button/Button.js";
 import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertErrorToString } from "../../../utilities/helpers.js";
@@ -62,6 +63,7 @@ interface ITableSizesReportState extends IComponentState {
     schemaSizes: ISchemaSizeGroup[];
     treemapWidth: number;
     treemapHeight: number;
+    selectedSchema?: string;
 }
 
 interface ITreemapDatum {
@@ -123,6 +125,14 @@ export class TableSizesReport extends ComponentBase<ITableSizesReportProperties,
         void this.updateValues();
     }
 
+    public clearSchemaSelection = (): void => {
+        if (!this.state.selectedSchema) {
+            return;
+        }
+
+        this.setState({ selectedSchema: undefined });
+    };
+
     public override componentDidUpdate(prevProps: ITableSizesReportProperties): void {
         const { backend } = this.props;
 
@@ -143,6 +153,7 @@ export class TableSizesReport extends ComponentBase<ITableSizesReportProperties,
 
         return (
             <Container
+                id="mysqlInspectorReport"
                 className={className}
                 orientation={Orientation.TopDown}
                 mainAlignment={ContentAlignment.Start}
@@ -154,60 +165,87 @@ export class TableSizesReport extends ComponentBase<ITableSizesReportProperties,
     }
 
     private tableSizesReport(): ComponentChild {
-        const { error, loading, schemaSizes } = this.state;
+        const { error, loading, schemaSizes, selectedSchema } = this.state;
+        const visibleSchemaSizes = selectedSchema
+            ? schemaSizes.filter((schema) => {
+                return schema.schema === selectedSchema;
+            })
+            : schemaSizes;
 
         return (
-            <Container
-                id="mysqlInspectorReport"
-                orientation={Orientation.TopDown}
-                mainAlignment={ContentAlignment.Start}
-                crossAlignment={ContentAlignment.Stretch}
-            >
+            <>
                 {error && <div className="mysqlInspectorError">{error}</div>}
                 {!error && loading && schemaSizes.length === 0 && <div className="mysqlInspectorEmpty">Loading...</div>}
                 {!error && !loading && schemaSizes.length === 0 &&
                     <div className="mysqlInspectorEmpty">No user tables found.</div>}
-                {!error && schemaSizes.length > 0 && this.tableSizesTreemap(schemaSizes)}
-            </Container>
+                {!error && selectedSchema && <Container
+                    className="tableSizesReportActions"
+                    orientation={Orientation.LeftToRight}
+                >
+                    <Button
+                        id="tableSizesBackButton"
+                        caption="< Back"
+                        onClick={this.clearSchemaSelection}
+                    />
+                </Container>}
+                {!error && visibleSchemaSizes.length > 0 && this.tableSizesTreemap(visibleSchemaSizes, schemaSizes)}
+            </>
         );
     }
 
-    private tableSizesTreemap(schemaSizes: ISchemaSizeGroup[]): ComponentChild {
+    private tableSizesTreemap(
+        schemaSizes: ISchemaSizeGroup[], allSchemaSizes: ISchemaSizeGroup[],
+    ): ComponentChild {
         const { width, height } = this.treemapDimensions();
         const { schemaNodes, tableNodes } = this.treemapNodes(schemaSizes, width, height);
         const schemaColors = d3.scaleOrdinal<string, string>(
-            schemaSizes.map((schema) => {
+            allSchemaSizes.map((schema) => {
                 return schema.schema;
-            }).sort(),
-            d3.schemeCategory10,
+            }),
+            d3.schemeTableau10,
         );
+        const tableNodesBySchema = new Map<string, TreemapNode[]>();
+        tableNodes.forEach((node) => {
+            const schema = node.data.table!.schema;
+            const schemaNodes = tableNodesBySchema.get(schema) ?? [];
+            schemaNodes.push(node);
+            tableNodesBySchema.set(schema, schemaNodes);
+        });
 
         return (
-            <div className="mysqlInspectorTreemapContent">
-                <div className="mysqlInspectorTreemapHost" ref={this.treemapHostRef}>
-                    <svg
-                        className="mysqlInspectorTreemap"
-                        viewBox={`0 0 ${width} ${height}`}
-                        role="img"
-                        aria-label="Table sizes treemap"
-                    >
-                        {schemaNodes.map((node) => {
-                            const schema = node.data.schema;
-                            const nodeWidth = this.nodeWidth(node);
-                            const nodeHeight = this.nodeHeight(node);
-                            const color = schemaColors(schema?.schema ?? node.data.name);
+            <div className="mysqlInspectorTreemapContent mysqlInspectorTreemapHost" ref={this.treemapHostRef}>
+                <svg
+                    className="mysqlInspectorTreemap"
+                    viewBox={`0 0 ${width} ${height}`}
+                    role="img"
+                    aria-label="Table sizes treemap"
+                >
+                    {schemaNodes.map((node) => {
+                        const schema = node.data.schema;
+                        const nodeWidth = this.nodeWidth(node);
+                        const nodeHeight = this.nodeHeight(node);
+                        const color = schemaColors(schema?.schema ?? node.data.name);
 
-                            return (
-                                <g className="mysqlInspectorSchemaNode" key={node.data.name}>
-                                    <rect
-                                        className="mysqlInspectorSchemaRect"
-                                        x={node.x0}
-                                        y={node.y0}
-                                        width={nodeWidth}
-                                        height={nodeHeight}
-                                        fill={color}
-                                    />
-                                    {nodeWidth > 90 && nodeHeight > 28 &&
+                        return (
+                            <g
+                                className={`mysqlInspectorSchemaNode${this.state.selectedSchema === node.data.name
+                                    ? " mysqlInspectorSchemaNodeSelected" : ""}`}
+                                data-testid={`mysqlInspectorSchema-${node.data.name}`}
+                                key={node.data.name}
+                                onClick={() => {
+                                    this.selectSchema(node.data.name);
+                                }}
+                            >
+                                <rect
+                                    className="mysqlInspectorSchemaRect"
+                                    data-tooltip={schema ? this.schemaTooltip(schema) : undefined}
+                                    x={node.x0}
+                                    y={node.y0}
+                                    width={nodeWidth}
+                                    height={nodeHeight}
+                                    fill={color}
+                                />
+                                {nodeWidth > 90 && nodeHeight > 28 &&
                                         <text
                                             className="mysqlInspectorSchemaLabel"
                                             x={node.x0 + 8}
@@ -215,7 +253,7 @@ export class TableSizesReport extends ComponentBase<ITableSizesReportProperties,
                                         >
                                             {node.data.name}
                                         </text>}
-                                    {schema && nodeWidth > 170 && nodeHeight > 28 &&
+                                {schema && nodeWidth > 170 && nodeHeight > 28 &&
                                         <text
                                             className="mysqlInspectorSchemaSize"
                                             x={node.x1 - 8}
@@ -224,74 +262,76 @@ export class TableSizesReport extends ComponentBase<ITableSizesReportProperties,
                                         >
                                             {formatBytes(schema.totalBytes)}
                                         </text>}
-                                </g>
-                            );
-                        })}
-                        {tableNodes.map((node) => {
-                            const table = node.data.table!;
-                            const tableKey = this.tableKey(table);
-                            const nodeWidth = this.nodeWidth(node);
-                            const nodeHeight = this.nodeHeight(node);
-                            const indexRatio = table.totalBytes > 0 ? table.indexBytes / table.totalBytes : 0;
-                            const indexHeight = Math.max(0, Math.min(nodeHeight, nodeHeight * indexRatio));
-                            const color = schemaColors(table.schema);
-                            const tooltip = this.tableTooltip(table);
+                                {tableNodesBySchema.get(schema?.schema ?? node.data.name)?.map((tableNode) => {
+                                    const table = tableNode.data.table!;
+                                    const tableKey = this.tableKey(table);
+                                    const tableWidth = this.nodeWidth(tableNode);
+                                    const tableHeight = this.nodeHeight(tableNode);
+                                    const indexRatio = table.totalBytes > 0
+                                        ? table.indexBytes / table.totalBytes
+                                        : 0;
+                                    const indexHeight = Math.max(0, Math.min(tableHeight,
+                                        tableHeight * indexRatio));
+                                    const tableColor = schemaColors(table.schema);
+                                    const compositionColor = this.treemapTextColor(tableColor);
+                                    const tooltip = this.tableTooltip(table);
 
-                            return (
-                                <g
-                                    key={tableKey}
-                                    className="mysqlInspectorTableNode"
-                                    data-testid={`mysqlInspectorTable-${tableKey}`}
-                                >
-                                    <rect
-                                        className="mysqlInspectorTableRect"
-                                        data-tooltip={tooltip}
-                                        x={node.x0}
-                                        y={node.y0}
-                                        width={nodeWidth}
-                                        height={nodeHeight}
-                                        fill={color}
-                                    />
-                                    <rect
-                                        className="mysqlInspectorIndexStripe"
-                                        data-index-bytes={table.indexBytes}
-                                        data-index-ratio={indexRatio}
-                                        x={node.x0}
-                                        y={node.y1 - indexHeight}
-                                        width={nodeWidth}
-                                        height={indexHeight}
-                                        fill={color}
-                                    />
-                                    {nodeWidth > 58 && nodeHeight > 28 &&
-                                        <text
-                                            className="mysqlInspectorTableLabel"
-                                            x={node.x0 + 6}
-                                            y={node.y0 + 16}
-                                        >
-                                            {table.table}
-                                        </text>}
-                                    {nodeWidth > 72 && nodeHeight > 48 &&
-                                        <text
-                                            className="mysqlInspectorTableSize"
-                                            x={node.x0 + 6}
-                                            y={node.y0 + 33}
-                                        >
-                                            {formatBytes(table.totalBytes)}
-                                        </text>}
-                                    {nodeWidth > 150 && nodeHeight > 70 &&
-                                        <text
-                                            className="mysqlInspectorTableComposition"
-                                            x={node.x0 + 6}
-                                            y={node.y0 + 50}
-                                        >
-                                            {`Data ${formatBytes(table.dataBytes)} / ` +
-                                                `Index ${formatBytes(table.indexBytes)}`}
-                                        </text>}
-                                </g>
-                            );
-                        })}
-                    </svg>
-                </div>
+                                    return <g
+                                        key={tableKey}
+                                        className="mysqlInspectorTableNode"
+                                        data-testid={`mysqlInspectorTable-${tableKey}`}
+                                    >
+                                        <rect
+                                            className="mysqlInspectorTableRect"
+                                            data-tooltip={tooltip}
+                                            x={tableNode.x0}
+                                            y={tableNode.y0}
+                                            width={tableWidth}
+                                            height={tableHeight}
+                                            fill={tableColor}
+                                        />
+                                        <rect
+                                            className="mysqlInspectorIndexStripe"
+                                            data-index-bytes={table.indexBytes}
+                                            data-index-ratio={indexRatio}
+                                            x={tableNode.x0}
+                                            y={tableNode.y1 - indexHeight}
+                                            width={tableWidth}
+                                            height={indexHeight}
+                                            fill={tableColor}
+                                        />
+                                        {tableWidth > 58 && tableHeight > 28 &&
+                                                <text
+                                                    className="mysqlInspectorTableLabel"
+                                                    x={tableNode.x0 + 6}
+                                                    y={tableNode.y0 + 16}
+                                                >
+                                                    {table.table}
+                                                </text>}
+                                        {tableWidth > 72 && tableHeight > 48 &&
+                                                <text
+                                                    className="mysqlInspectorTableSize"
+                                                    x={tableNode.x0 + 6}
+                                                    y={tableNode.y0 + 33}
+                                                >
+                                                    {formatBytes(table.totalBytes)}
+                                                </text>}
+                                        {tableWidth > 150 && tableHeight > 70 &&
+                                                <text
+                                                    className="mysqlInspectorTableComposition"
+                                                    x={tableNode.x0 + 6}
+                                                    y={tableNode.y0 + 50}
+                                                    style={{ fill: compositionColor }}
+                                                >
+                                                    {`Data ${formatBytes(table.dataBytes)} / ` +
+                                                        `Index ${formatBytes(table.indexBytes)}`}
+                                                </text>}
+                                    </g>;
+                                })}
+                            </g>
+                        );
+                    })}
+                </svg>
             </div>
         );
     }
@@ -317,6 +357,9 @@ export class TableSizesReport extends ComponentBase<ITableSizesReportProperties,
             this.setState({
                 loading: false,
                 schemaSizes,
+                selectedSchema: schemaSizes.some((schema) => {
+                    return schema.schema === this.state.selectedSchema;
+                }) ? this.state.selectedSchema : undefined,
             });
         } catch (reason) {
             if (requestId !== this.requestId) {
@@ -442,7 +485,7 @@ export class TableSizesReport extends ComponentBase<ITableSizesReportProperties,
         const root = d3.treemap<ITreemapDatum>()
             .size([width, height])
             .paddingOuter(8)
-            .paddingTop(28)
+            .paddingTop(20)
             .paddingInner(2)
             .round(true)(hierarchy);
 
@@ -462,10 +505,50 @@ export class TableSizesReport extends ComponentBase<ITableSizesReportProperties,
         return Math.max(0, node.y1 - node.y0);
     }
 
+    private selectSchema(schema: string): void {
+        if (this.state.selectedSchema === schema) {
+            return;
+        }
+
+        this.setState({ selectedSchema: schema });
+    }
+
+    private treemapTextColor(color: string): string {
+        const { r, g, b } = d3.rgb(color);
+        const component = (value: number): number => {
+            const normalized = value / 255;
+
+            return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+        };
+        const luminance = (0.2126 * component(r)) + (0.7152 * component(g)) + (0.0722 * component(b));
+
+        return luminance > 0.179 ? "#1D1C1D" : "#FFFFFF";
+    }
+
     private tableTooltip(table: ITableSizeEntry): string {
-        return `${table.schema}.${table.table} | Total ${formatBytes(table.totalBytes)} | ` +
-            `Data ${formatBytes(table.dataBytes)} | Index ${formatBytes(table.indexBytes)} | ` +
-            `Rows ${table.rows === undefined ? "" : formatInteger(table.rows)} | Engine ${table.engine ?? ""}`;
+        const details = [
+            `Total: ${formatBytes(table.totalBytes)}`,
+            `Data: ${formatBytes(table.dataBytes)}`,
+            `Index: ${formatBytes(table.indexBytes)}`,
+        ];
+        if (table.rows !== undefined) {
+            details.push(`Rows: ${formatInteger(table.rows)}`);
+        }
+        if (table.engine) {
+            details.push(`Engine: ${table.engine}`);
+        }
+
+        return [`${table.schema}.${table.table}`, ...details].join("\n");
+    }
+
+    private schemaTooltip(schema: ISchemaSizeGroup): string {
+        return [
+            schema.schema,
+            `Total: ${formatBytes(schema.totalBytes)}`,
+            `Data: ${formatBytes(schema.dataBytes)}`,
+            `Index: ${formatBytes(schema.indexBytes)}`,
+            `Tables: ${formatInteger(schema.tables.length)}`,
+        ].join("\n");
     }
 
     private tableKey(table: ITableSizeEntry): string {

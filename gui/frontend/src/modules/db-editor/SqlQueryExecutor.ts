@@ -155,6 +155,7 @@ export class SqlQueryExecutor {
             return undefined;
         }
 
+        context.clearExecutionErrors();
         await context.clearResult();
         if (mleEnabled && options.is3rdLanguage) {
             // Reset MLE console log
@@ -202,6 +203,7 @@ export class SqlQueryExecutor {
                         options, statement.text, undefined, tabId);
                 } catch (e) {
                     errorStatementStr = statement.text;
+                    context.markExecutionError(statement.index);
                     errorCount += 1;
                     if (mleEnabled) {
                         const lines = context.model?.getLinesContent();

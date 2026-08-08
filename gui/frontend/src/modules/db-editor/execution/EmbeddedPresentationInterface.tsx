@@ -76,14 +76,20 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     }
 
     public override activate(editor: Monaco.IStandaloneCodeEditor, cachedHeight?: number): void {
-        super.activate(editor, cachedHeight);
+        if (this.backend !== editor) {
+            super.activate(editor, cachedHeight);
+        }
 
         this.updateMarginDecorations();
         if (cachedHeight) {
             this.backend?.changeViewZones!((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 if (this.zoneInfo) {
                     this.zoneInfo.zone.heightInPx = cachedHeight;
-                    this.zoneInfo.zoneId = changeAccessor.addZone(this.zoneInfo.zone);
+                    if (this.zoneInfo.zoneId === "") {
+                        this.zoneInfo.zoneId = changeAccessor.addZone(this.zoneInfo.zone);
+                    } else {
+                        changeAccessor.layoutZone(this.zoneInfo.zoneId);
+                    }
                 }
             });
         }
@@ -328,7 +334,9 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         if (typeof ResizeObserver !== "undefined") {
             this.resizeObserver = new ResizeObserver((entries) => {
                 const last = entries.pop();
-                if (last && !this.currentHeight) {
+                if (last && !this.currentHeight && last.borderBoxSize[0].blockSize > 0) {
+                    // Monaco temporarily collapses view zones during layout. Feeding that zero height back into the
+                    // zone causes it to alternate indefinitely between the minimum and measured content heights.
                     const maxAutoHeight = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
                     const height = Math.min(last.borderBoxSize[0].blockSize, maxAutoHeight);
                     if (renderTarget.clientHeight > maxAutoHeight) {

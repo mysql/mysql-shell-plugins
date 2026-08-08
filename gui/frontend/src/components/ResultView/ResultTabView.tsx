@@ -36,6 +36,7 @@ import type {
 import { Assets } from "../../supplement/Assets.js";
 import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
 import { requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
 import { saveBlobAsFile } from "../../utilities/helpers.js";
 import { formatWithNumber } from "../../utilities/string-helpers.js";
 import { Button } from "../ui/Button/Button.js";
@@ -150,6 +151,7 @@ interface IResultTabViewProperties extends IComponentProperties {
 interface IResultTabViewState extends IComponentState {
     currentResultSet?: IResultSet;
     connectionToggle?: VNode,
+    fixedWidthText: boolean;
 }
 
 /** Holds a collection of result views and other output in a tabbed interface. */
@@ -188,6 +190,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         this.state = {
             currentResultSet: props.resultSets.sets.length > 0 ? props.resultSets.sets[0] : undefined,
             connectionToggle: props.connectionToggle,
+            fixedWidthText: Settings.get("editor.fixedWidthText", false),
         };
 
         this.addHandledProperties("resultSets", "contextId", "currentSet",
@@ -228,7 +231,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const { showMaximized } = toggleOptions ?? {};
         const { currentResultSet, connectionToggle } = this.state;
 
-        const className = this.getEffectiveClassNames(["resultHost"]);
+        const className = this.getEffectiveClassNames([
+            "resultHost",
+            this.classFromProperty(this.state.fixedWidthText, "fixedWidthText"),
+        ]);
 
         this.viewRefs.clear();
 
@@ -341,8 +347,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         const gotError = statusInfo && statusInfo.type === MessageType.Error;
         const gotResponse = statusInfo && statusInfo.type === MessageType.Response;
-        const imageResultActive = currentResultSet?.viewType === "image";
-        const imageResultToolbar = imageResultActive && currentResultSet
+        const imageResultToolbar = currentResultSet?.viewType === "image"
             ? this.renderImageResultToolbar(currentResultSet)
             : undefined;
 
@@ -506,6 +511,67 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
             </Container >
         );
+    }
+
+    /**
+     * Ask the user for confirmation if there are any pending changes.
+     *
+     * @param id If only certain tab ID needs to be checked. Optional
+     * @returns true if the user can close the tab, false otherwise.
+     */
+    public canClose = async (id?: string): Promise<boolean> => {
+        // Store values in a separate array before iterating over them -
+        // they may be removed from #editingInfo map by the time the user confirms the operation.
+        const infoValues = [...this.editingInfo.values()].filter((info) => {
+            return !id || id === info.resultSet.resultId;
+        });
+        for (const info of infoValues) {
+            if (!(await this.confirmCommitOrRollback(info))) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    /**
+     * Triggers a column update in the group which belongs to the given request id.
+     *
+     * @param resultId The actual request ID which identifies a specific result group.
+     * @param columns The columns to set.
+     */
+    public async updateColumns(resultId: string, columns: IColumnInfo[]): Promise<void> {
+        const viewRef = this.viewRefs.get(resultId);
+
+        /* istanbul ignore next */
+        if (viewRef?.current) {
+            await viewRef.current.updateColumns(columns);
+        }
+    }
+
+    /**
+     * In order to update large result sets without re-rendering everything we use direct methods
+     * to add new data.
+     *
+     * @param newData The data to add.
+     * @param resultId The ID of the request for which the incoming data is destined to.
+     * @param replace If true, the new data will actually replace the current content.
+     *
+     * @returns A promise the resolves when the operation is complete.
+     */
+    public async addData(newData: IResultSetRows, resultId: string, replace = false): Promise<void> {
+        const viewRef = this.viewRefs.get(resultId);
+
+        /* istanbul ignore next */
+        if (viewRef?.current) {
+            await viewRef.current.addData(newData, replace);
+        }
+
+        // The target view also updates itself when the final set comes in, but we need to update here too,
+        // for the execution info display, which is managed here.
+        if (newData.executionInfo) {
+            this.forceUpdate();
+        }
     }
 
     private renderImageResultToolbar(resultSet: IResultSet): ComponentChild {
@@ -672,6 +738,16 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             />,
             <MenuItem
                 id="separator1"
+                command={{ title: "-", command: "" }}
+                disabled
+            />,
+            <MenuItem
+                id="toggleFixedWidthTextMenuItem"
+                command={{ title: "Fixed width text", command: "toggleFixedWidthTextMenuItem" }}
+                checked={this.state.fixedWidthText}
+            />,
+            <MenuItem
+                id="separator2"
                 command={{ title: "-", command: "" }}
                 disabled
             />,
@@ -958,67 +1034,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         }
     }
 
-    /**
-     * Ask the user for confirmation if there are any pending changes.
-     *
-     * @param id If only certain tab ID needs to be checked. Optional
-     * @returns true if the user can close the tab, false otherwise.
-     */
-    public canClose = async (id?: string): Promise<boolean> => {
-        // Store values in a separate array before iterating over them -
-        // they may be removed from #editingInfo map by the time the user confirms the operation.
-        const infoValues = [...this.editingInfo.values()].filter((info) => {
-            return !id || id === info.resultSet.resultId;
-        });
-        for (const info of infoValues) {
-            if (!(await this.confirmCommitOrRollback(info))) {
-                return false;
-            }
-        }
-
-        return true;
-    };
-
-    /**
-     * Triggers a column update in the group which belongs to the given request id.
-     *
-     * @param resultId The actual request ID which identifies a specific result group.
-     * @param columns The columns to set.
-     */
-    public async updateColumns(resultId: string, columns: IColumnInfo[]): Promise<void> {
-        const viewRef = this.viewRefs.get(resultId);
-
-        /* istanbul ignore next */
-        if (viewRef?.current) {
-            await viewRef.current.updateColumns(columns);
-        }
-    }
-
-    /**
-     * In order to update large result sets without re-rendering everything we use direct methods
-     * to add new data.
-     *
-     * @param newData The data to add.
-     * @param resultId The ID of the request for which the incoming data is destined to.
-     * @param replace If true, the new data will actually replace the current content.
-     *
-     * @returns A promise the resolves when the operation is complete.
-     */
-    public async addData(newData: IResultSetRows, resultId: string, replace = false): Promise<void> {
-        const viewRef = this.viewRefs.get(resultId);
-
-        /* istanbul ignore next */
-        if (viewRef?.current) {
-            await viewRef.current.addData(newData, replace);
-        }
-
-        // The target view also updates itself when the final set comes in, but we need to update here too,
-        // for the execution info display, which is managed here.
-        if (newData.executionInfo) {
-            this.forceUpdate();
-        }
-    }
-
     private handleTabSelection = (id: string): void => {
         const { onSelectTab, resultSets } = this.props;
 
@@ -1094,6 +1109,13 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
             case "toggleMinimapMenuItem": {
                 this.toggleImageMinimap();
+                break;
+            }
+
+            case "toggleFixedWidthTextMenuItem": {
+                const fixedWidthText = !this.state.fixedWidthText;
+                Settings.set("editor.fixedWidthText", fixedWidthText);
+                this.setState({ fixedWidthText });
                 break;
             }
 

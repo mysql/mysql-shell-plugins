@@ -75,6 +75,25 @@
     background: url("../../../assets/images/squiggle.svg") bottom left repeat-x;
 }
 
+.msg.codeEditor .view-line .executionError {
+    background-color: color-mix(in srgb, var(--errorForeground) 15%, transparent);
+    color: var(--errorForeground);
+}
+
+.msg.codeEditor .statementError::after {
+    content: "";
+    display: block;
+    position: absolute;
+
+    border-radius: 50%;
+    width: 4px;
+    height: 4px;
+
+    right: 4px;
+    top: calc(50% - 1px);
+    background: var(--errorForeground);
+}
+
 .msg.codeEditor .editorPromptFirst.loading::after {
     content: "";
     display: block;

@@ -47,10 +47,29 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
     <link rel="manifest" href="manifest.json" />
 
     <title>MySQL Workbench</title>
+    <style>
+        .startupConnectionPlaceholder {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .startupConnectionPlaceholder > img {
+            width: 32px;
+            height: 32px;
+            opacity: 0.7;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div class="startupConnectionPlaceholder">
+            <img src="/src/assets/images/connectionMysql.svg" alt="" />
+        </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
 </body>
 

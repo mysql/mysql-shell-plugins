@@ -45,7 +45,7 @@ import type {
 } from "../components/ui/Statusbar/StatusBarItem.js";
 import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
 import { appParameters } from "../supplement/AppParameters.js";
-import { hasElectronDesktopBackend, hasElectronHostBridge } from "../supplement/ElectronDesktop.js";
+import { hasElectronDesktopRuntime, hasElectronHostBridge } from "../supplement/ElectronDesktop.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { ProfileState } from "../supplement/ProfileState.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
@@ -58,7 +58,7 @@ import {
     DialogResponseClosure, DialogType, minimumShellVersion, type IDialogRequest,
     type IServicePasswordRequest,
 } from "./general-types.js";
-import { LazyAppRouter, LoadingIndicator } from "./LazyAppRouter.js";
+import { LazyAppRouter, LoadingIndicator, StartupConnectionPlaceholder } from "./LazyAppRouter.js";
 import { registerUiLayer, ui, type MessageOptions, type Thenable } from "./UILayer.js";
 import { Mutex, lockMutex } from "../supplement/Mutex.js";
 
@@ -234,9 +234,9 @@ export class App extends Component<{}, IAppState> {
             content = <LazyAppRouter />;
         } else if (loginInProgress) {
             const connectionToken = appParameters.get("token") ?? "";
-            const electronDesktopHost = hasElectronHostBridge() || hasElectronDesktopBackend();
+            const electronDesktopHost = hasElectronDesktopRuntime();
             if (connectionToken.length > 0 || electronDesktopHost) {
-                content = electronDesktopHost ? null : LoadingIndicator;
+                content = electronDesktopHost ? StartupConnectionPlaceholder : LoadingIndicator;
             } else {
                 content = <LoginPage />;
             }

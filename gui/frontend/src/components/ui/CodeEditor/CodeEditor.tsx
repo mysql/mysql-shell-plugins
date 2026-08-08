@@ -356,6 +356,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             "quickSuggestions": true,
             "emptySelectionClipboard": false,
             "copyWithSyntaxHighlighting": true,
+            "occurrencesHighlight": "off",
             "codeLens": !combinedLanguage,
             "folding": !combinedLanguage,
             "foldingStrategy": "auto",
@@ -908,7 +909,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuOrder: 1,
             precondition,
             run: () => {
-                this.doExecuteContext({ advance: true });
+                this.doExecuteContext({ advance: mixedLanguage });
             },
         }));
 
@@ -1626,8 +1627,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
                                 void onScriptExecution?.(context, executionOptions).then(() => {
                                     if (options.advance) {
-                                        // Don't prepare the new block outside of this promise or we
-                                        // will lose the selection.
                                         this.prepareNextExecutionBlock(index);
                                     }
 

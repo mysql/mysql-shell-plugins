@@ -30,6 +30,7 @@ import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";
 import { AboutBox } from "../components/ui/AboutBox/AboutBox.js";
 import { ComponentBase, type IComponentProperties } from "../components/ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
+import { Dialog } from "../components/ui/Dialog/Dialog.js";
 import {
     ISplitterPane, SplitContainer, type ISplitterPaneSizeInfo,
 } from "../components/ui/SplitContainer/SplitContainer.js";
@@ -69,6 +70,7 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     private desktopCommandProvider: IDesktopCommandProvider;
 
     private aboutBoxRef = createRef<AboutBox>();
+    private settingsDialogRef = createRef<Dialog>();
 
     public constructor(props: IApplicationHostProperties) {
         super(props);
@@ -144,15 +146,11 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     }
 
     public render(): ComponentChild {
-        const { settingsVisible, aboutVisible, debuggerVisible, debuggerEnabledInBackground,
+        const { aboutVisible, debuggerVisible, debuggerEnabledInBackground,
             debuggerMaximized } = this.state;
 
-        const settingsEditor = settingsVisible
-            ? <SettingsEditor key="settingsEditor" onBack={this.handleSettingsBack} />
-            : undefined;
         const pages: ComponentChild[] = [<DocumentModule
             key="documentModule"
-            contentReplacement={settingsEditor}
         />];
 
         if (aboutVisible) {
@@ -199,12 +197,21 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
         return (
             <Container className="applicationHost" orientation={Orientation.TopDown}>
                 {content}
+                <Dialog
+                    ref={this.settingsDialogRef}
+                    id="settingsDialog"
+                    className="settingsDialog"
+                    caption="Preferences"
+                    content={<SettingsEditor key="settingsEditor" onBack={this.handleSettingsBack} />}
+                    onClose={this.handleSettingsDialogClose}
+                />
             </Container>
         );
     }
 
     private showAbout = (): Promise<boolean> => {
         return new Promise((resolve) => {
+            this.settingsDialogRef.current?.close(true);
             this.setState({ aboutVisible: true, settingsVisible: false, debuggerVisible: false }, () => {
                 this.aboutBoxRef.current?.show();
                 resolve(true);
@@ -217,12 +224,17 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     };
 
     private handleSettingsBack = (): void => {
+        this.settingsDialogRef.current?.close(true);
+    };
+
+    private handleSettingsDialogClose = (): void => {
         this.setState({ debuggerVisible: false, aboutVisible: false, settingsVisible: false });
     };
 
     private showPreferences = (): Promise<boolean> => {
         return new Promise((resolve) => {
             this.setState({ settingsVisible: true, aboutVisible: false, debuggerVisible: false }, () => {
+                this.settingsDialogRef.current?.open();
                 resolve(true);
             });
         });
@@ -238,6 +250,7 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
                 case "application:toggleAbout": {
                     const { aboutVisible } = this.state;
 
+                    this.settingsDialogRef.current?.close(true);
                     this.setState({
                         debuggerVisible: false, aboutVisible: !aboutVisible, settingsVisible: false,
                     }, done);
@@ -247,9 +260,12 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
                 case "application:togglePreferences": {
                     const { settingsVisible } = this.state;
 
-                    this.setState({
-                        debuggerVisible: false, settingsVisible: !settingsVisible, aboutVisible: false,
-                    }, done);
+                    if (settingsVisible) {
+                        this.settingsDialogRef.current?.close(true);
+                        done();
+                    } else {
+                        void this.showPreferences().then(done);
+                    }
                     break;
                 }
 

@@ -209,6 +209,9 @@ export interface IChoiceDialogValue extends IBaseDialogValue {
     /** Only one of the list of choices is possible. */
     choices: string[];
 
+    /** Optional text displayed at the right side of the choice control. */
+    trailingDescription?: string;
+
     /** If set also no choice is a viable result. */
     optional?: boolean;
 
@@ -1067,13 +1070,19 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         relatedValues: IRelatedValues): ComponentChild => {
 
         const { validations } = this.state;
+        const visibleGroup = group.filter((pair) => {
+            return !pair.value.options?.includes(CommonDialogValueOption.Hidden);
+        });
+        if (visibleGroup.length === 0) {
+            return undefined;
+        }
 
         const result = [];
 
         // Search for the largest spans in the group, which is then used for the entire cell.
         let groupHorizontalSpan: number | undefined;
         let groupVerticalSpan: number | undefined;
-        group.forEach((pair: IDialogValuePair) => {
+        visibleGroup.forEach((pair: IDialogValuePair) => {
             if (!groupHorizontalSpan) {
                 groupHorizontalSpan = pair.value.horizontalSpan;
             } else if (pair.value.horizontalSpan && pair.value.horizontalSpan > groupHorizontalSpan) {
@@ -1092,26 +1101,26 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
         // If the group consists of more than one value and the first value is pure description,
         // use that as the group's caption.
-        const caption = (group.length === 1
-            && group[0].value.type !== "boolean"
-            && group[0].value.type !== "description")
-            || (group.length > 1 && group[0].value.type === "description")
-            ? group[0].value.caption
+        const caption = (visibleGroup.length === 1
+            && visibleGroup[0].value.type !== "boolean"
+            && visibleGroup[0].value.type !== "description")
+            || (visibleGroup.length > 1 && visibleGroup[0].value.type === "description")
+            ? visibleGroup[0].value.caption
             : undefined;
-        if (caption && group.length > 1) {
-            group.shift();
+        if (caption && visibleGroup.length > 1) {
+            visibleGroup.shift();
         }
 
         // Collect a list of validation errors for this cell.
         const errors: string[] = [];
-        group.forEach((entry: IDialogValuePair) => {
+        visibleGroup.forEach((entry: IDialogValuePair) => {
             const error = validations.messages[entry.key];
             if (error) {
                 errors.push(error);
             }
         });
 
-        const edits = this.renderEdits(group, sectionId, relatedValues);
+        const edits = this.renderEdits(visibleGroup, sectionId, relatedValues);
         const contentCount = Children.count(edits);
 
         let mainAlignment = ContentAlignment.Start;
@@ -1120,8 +1129,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             mainAlignment = ContentAlignment.End; // Aligns to the bottom if there is no label.
         }
 
-        const captionClass = group[0]?.value.type !== "separator" ? "valueTitle" : "separatorTitle";
-        const captionAction = group[0]?.value.captionAction;
+        const captionClass = visibleGroup[0]?.value.type !== "separator" ? "valueTitle" : "separatorTitle";
+        const captionAction = visibleGroup[0]?.value.captionAction;
 
         result.push(
             <GridCell
@@ -1144,7 +1153,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                         imageOnly={true}
                         data-tooltip={captionAction.tooltip}
                         onClick={() => {
-                            captionAction.onClick(group[0].key, this.state.values, this);
+                            captionAction.onClick(visibleGroup[0].key, this.state.values, this);
                         }}
                     >
                         <Icon src={captionAction.icon} data-tooltip="inherit" />
@@ -1298,7 +1307,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             />;
                         });
 
-                        result.push(<Dropdown
+                        const choiceEditor = <Dropdown
                             id={key}
                             key={key}
                             className="valueEditor"
@@ -1309,7 +1318,23 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             autoFocus={options?.includes(CommonDialogValueOption.AutoFocus)}
                         >
                             {items}
-                        </Dropdown>);
+                        </Dropdown>;
+
+                        if (entry.value.trailingDescription) {
+                            result.push(<Container
+                                className="choiceWithDescription"
+                                orientation={Orientation.LeftToRight}
+                                crossAlignment={ContentAlignment.Center}
+                            >
+                                {choiceEditor}
+                                <Label
+                                    className="choiceDescription"
+                                    caption={entry.value.trailingDescription}
+                                />
+                            </Container>);
+                        } else {
+                            result.push(choiceEditor);
+                        }
 
                         break;
                     }

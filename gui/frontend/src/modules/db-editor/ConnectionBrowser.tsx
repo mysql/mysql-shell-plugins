@@ -215,7 +215,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         const className = this.getEffectiveClassNames(["connectionBrowser"]);
 
         let currentList = currentGroup ? currentGroup.entries : this.roots;
-        const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+        const foldersFirst = Settings.get("connectionBrowser.sortFoldersFirst", true);
         if (foldersFirst) {
             currentList = Array.from(currentList); // Sort only the copy, not the original list.
             currentList.sort((a, b) => {
@@ -651,7 +651,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
 
     private handleSettingsChanged = (entry?: { key: string; value: unknown; }): boolean => {
         if (entry?.key === "dbEditor.connectionBrowser.showGreeting"
-            || entry?.key === "dbEditor.connectionBrowser.sortFoldersFirst"
+            || entry?.key === "connectionBrowser.sortFoldersFirst"
             || entry?.key === connectionTagsChangedKey) {
             if (entry.key === connectionTagsChangedKey) {
                 ConnectionTags.updateCache(entry.value);

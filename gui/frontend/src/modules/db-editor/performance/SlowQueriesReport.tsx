@@ -31,7 +31,9 @@ import {
 } from "../../../components/ui/Component/ComponentBase.js";
 import { Button } from "../../../components/ui/Button/Button.js";
 import { Codicon } from "../../../components/ui/Codicon.js";
-import { Container, Orientation } from "../../../components/ui/Container/Container.js";
+import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container.js";
+import { Dropdown } from "../../../components/ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../../../components/ui/Dropdown/DropdownItem.js";
 import { Icon } from "../../../components/ui/Icon/Icon.js";
 import { TabPosition, Tabview } from "../../../components/ui/Tabview/Tabview.js";
 import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
@@ -48,6 +50,7 @@ import {
 } from "./StatementHistogram.js";
 
 export type StatementDetailGroupId = "activity" | "latency" | "resources" | "results" | "access";
+type SlowQueryOrderCriteria = "executions" | "totalLatency" | "averageLatency" | "maximumLatency";
 
 interface ISlowQueriesReportProperties extends IComponentProperties {
     backend?: ShellInterfaceSqlEditor;
@@ -67,6 +70,7 @@ interface ISlowQueriesReportState extends IComponentState {
     histogramRows: IStatementHistogramRow[];
     percentiles: IStatementPercentileEntry[];
     detailGroupId: StatementDetailGroupId;
+    orderCriteria: SlowQueryOrderCriteria;
 }
 
 interface ISlowQueryRow {
@@ -126,6 +130,28 @@ const detailGroups: Array<{
     labels: new Set([...accessLabels, ...temporaryLabels]),
 }];
 
+const slowQueryOrderCriteria: Array<{
+    id: SlowQueryOrderCriteria;
+    caption: string;
+    column: string;
+}> = [{
+    id: "executions",
+    caption: "By Executions",
+    column: "exec_count",
+}, {
+    id: "totalLatency",
+    caption: "By Total Latency",
+    column: "total_latency",
+}, {
+    id: "averageLatency",
+    caption: "By Average Latency",
+    column: "avg_latency",
+}, {
+    id: "maximumLatency",
+    caption: "By Maximum Latency",
+    column: "max_latency",
+}];
+
 const tableOptions: ITreeGridOptions = {
     layout: "fitColumns",
     verticalGridLines: false,
@@ -134,7 +160,7 @@ const tableOptions: ITreeGridOptions = {
     selectionType: SelectionType.Single,
     resizableRows: false,
     selectOnMouseDown: true,
-    rowHeight: 28,
+    rowHeight: 20,
     index: "id",
 };
 
@@ -187,6 +213,7 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
             histogramRows: [],
             percentiles: [],
             detailGroupId: props.initialDetailGroupId,
+            orderCriteria: "averageLatency",
         };
         this.addHandledProperties("backend", "capabilities", "initialDetailGroupId", "onDetailGroupIdChange");
     }
@@ -259,8 +286,28 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
                 <div className="slowQueriesReportEmpty">No statement analysis rows found.</div>}
             {!error && rows.length > 0 &&
                 <>
-                    <h3 className="performanceReportSectionTitle">Top 20 Queries</h3>
-                    <div ref={this.tableRef} className="performanceTableHost">
+                    <Container
+                        className="performanceStatusReportHeader slowQueriesReportHeader"
+                        orientation={Orientation.LeftToRight}
+                        mainAlignment={ContentAlignment.SpaceBetween}
+                        crossAlignment={ContentAlignment.Center}
+                    >
+                        <h3 className="performanceReportSectionTitle">Top 20 Queries</h3>
+                        <Dropdown
+                            id="slowQueriesOrderDropdown"
+                            selection={this.state.orderCriteria}
+                            onSelect={this.handleOrderSelection}
+                        >
+                            {slowQueryOrderCriteria.map((criteria) => {
+                                return <DropdownItem
+                                    key={criteria.id}
+                                    caption={criteria.caption}
+                                    id={criteria.id}
+                                />;
+                            })}
+                        </Dropdown>
+                    </Container>
+                    <div ref={this.tableRef} className="performanceTableHost slowQueriesTableHost">
                         <TreeGrid
                             id="slowQueriesPerformanceGrid"
                             className="performanceTableGrid"
@@ -372,7 +419,7 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
             const result = await backend.executeService("select db, digest, query, exec_count, " +
                 "sys.format_time(total_latency), sys.format_time(avg_latency), sys.format_time(max_latency), " +
                 "rows_sent, rows_examined, tmp_tables, full_scan from sys.x$statement_analysis " +
-                "order by avg_latency desc limit 20");
+                `order by ${this.orderColumn()} desc limit 20`);
             const rows = this.parseRows(result?.rows);
             if (requestId !== this.listRequestId) {
                 return;
@@ -543,6 +590,12 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
         });
     }
 
+    private orderColumn(): string {
+        return slowQueryOrderCriteria.find((criteria) => {
+            return criteria.id === this.state.orderCriteria;
+        })?.column ?? "avg_latency";
+    }
+
     private tableColumns(): ColumnDefinition[] {
         return [
             { title: "Statement", field: "query", minWidth: 220, resizable: true },
@@ -576,6 +629,25 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
         const detailGroupId = id as StatementDetailGroupId;
         this.setState({ detailGroupId });
         this.props.onDetailGroupIdChange(detailGroupId);
+    };
+
+    private handleOrderSelection = (accept: boolean, selectedIds: Set<string>): void => {
+        if (!accept) {
+            return;
+        }
+
+        const orderCriteria = [...selectedIds][0] as SlowQueryOrderCriteria;
+        if (!slowQueryOrderCriteria.some((criteria) => {
+            return criteria.id === orderCriteria;
+        }) ||
+            orderCriteria === this.state.orderCriteria) {
+            return;
+        }
+
+        ++this.listRequestId;
+        this.setState({ orderCriteria, rows: [] }, () => {
+            void this.updateValues();
+        });
     };
 
     private handleOpenInEditor = (content?: string) => {

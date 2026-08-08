@@ -42,9 +42,11 @@ class TestSqlQueryExecutor extends SqlQueryExecutor {
 describe("SqlQueryExecutor tests", (): void => {
     it("runs explicit SQL source text as a single statement", async () => {
         const executor = new SqlQueryExecutor(undefined, { backend: {} } as never);
+        const clearExecutionErrors = vi.fn();
         const getExecutableStatements = vi.fn();
         const getStatementAtPosition = vi.fn();
         const context = {
+            clearExecutionErrors,
             clearResult: vi.fn().mockResolvedValue(undefined),
             getExecutableStatements,
             getStatementAtPosition,
@@ -62,8 +64,28 @@ describe("SqlQueryExecutor tests", (): void => {
             explain: true,
             sourceText: "  select 2;  ",
         }, "select 2;", undefined, "tab-1");
+        expect(clearExecutionErrors).toHaveBeenCalledOnce();
         expect(getExecutableStatements).not.toHaveBeenCalled();
         expect(getStatementAtPosition).not.toHaveBeenCalled();
+    });
+
+    it("marks a failed statement in the editor", async () => {
+        const executor = new SqlQueryExecutor(undefined, { backend: {} } as never);
+        const markExecutionError = vi.fn();
+        const context = {
+            clearExecutionErrors: vi.fn(),
+            clearResult: vi.fn().mockResolvedValue(undefined),
+            getExecutableStatements: vi.fn().mockResolvedValue([{
+                index: 3,
+                text: "select missing_column from test_table",
+            }]),
+            markExecutionError,
+        } as unknown as SQLExecutionContext;
+        vi.spyOn(executor, "executeQuery").mockRejectedValue(new Error("Unknown column"));
+
+        await executor.runSQLCode(context, {}, 100, true, false, "tab-1");
+
+        expect(markExecutionError).toHaveBeenCalledWith(3);
     });
 
     it("delivers queued timed results and cleans up the timer", async () => {

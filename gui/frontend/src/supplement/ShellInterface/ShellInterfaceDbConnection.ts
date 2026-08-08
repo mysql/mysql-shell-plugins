@@ -29,6 +29,7 @@ import { ShellAPIGui } from "../../communication/ProtocolGui.js";
 import type { ILegacyConfigurationImportReport }
     from "../../app-logic/LegacyConfigurationImport/LegacyConfigurationImportTypes.js";
 import { IConnectionDetails, IFolderPath } from "./index.js";
+import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js";
 
 export type ConnectionsAndFoldersList = Array<IConnectionDetails | IFolderPath>;
 
@@ -46,6 +47,8 @@ export interface IServerStatusCache {
 
 /** Interface for connection management. */
 export class ShellInterfaceDbConnection {
+    private interactive = new ShellInteractiveInterface();
+
     /**
      * Imports non-secret classic Workbench connection definitions.
      *
@@ -232,7 +235,7 @@ export class ShellInterfaceDbConnection {
      * @param password The password to use for validation.
      */
     public async testConnection(connection: number | IConnectionDetails, password?: string): Promise<void> {
-        await MessageScheduler.get.sendRequest({
+        await this.interactive.sendInteractiveRequest({
             requestType: ShellAPIGui.GuiDbConnectionsTestConnection,
             parameters: {
                 args: {

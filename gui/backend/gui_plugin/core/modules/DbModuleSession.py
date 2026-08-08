@@ -247,7 +247,11 @@ class DbModuleSession(ModuleSession):
 
         # If password is prompted, stores it on the connection data
         # TODO: avoid keeping the password
-        if self._prompt_replied and options.type == "password":
+        if (
+            self._prompt_replied
+            and options["type"] == "password"
+            and "ssh://" not in caption
+        ):
             self._connection_options["password"] = self._prompt_reply
 
         return self._prompt_replied, self._prompt_reply

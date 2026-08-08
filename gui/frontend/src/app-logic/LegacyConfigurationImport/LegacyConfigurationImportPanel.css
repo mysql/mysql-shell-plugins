@@ -23,35 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.legacyConfigurationImportPanel {
-    position: relative;
+.msg.connectionBrowserPanel.legacyConfigurationImportPanel {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 16px 24px;
-    margin: 0 -40px;
-    padding: 30px 40px 40px;
-    border-top: 1px solid var(--editorGroupHeader-tabsBorder);
-    border-bottom: 1px solid var(--editorGroupHeader-tabsBorder);
-}
-
-.legacyConfigurationImportPanel .legacyConfigurationImportDismissButton {
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    width: 16px;
-    height: 16px;
-    border: none;
-    background-color: transparent;
-}
-
-.legacyConfigurationImportPanel .legacyConfigurationImportDismissButton:not(.disabled):hover,
-.legacyConfigurationImportPanel .legacyConfigurationImportDismissButton:not(.disabled):active {
-    background-color: transparent;
-}
-
-.legacyConfigurationImportPanel .legacyConfigurationImportDismissButton .icon {
-    width: 16px;
-    height: 16px;
+    padding-bottom: 40px;
 }
 
 .legacyConfigurationImportPanelContent {

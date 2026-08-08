@@ -213,7 +213,7 @@ export const registerSettings = (): void => {
         "The number of workers that are always available.",
         "number",
         3,
-        true,
+        false,
     );
     registerSetting(
         "workers.maxWorkerCount",
@@ -375,6 +375,14 @@ export const registerSettings = (): void => {
         true,
         false,
     );
+    registerSetting(
+        "editor.fixedWidthText",
+        "Fixed Width Result Text",
+        "When set, result grids use a fixed-width font.",
+        "boolean",
+        true,
+        false,
+    );
 
     registerSettingCategory("dbEditor", "DB Editor", "Settings related to a DB editor");
     registerSetting(
@@ -427,10 +435,10 @@ export const registerSettings = (): void => {
         false,
     );
 
-    registerSettingCategory("dbEditor.connectionBrowser", "Connection Browser", "Settings related to the connection " +
+    registerSettingCategory("connectionBrowser", "Connection Browser", "Settings related to the connection " +
         "overview page");
     registerSetting(
-        "dbEditor.connectionBrowser.sortFoldersFirst",
+        "connectionBrowser.sortFoldersFirst",
         "Sort Folders First",
         "If set, folders are sorted before connections in the connection overview.",
         "boolean",

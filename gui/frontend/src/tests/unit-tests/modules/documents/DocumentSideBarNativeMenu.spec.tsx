@@ -212,6 +212,56 @@ describe("DocumentSideBar native menus", () => {
         expect(refreshConnectionTreeEntryChildren).toHaveBeenCalledWith(mrsRoot, false, true);
     });
 
+    it("serializes routine invocation actions for procedure and function context menus", async () => {
+        const sideBar = createSideBar();
+        const { showNativeMenu } = installElectronHost();
+        renderNativeMenus(sideBar);
+        const menus = (sideBar as unknown as {
+            cdmTypeToMenuRefMap: Map<CdmEntityType, { current: Menu | null; }>;
+        }).cdmTypeToMenuRefMap;
+
+        const openMenu = async (type: CdmEntityType.StoredProcedure | CdmEntityType.StoredFunction) => {
+            const menu = menus.get(type)?.current;
+            expect(menu).toBeTruthy();
+            menu!.open(new DOMRect(12, 16, 2, 2), false, undefined, {
+                dataModelEntry: { type },
+            });
+            await nextRunLoop();
+
+            return showNativeMenu.mock.calls.at(-1)?.[0] as {
+                items: Array<{ label?: string; submenu?: Array<{ label?: string; }>; }>;
+            };
+        };
+
+        const procedureMenu = await openMenu(CdmEntityType.StoredProcedure);
+        const procedureInvocationMenus = procedureMenu.items.filter((item) => {
+            return item.label === "Copy to Clipboard" || item.label === "Send to SQL Editor";
+        });
+        expect(procedureInvocationMenus).toHaveLength(2);
+        for (const menu of procedureInvocationMenus) {
+            expect(menu.submenu?.map((item) => {
+                return item.label;
+            })).toContain("CALL Statement");
+            expect(menu.submenu?.map((item) => {
+                return item.label;
+            })).not.toContain("SELECT Statement");
+        }
+
+        const functionMenu = await openMenu(CdmEntityType.StoredFunction);
+        const functionInvocationMenus = functionMenu.items.filter((item) => {
+            return item.label === "Copy to Clipboard" || item.label === "Send to SQL Editor";
+        });
+        expect(functionInvocationMenus).toHaveLength(2);
+        for (const menu of functionInvocationMenus) {
+            expect(menu.submenu?.map((item) => {
+                return item.label;
+            })).toContain("Function Call");
+            expect(menu.submenu?.map((item) => {
+                return item.label;
+            })).not.toContain("SELECT Statement");
+        }
+    });
+
     it("filters hidden MySQL system schemas from the Electron schema tree", () => {
         const sideBar = createSideBar();
         const getSchemasTreeItems = (sideBar as unknown as {
@@ -284,10 +334,10 @@ describe("DocumentSideBar native menus", () => {
         typedSideBar.getActiveWorkspaceConnectionEntry = () => {
             return connection;
         };
-        typedSideBar.refreshConnectionEntry = vi.fn().mockImplementation(async () => {
+        typedSideBar.refreshConnectionEntry = vi.fn().mockImplementation(() => {
             expect(typedSideBar.schemaSearchLoadedConnectionId).toBeUndefined();
 
-            return true;
+            return Promise.resolve(true);
         });
         typedSideBar.loadSchemaSearchData = vi.fn().mockResolvedValue(undefined);
 

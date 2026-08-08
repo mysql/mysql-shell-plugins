@@ -1289,11 +1289,9 @@ const requestMigrationAssistantWindowCloseApproval = (browserWindow) => {
     });
 };
 
-const forwardThemeToRenderer = () => {
-    for (const browserWindow of privilegedRendererWindows) {
-        if (!browserWindow.isDestroyed()) {
-            sendHostMessage(browserWindow, "hostThemeChange", buildHostThemeData());
-        }
+const forwardThemeToMigrationAssistant = () => {
+    if (migrationAssistantWindow && !migrationAssistantWindow.isDestroyed()) {
+        sendHostMessage(migrationAssistantWindow, "hostThemeChange", buildHostThemeData());
     }
 };
 
@@ -1537,7 +1535,7 @@ const openMigrationAssistantWindow = (details, requesterWindow) => {
     requestMigrationAssistantWindowCloseApproval(browserWindow);
 
     browserWindow.webContents.on("did-finish-load", () => {
-        forwardThemeToRenderer();
+        forwardThemeToMigrationAssistant();
     });
 
     browserWindow.on("closed", () => {
@@ -1593,7 +1591,7 @@ const handleHostMessage = (browserWindow, message) => {
         }
 
         case "migrationAssistantMounted": {
-            forwardThemeToRenderer();
+            forwardThemeToMigrationAssistant();
             break;
         }
 
@@ -2038,7 +2036,6 @@ const createWindow = async () => {
 
     mainWindow.webContents.on("did-finish-load", () => {
         appendDesktopLog("window did-finish-load");
-        forwardThemeToRenderer();
         requestDesktopCommandState(mainWindow);
     });
 
@@ -2241,7 +2238,7 @@ app.whenReady().then(async () => {
     await createWindow();
 
     nativeTheme.on("updated", () => {
-        forwardThemeToRenderer();
+        forwardThemeToMigrationAssistant();
     });
 });
 

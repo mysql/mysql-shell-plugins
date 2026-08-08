@@ -26,9 +26,10 @@
 import { Component, ComponentChild, ComponentType } from "preact";
 import { lazy, Suspense } from "preact/compat";
 
+import mysqlConnectionIcon from "../assets/images/connectionMysql.svg";
 import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
 import { appParameters } from "../supplement/AppParameters.js";
-import { hasElectronHostBridge } from "../supplement/ElectronDesktop.js";
+import { hasElectronDesktopRuntime } from "../supplement/ElectronDesktop.js";
 
 const ApplicationHost = lazy(async () => {
     return import("./ApplicationHost.js");
@@ -51,6 +52,12 @@ export const LoadingIndicator = (
     />
 );
 
+export const StartupConnectionPlaceholder = (
+    <div className="startupConnectionPlaceholder">
+        <img src={mysqlConnectionIcon} alt="" />
+    </div>
+);
+
 let Root: ComponentType;
 if (new URLSearchParams(window.location.search).get("view") === "fileViewer") {
     Root = FileViewer;
@@ -71,7 +78,9 @@ if (new URLSearchParams(window.location.search).get("view") === "fileViewer") {
 export class LazyAppRouter extends Component {
     public override render(): ComponentChild {
         return (
-            <Suspense fallback={hasElectronHostBridge() ? null : LoadingIndicator}>
+            <Suspense fallback={hasElectronDesktopRuntime()
+                ? StartupConnectionPlaceholder
+                : LoadingIndicator}>
                 <Root />
             </Suspense>
         );

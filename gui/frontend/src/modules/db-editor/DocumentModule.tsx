@@ -1257,12 +1257,15 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
             const user = options.user;
             const port = options.socket ? undefined : options.port;
             const hostAndPort = host && Number.isFinite(port) ? `${host}:${port}` : host;
+            const tunnelLabel = details.useSSH || options.ssh
+                ? " (SSH)"
+                : details.useMHS || options["mysql-db-system-id"] ? " (Bastion)" : "";
 
             if (user && hostAndPort) {
-                return `${user}@${hostAndPort}`;
+                return `${user}@${hostAndPort}${tunnelLabel}`;
             }
 
-            return user ?? hostAndPort;
+            return (user ?? hostAndPort) + tunnelLabel;
         }
 
         return details.caption;

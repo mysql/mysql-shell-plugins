@@ -106,3 +106,9 @@
     margin: 0;
     min-width: 54px;
 }
+
+.msg.popup.uiExplainerPopup.bottom-start::before,
+.msg.popup.uiExplainerPopup.bottom::before,
+.msg.popup.uiExplainerPopup.bottom-end::before {
+    border-color: transparent transparent var(--dropdown-background) transparent;
+}

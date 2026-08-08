@@ -150,6 +150,23 @@
     flex: 0 0 auto;
 }
 
+.msg.dialog.valueEditDialog .choiceWithDescription {
+    gap: 12px;
+    width: 100%;
+}
+
+.msg.dialog.valueEditDialog .choiceWithDescription > .valueEditor {
+    flex: 0 1 260px;
+}
+
+.msg.dialog.valueEditDialog .choiceWithDescription > .choiceDescription {
+    margin-left: auto;
+    color: var(--descriptionForeground);
+    font-family: var(--msg-monospace-font-family);
+    font-size: 0.85em;
+    white-space: nowrap;
+}
+
 .msg.valueEditDialog textarea.valueEditor {
     min-height: 3em;
     line-height: 1.2em;

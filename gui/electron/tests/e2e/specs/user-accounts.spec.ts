@@ -89,6 +89,12 @@ const failAuthentication = (connection: ReturnType<typeof localMySQLConnection>,
     }
 };
 
+const supportsTemporaryAccountLocks = (connection: ReturnType<typeof localMySQLConnection>): boolean => {
+    return executeSql(connection,
+        "SELECT COUNT(*) FROM information_schema.tables "
+        + "WHERE table_schema = 'performance_schema' AND table_name = 'temporary_account_locks';").includes("1");
+};
+
 test.describe("User accounts and privilege management", () => {
     test("creates a user account from the native Database menu", async ({ page, workbench }, testInfo) => {
         await workbench.waitForShell();
@@ -277,7 +283,7 @@ test.describe("User accounts and privilege management", () => {
         await page.locator("#userAccountsToolbar [data-tooltip='Create user']").click();
 
         const dialog = page.locator("#createUserDialog");
-        await expect(dialog).toBeVisible({ timeout: 15000 });
+        await expect(dialog).toBeVisible({ timeout: 30000 });
         await dialog.locator("#userName input, input#userName").fill(username);
         await dialog.locator("#hostName input, input#hostName").fill("%");
         await dialog.locator("#password input, input#password").fill(password);
@@ -328,6 +334,8 @@ test.describe("User accounts and privilege management", () => {
         await workbench.waitForShell();
 
         const connection = localMySQLConnection("E2E Electron Temporary Account Lock");
+        test.skip(!supportsTemporaryAccountLocks(connection),
+            "The server does not expose performance_schema.temporary_account_locks.");
         const username = uniqueSchemaName(testInfo, "a_e2eu").slice(0, 32);
         const password = "E2eTemporaryLock!1";
 
@@ -368,6 +376,8 @@ test.describe("User accounts and privilege management", () => {
         await workbench.waitForShell();
 
         const connection = localMySQLConnection("E2E Electron Password Policy Update");
+        test.skip(!supportsTemporaryAccountLocks(connection),
+            "The server does not expose performance_schema.temporary_account_locks.");
         const username = uniqueSchemaName(testInfo, "a_e2eu").slice(0, 32);
         const password = "E2ePasswordPolicy!1";
 

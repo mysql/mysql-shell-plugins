@@ -96,6 +96,10 @@ describe("LegacyConfigurationImportPanel", () => {
         expect(screen.getByText("3 connections in 2 profiles")).toBeTruthy();
         expect(screen.getByText("1 project")).toBeTruthy();
         expect(screen.getByText("Review and Import…")).toBeTruthy();
+        expect(document.getElementById("legacyConfigurationImportPanel")?.classList)
+            .toContain("connectionBrowserPanel");
+        expect(document.getElementById("dismissLegacyConfigurationImportPanel")?.classList)
+            .toContain("connectionBrowserPanelCloseButton");
     });
 
     it("counts each Migration Assistant issue once", async () => {

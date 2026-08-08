@@ -2180,37 +2180,3 @@ def test_break_function_args_option():
     assert actual == expected
     assert_parseable_sql(actual)
     assert simple_token_list(source) == simple_token_list(actual)
-
-
-def test_init_wrapper_bootstraps_package_path_when_loaded_from_file(tmp_path):
-    repo_root = pathlib.Path(__file__).resolve().parents[2]
-    init_path = repo_root / "util_plugin" / "init.py"
-    config_home = tmp_path / "mysqlsh-home"
-    config_home.mkdir()
-
-    env = dict(os.environ)
-    env["HOME"] = str(config_home)
-    env["MYSQLSH_USER_CONFIG_HOME"] = str(config_home)
-
-    script = (
-        "import importlib.util, sys; "
-        f"root={str(repo_root)!r}; "
-        "sys.path=[p for p in sys.path if p != root]; "
-        f"spec=importlib.util.spec_from_file_location('util_init_direct_test', {str(init_path)!r}); "
-        "mod=importlib.util.module_from_spec(spec); "
-        "spec.loader.exec_module(mod); "
-        "print(mod.reformat_sql('select 1')); "
-        "print(mod.reformat_sql('select 1', keywordCase='preserve'))"
-    )
-
-    result = subprocess.run(
-        [mysqlsh.executable, "--disable-builtin-plugins", "--py", "-e", script],
-        cwd=repo_root,
-        env=env,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-
-    assert result.returncode == 0, result.stderr or result.stdout
-    assert result.stdout.splitlines() == ["SELECT 1", "select 1"]

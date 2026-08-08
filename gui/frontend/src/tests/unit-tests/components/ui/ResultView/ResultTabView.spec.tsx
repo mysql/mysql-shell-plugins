@@ -32,6 +32,7 @@ import { DBDataType, MessageType } from "../../../../../app-logic/general-types.
 import { IResultTabViewToggleOptions, ResultTabView } from "../../../../../components/ResultView/ResultTabView.js";
 import { defaultCellValue, isDefaultCellValue } from "../../../../../components/ResultView/ResultCellValue.js";
 import { IResultSet, IResultSets } from "../../../../../script-execution/index.js";
+import { Settings } from "../../../../../supplement/Settings/Settings.js";
 import * as helpers from "../../../../../utilities/helpers.js";
 import { createResultSet, nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
 
@@ -1844,12 +1845,56 @@ describe("Result Tabview Tests", (): void => {
         expect(portals[0].id).toBe("actionMenu");
 
         const items = portals[0].getElementsByClassName("menuItem");
-        expect(items).toHaveLength(4);
+        expect(items).toHaveLength(6);
 
         // TODO: check for the success of the activations, once action handling is implemented.
-        (items[2] as HTMLButtonElement).click();
-        (items[3] as HTMLButtonElement).click();
+        (items[4] as HTMLButtonElement).click();
+        (items[5] as HTMLButtonElement).click();
 
+        unmount();
+    });
+
+    it("toggles fixed width result text from the action menu and persists the setting", async () => {
+        Settings.set("editor.fixedWidthText", false);
+        const resultSets: IResultSets = {
+            type: "resultSets",
+            sets: [{
+                type: "resultSet",
+                sql: "select 1",
+                resultId: "123",
+                columns: [],
+                updatable: false,
+                fullTableName: "",
+                data: {
+                    rows: [],
+                    currentPage: 0,
+                    executionInfo: { text: "All fine" },
+                },
+            }],
+        };
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={resultSets}
+                contextId="ec123"
+                hideTabs="single"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        fireEvent.click(container.querySelector("#showActionMenu")!);
+        await nextProcessTick();
+
+        const menuItem = document.getElementById("toggleFixedWidthTextMenuItem")!;
+        expect(menuItem.textContent).toContain("Fixed width text");
+        expect(menuItem.querySelector(".icon")).toBeNull();
+        fireEvent.click(menuItem);
+
+        await nextRunLoop();
+        expect(Settings.get("editor.fixedWidthText", false)).toBe(true);
+        expect(container.querySelector(".resultHost")?.classList).toContain("fixedWidthText");
+
+        Settings.set("editor.fixedWidthText", false);
         unmount();
     });
 

@@ -1007,6 +1007,14 @@ export class SidebarCommandHandler {
                             break;
                         }
 
+                        case "msg.copyRoutineInvocationToClipboard":
+                        case "msg.copyRoutineInvocationToEditor": {
+                            const toClipboard = command.command === "msg.copyRoutineInvocationToClipboard";
+                            success = await this.handleCopyRoutineInvocation(
+                                entry, pageId, connectionInfo, toClipboard);
+                            break;
+                        }
+
                         case "msg.copyCreateStatementWithDelimitersToClipboard":
                         case "msg.copyCreateStatementWithDelimitersToEditor": {
                             const toClipboard = command.command
@@ -1732,6 +1740,60 @@ export class SidebarCommandHandler {
         }
 
         return success;
+    }
+
+    private async handleCopyRoutineInvocation(entry: ConnectionDataModelNoGroupEntry, pageId: string | undefined,
+        connectionInfo: IConnectionInfo, toClipboard: boolean): Promise<boolean> {
+        if (entry.type !== CdmEntityType.StoredProcedure && entry.type !== CdmEntityType.StoredFunction) {
+            return false;
+        }
+
+        const sql = await this.getRoutineInvocationStatement(entry);
+
+        if (toClipboard) {
+            requisitions.writeToClipboard(sql);
+            void ui.showInformationMessage("The routine invocation statement was copied to the system clipboard", {});
+
+            return true;
+        }
+
+        const connectionId = connectionInfo.connectionId;
+
+        return requisitions.execute("job", [
+            {
+                requestType: "showPage",
+                parameter: { connectionId, pageId, connectionInfo },
+            },
+            { requestType: "editorInsertText", parameter: sql },
+        ]);
+    }
+
+    private async getRoutineInvocationStatement(entry: ICdmRoutineEntry): Promise<string> {
+        const routineType = entry.type === CdmEntityType.StoredProcedure ? "PROCEDURE" : "FUNCTION";
+        const result = await entry.connection.backend.executeService(
+            `SELECT PARAMETER_NAME, PARAMETER_MODE
+               FROM information_schema.PARAMETERS
+              WHERE SPECIFIC_SCHEMA = ?
+                AND SPECIFIC_NAME = ?
+                AND ROUTINE_TYPE = ?
+                AND ORDINAL_POSITION > 0
+              ORDER BY ORDINAL_POSITION`,
+            [entry.schema, entry.caption, routineType],
+        );
+        const parameters = (result?.rows ?? []).map((row) => {
+            const name: unknown = Array.isArray(row) ? row[0] : undefined;
+            const mode: unknown = Array.isArray(row) ? row[1] : undefined;
+
+            if (typeof name !== "string") {
+                throw new Error("Failed to load routine parameter metadata.");
+            }
+
+            return mode === "OUT" || mode === "INOUT" ? `@${name}` : `<${name}>`;
+        });
+        const qualifiedName = quoteObjectName(entry.schema, entry.caption);
+        const invocation = `${qualifiedName}(${parameters.join(", ")});`;
+
+        return entry.type === CdmEntityType.StoredProcedure ? `CALL ${invocation}` : invocation;
     }
 
 }

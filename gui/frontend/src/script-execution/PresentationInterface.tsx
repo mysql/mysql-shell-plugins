@@ -122,8 +122,7 @@ export class PresentationInterface {
     // Each line gets a margin decoration with varying content, depending where the context is used
     // and other conditions.
     private marginDecorationIDs: string[] = [];
-    private markedLines = new Set<number>();
-    private markerClass = "";
+    private markedLines = new Map<number, string>();
 
     // Editor decorations
     private decorationIDs: string[] = [];
@@ -732,9 +731,8 @@ export class PresentationInterface {
         }
     }
 
-    public markLines(lines: Set<number>, cssClass: string): void {
+    public markLines(lines: Map<number, string>): void {
         this.markedLines = lines;
-        this.markerClass = cssClass;
 
         this.updateMarginDecorations();
     }
@@ -860,11 +858,7 @@ export class PresentationInterface {
     };
 
     protected getMarginClass(line: number): string {
-        if (this.markedLines.has(line)) {
-            return this.markerClass;
-        }
-
-        return "";
+        return this.markedLines.get(line) ?? "";
     }
 
     /**

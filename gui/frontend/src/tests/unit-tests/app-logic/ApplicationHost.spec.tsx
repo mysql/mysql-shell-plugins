@@ -163,7 +163,7 @@ describe("Application host tests", () => {
         unmount();
     });
 
-    it("renders Workbench Preferences once inside the document workspace", async () => {
+    it("renders Workbench Preferences once in a modal dialog", async () => {
         Object.defineProperty(window, "electronHost", {
             configurable: true,
             value: {
@@ -179,9 +179,10 @@ describe("Application host tests", () => {
         await nextRunLoop();
         await requisitions.execute("showPreferences", undefined);
 
-        const settingsEditors = container.querySelectorAll(".settingsEditor");
+        const settingsEditors = document.querySelectorAll(".settingsEditor");
         expect(settingsEditors).toHaveLength(1);
-        expect(container.querySelector("#dbModuleTabHost .settingsEditor")).toBe(settingsEditors[0]);
+        expect(document.querySelector("#settingsDialog .settingsEditor")).toBe(settingsEditors[0]);
+        expect(container.querySelector("#dbModuleTabHost .settingsEditor")).toBeNull();
 
         unmount();
     });
@@ -195,7 +196,7 @@ describe("Application host tests", () => {
         });
 
         const hostRef = createRef<ApplicationHost>();
-        const { container, unmount } = render(
+        const { unmount } = render(
             <ApplicationHost ref={hostRef} />,
         );
 
@@ -206,7 +207,7 @@ describe("Application host tests", () => {
         expect(hostRef.current!.state.settingsVisible).toBe(true);
 
         void act(() => {
-            fireEvent.click(container.querySelector("#settingsBackButton")!);
+            fireEvent.click(document.querySelector("#settingsBackButton")!);
         });
 
         expect(hostRef.current!.state).toMatchObject({

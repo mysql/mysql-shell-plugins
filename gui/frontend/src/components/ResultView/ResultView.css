@@ -182,7 +182,12 @@
 
 .msg.resultHost .resultView .tabulator {
     flex: 1 1 auto;
+    font-family: var(--msg-standard-font-family);
     font-size: 12px;
+}
+
+.msg.resultHost.fixedWidthText .resultView .tabulator {
+    font-family: var(--msg-monospace-font-family);
 }
 
 .msg.resultHost .resultView .tabulator-tableholder {
@@ -522,14 +527,6 @@
     flex: 0 0 18px;
     width: 18px;
     height: 18px;
-}
-
-.msg.resultHost .resultStatus .toolbar>.button:not(.disabled)>.icon:not(.codicon) {
-    background-color: var(--button-defaultForeground);
-}
-
-.msg.resultHost .resultStatus .toolbar>.button:not(.disabled)>.icon.codicon {
-    color: var(--button-defaultForeground);
 }
 
 .msg.resultHost .resultStatus .toolbar .button>.icon.codicon,

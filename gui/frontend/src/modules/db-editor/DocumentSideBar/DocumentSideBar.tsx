@@ -1229,7 +1229,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         entry: ICdmConnectionEntry | ICdmConnectionGroupEntry,
     ): IConnectionTreeItem => {
         if (entry.type === CdmEntityType.ConnectionGroup) {
-            const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+            const foldersFirst = Settings.get("connectionBrowser.sortFoldersFirst", true);
             const childEntries = Array.from(entry.entries);
             if (foldersFirst) {
                 this.sortConnectionGroupItems(childEntries);
@@ -1251,7 +1251,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     private getHomeConnectionTreeItems = (
         entries: Array<ICdmConnectionEntry | ICdmConnectionGroupEntry>,
     ): IConnectionTreeItem[] => {
-        const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+        const foldersFirst = Settings.get("connectionBrowser.sortFoldersFirst", true);
         const sortedEntries = Array.from(entries);
         if (foldersFirst) {
             this.sortConnectionGroupItems(sortedEntries);
@@ -1538,10 +1538,20 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             );
         };
 
-        const copyToClipboardRoutineMenuItems = () => {
+        const copyToClipboardRoutineMenuItems = (routineType: CdmEntityType.StoredProcedure
+            | CdmEntityType.StoredFunction) => {
+            const isProcedure = routineType === CdmEntityType.StoredProcedure;
+
             return (
                 <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
                     <MenuItem key="copy-name" command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
+                    <MenuItem
+                        key="copy-routine-invocation"
+                        command={{
+                            title: isProcedure ? "CALL Statement" : "Function Call",
+                            command: "msg.copyRoutineInvocationToClipboard",
+                        }}
+                    />
                     <MenuItem key="copy-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToClipboard" }} />
                     <MenuItem key="copy-create-with-delimiters" command={{ title: "CREATE Statement With DELIMITERs", command: "msg.copyCreateStatementWithDelimitersToClipboard" }} />
                     <MenuItem key="copy-drop-create-with-delimiters" command={{ title: "DROP & CREATE Statement With DELIMITERs", command: "msg.copyDropCreateStatementWithDelimitersToClipboard" }} />
@@ -1549,10 +1559,20 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             );
         };
 
-        const sendToEditorRoutineMenuItems = () => {
+        const sendToEditorRoutineMenuItems = (routineType: CdmEntityType.StoredProcedure
+            | CdmEntityType.StoredFunction) => {
+            const isProcedure = routineType === CdmEntityType.StoredProcedure;
+
             return (
                 <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
                     <MenuItem key="send-name" command={{ title: "Name", command: "msg.copyNameToEditor" }} />
+                    <MenuItem
+                        key="send-routine-invocation"
+                        command={{
+                            title: isProcedure ? "CALL Statement" : "Function Call",
+                            command: "msg.copyRoutineInvocationToEditor",
+                        }}
+                    />
                     <MenuItem key="send-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToEditor" }} />
                     <MenuItem key="send-create-with-delimiters" command={{ title: "CREATE Statement With DELIMITERs", command: "msg.copyCreateStatementWithDelimitersToEditor" }} />
                     <MenuItem key="send-drop-create-with-delimiters" command={{ title: "DROP & CREATE Statement With DELIMITERs", command: "msg.copyDropCreateStatementWithDelimitersToEditor" }} />
@@ -1771,8 +1791,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 >
                     <MenuItem command={{ title: "Edit Stored Routine...", command: "msg.editRoutine" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    {copyToClipboardRoutineMenuItems()}
-                    {sendToEditorRoutineMenuItems()}
+                    {copyToClipboardRoutineMenuItems(CdmEntityType.StoredProcedure)}
+                    {sendToEditorRoutineMenuItems(CdmEntityType.StoredProcedure)}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
@@ -1800,8 +1820,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 >
                     <MenuItem command={{ title: "Edit Stored Routine...", command: "msg.editRoutine" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    {copyToClipboardRoutineMenuItems()}
-                    {sendToEditorRoutineMenuItems()}
+                    {copyToClipboardRoutineMenuItems(CdmEntityType.StoredFunction)}
+                    {sendToEditorRoutineMenuItems(CdmEntityType.StoredFunction)}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
@@ -1829,8 +1849,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 >
                     <MenuItem command={{ title: "Edit Library...", command: "msg.editRoutine" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    {copyToClipboardRoutineMenuItems()}
-                    {sendToEditorRoutineMenuItems()}
+                    {copyToClipboardMenuItems()}
+                    {sendToEditorMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Drop Library ...", command: "msg.dropDbEntity" }} />
                 </Menu >
@@ -4500,7 +4520,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             switch (entry.type) {
                 case CdmEntityType.ConnectionGroup: {
                     if (data.dataModelEntry.state.expandedOnce) {
-                        const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+                        const foldersFirst = Settings.get("connectionBrowser.sortFoldersFirst", true);
                         if (foldersFirst) {
                             const sorted = Array.from(children ?? []);
                             this.sortConnectionGroupItems(sorted);
@@ -4971,7 +4991,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
             const { treeItems } = this.state;
 
-            const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+            const foldersFirst = Settings.get("connectionBrowser.sortFoldersFirst", true);
             if (foldersFirst) {
                 const sortedItems = Array.from(treeItems.connectionTreeItems);
                 this.sortConnectionTreeItems(sortedItems);
@@ -4989,7 +5009,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     }
 
     private handleSettingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
-        if (entry?.key === "dbEditor.connectionBrowser.sortFoldersFirst") {
+        if (entry?.key === "connectionBrowser.sortFoldersFirst") {
             void this.updateConnectionTreeItems();
 
             return Promise.resolve(true);

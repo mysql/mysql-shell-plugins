@@ -81,6 +81,10 @@ export class SQLExecutionContext extends ExecutionContext {
 
     private runtimeErrorDecorations: string[] | undefined;
 
+    private executionErrorDecorations: string[] = [];
+
+    private executionErrorStatements = new Set<number>();
+
     private runtimeErrorData: IRuntimeErrorData | undefined;
 
     // A signal that is set when the splitter is currently running. Can be awaited to wait for the splitter to finish.
@@ -128,6 +132,7 @@ export class SQLExecutionContext extends ExecutionContext {
             this.#validationTimer = null;
         }
 
+        this.clearExecutionErrors();
         super.dispose();
 
         this.splittingFinished();
@@ -347,10 +352,10 @@ export class SQLExecutionContext extends ExecutionContext {
             let index = -1;
             while (++index < this.statementDetails.length) {
                 const details = this.statementDetails[index];
-                if (details.span.start + details.span.length < startOffset) {
+                if (details.span.start + details.span.length <= startOffset) {
                     continue;
                 }
-                if (details.span.start > endOffset) {
+                if (details.span.start >= endOffset) {
                     break;
                 }
                 indices.push(index);
@@ -599,6 +604,56 @@ export class SQLExecutionContext extends ExecutionContext {
         if (this.runtimeErrorDecorations) {
             editorModel?.deltaDecorations(this.runtimeErrorDecorations, []);
         }
+    }
+
+    /**
+     * Marks a statement that failed during execution.
+     *
+     * @param statementIndex The index of the failed statement.
+     */
+    public markExecutionError(statementIndex: number): void {
+        const editorModel = this.presentation.backend?.getModel();
+        const details = this.statementDetails[statementIndex];
+        if (!editorModel) {
+            return;
+        }
+
+        const start = editorModel.getPositionAt(details.contentStart + this.presentation.codeOffset);
+        let endOffset = details.span.start + details.span.length;
+        if (details.state === StatementFinishState.Complete) {
+            endOffset -= details.delimiter!.length;
+        }
+        const end = editorModel.getPositionAt(endOffset + this.presentation.codeOffset);
+        const decorationIds = editorModel.deltaDecorations([], [{
+            range: {
+                startLineNumber: start.lineNumber,
+                startColumn: start.column,
+                endLineNumber: end.lineNumber,
+                endColumn: end.column,
+            },
+            options: {
+                stickiness: Monaco.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                inlineClassName: "executionError",
+                minimap: {
+                    position: Monaco.MinimapPosition.Inline,
+                    color: "red",
+                },
+            },
+        }]);
+        this.executionErrorDecorations.push(...decorationIds);
+        this.executionErrorStatements.add(statementIndex);
+        this.updateLineStartMarkers();
+    }
+
+    /** Clears all execution-error decorations. */
+    public clearExecutionErrors(): void {
+        const editorModel = this.presentation.backend?.getModel();
+        if (editorModel && this.executionErrorDecorations.length > 0) {
+            editorModel.deltaDecorations(this.executionErrorDecorations, []);
+        }
+        this.executionErrorDecorations = [];
+        this.executionErrorStatements.clear();
+        this.updateLineStartMarkers();
     }
 
     /**
@@ -1005,18 +1060,19 @@ export class SQLExecutionContext extends ExecutionContext {
             const model = this.model;
 
             if (model) {
-                const lines = new Set<number>();
+                const lines = new Map<number, string>();
                 const count = model.getLineCount();
-                this.statementDetails.forEach((details: IStatementDetails) => {
+                this.statementDetails.forEach((details: IStatementDetails, index) => {
                     if (details.contentStart >= details.span.start) {
                         // Only mark lines with content.
                         const position = model.getPositionAt(details.contentStart);
                         if (position.lineNumber <= count) {
-                            lines.add(position.lineNumber);
+                            lines.set(position.lineNumber,
+                                this.executionErrorStatements.has(index) ? "statementError" : "statementStart");
                         }
                     }
                 });
-                this.presentation.markLines(lines, "statementStart");
+                this.presentation.markLines(lines);
             }
         }
     }

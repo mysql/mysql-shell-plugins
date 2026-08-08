@@ -31,6 +31,19 @@
     background: var(--background);
 }
 
+.msg.dialog.settingsDialog {
+    width: min(1100px, 90vw);
+    height: min(760px, 90vh);
+}
+
+.msg.dialog.settingsDialog > .content {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    white-space: normal;
+}
+
 .msg.settingsEditor .button.imageOnly {
     width: 24px;
     height: 24px;

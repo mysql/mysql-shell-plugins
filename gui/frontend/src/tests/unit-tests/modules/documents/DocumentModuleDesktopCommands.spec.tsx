@@ -1029,6 +1029,20 @@ describe("Document module desktop commands", () => {
         })).toBe("shell@db.internal");
     });
 
+    it("identifies SSH and Bastion tunnels in desktop status area targets", () => {
+        const module = new TestDocumentModule({});
+        const formatTarget = (module as unknown as {
+            formatConnectionWorkspaceTarget: (details: IConnectionDetails) => string | undefined;
+        }).formatConnectionWorkspaceTarget;
+
+        const tunneledConnection = {
+            ...connectionDetails,
+            options: { ...connectionDetails.options, port: 3306 },
+        };
+        expect(formatTarget({ ...tunneledConnection, useSSH: true })).toBe("shell@db.internal:3306 (SSH)");
+        expect(formatTarget({ ...tunneledConnection, useMHS: true })).toBe("shell@db.internal:3306 (Bastion)");
+    });
+
     it("backfills the desktop status area versionComment from the live MySQL session when it is missing", async () => {
         Object.defineProperty(window, "electronHost", {
             configurable: true,

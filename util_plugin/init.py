@@ -21,55 +21,10 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import importlib
-import importlib.util
-import sys
-from pathlib import Path
 from typing import Union
 from mysqlsh.plugin_manager import plugin, plugin_function
 
-
-def _ensure_plugin_package_path() -> None:
-    # mysqlsh can load this plugin entrypoint directly from its file path,
-    # without putting the repository root on sys.path.
-    plugin_parent = str(Path(__file__).resolve().parent.parent)
-    if plugin_parent not in sys.path:
-        sys.path.insert(0, plugin_parent)
-
-
-_ensure_plugin_package_path()
-
-
-def _bootstrap_plugin_package() -> None:
-    package_name = "util_plugin"
-    if package_name in sys.modules:
-        return
-
-    package_dir = Path(__file__).resolve().parent
-    spec = importlib.util.spec_from_file_location(
-        package_name,
-        package_dir / "__init__.py",
-        submodule_search_locations=[str(package_dir)],
-    )
-    if spec is None or spec.loader is None:
-        raise ModuleNotFoundError(f"Unable to bootstrap package {package_name!r}.")
-
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[package_name] = module
-    spec.loader.exec_module(module)
-
-
-def _import_plugin_module(module_name: str):
-    full_name = f"util_plugin.{module_name}"
-    try:
-        return importlib.import_module(full_name)
-    except ModuleNotFoundError as exc:
-        if exc.name not in {"util_plugin", full_name} and not str(exc.name).startswith(
-            "util_plugin."
-        ):
-            raise
-        _bootstrap_plugin_package()
-        return importlib.import_module(full_name)
+from util_plugin.sql import exported as sql_exported
 
 
 @plugin(parent="util")
@@ -114,7 +69,7 @@ def render_explain_plan(plan: Union[str, dict], path: str, **kwargs):
         debug (int): show debug information (default 0)
     """
 
-    visual_exported = _import_plugin_module("visual.exported")
+    from util_plugin.visual import exported as visual_exported
 
     return visual_exported.render_explain_plan(plan, path, **kwargs)
 
@@ -147,7 +102,7 @@ def do_explain(sql: str, path: str, **kwargs):
         debug (bool): show debug information
     """
 
-    visual_exported = _import_plugin_module("visual.exported")
+    from util_plugin.visual import exported as visual_exported
 
     return visual_exported.do_explain(sql, path, **kwargs)
 
@@ -171,8 +126,6 @@ def reformat_sql(sql: str, **kwargs):
         ansiQuotes (bool): interpret double quotes using ANSI_QUOTES parser rules
         noBackslashEscapes (bool): interpret strings using NO_BACKSLASH_ESCAPES rules
     """
-
-    sql_exported = _import_plugin_module("sql.exported")
 
     return sql_exported.reformat_sql(
         sql,

@@ -596,6 +596,9 @@ export class ElectronWorkbench {
         for (const [columnTitle, value] of Object.entries(values)) {
             const cell = await this.resultGridCell(-1, columnTitle);
             await expect(cell).toBeVisible({ timeout: 15000 });
+            await expect.poll(async () => {
+                return (await cell.getAttribute("class"))?.includes("tabulator-editable") ?? false;
+            }, { timeout: 15000 }).toBe(true);
             await cell.evaluate((element: HTMLElement) => {
                 element.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
             });

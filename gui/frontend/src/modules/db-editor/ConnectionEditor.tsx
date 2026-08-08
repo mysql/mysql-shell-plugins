@@ -62,6 +62,28 @@ import { DocumentContext, type DocumentContextType } from "./index.js";
 
 const editorHeading = "Database Connection Configuration";
 const globalDefaultEditor = "Default";
+const mysqlSocketProtocol = "mysql (socket/pipe)";
+const mysqlSshTunnelMethod = "mysql + SSH tunnel";
+const mysqlBastionMethod = "mysql + OCI Bastion";
+
+const connectionMethodDiagram = (method: string): string => {
+    switch (method) {
+        case mysqlSocketProtocol:
+            return "Workbench  ── socket ──▻  MySQL";
+
+        case mysqlSshTunnelMethod:
+            return "Workbench  ───▻  SSH Host  ───▻  MySQL";
+
+        case mysqlBastionMethod:
+            return "Workbench  ───▻  Bastion  ───▻  MySQL";
+
+        case String(MySQLConnectionScheme.MySQLx):
+            return "Workbench  ── tcp/X protocol ──▻  MySQL";
+
+        default:
+            return "Workbench  ── tcp ──▻  MySQL";
+    }
+};
 
 interface ILiveUpdateField {
     value: string;
@@ -163,6 +185,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     onValidate={this.validateConnectionValues}
                     onClose={this.handleOptionsDialogClose}
                     onSelectTab={this.handleTabSelect}
+                    advancedActionCaption="Test Connection"
+                    advancedAction={(values) => {
+                        void this.testConnection(values);
+                    }}
                     customFooter={customFooter}
                 />
                 <ValueEditDialog
@@ -207,10 +233,12 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         this.liveUpdateFields.dbSystemId = "";
 
         // Initializes useMDS/useSSH to have the tabs be shown or hidden based on the saved connection options.
+        const usesSocket = details?.dbType === DBType.MySQL &&
+            (details.options as IMySQLConnectionOptions).socket !== undefined;
         if (details?.dbType === DBType.MySQL) {
             const optionsMySQL = details.options as IMySQLConnectionOptions;
-            details.useMHS = optionsMySQL["mysql-db-system-id"] !== undefined;
-            details.useSSH = optionsMySQL.ssh !== undefined;
+            details.useSSH = !usesSocket && optionsMySQL.ssh !== undefined;
+            details.useMHS = !usesSocket && !details.useSSH && optionsMySQL["mysql-db-system-id"] !== undefined;
         }
 
         if (this.editorRef.current) {
@@ -221,13 +249,13 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             const mysqlDbSystemId = (details && "mysql-db-system-id" in details.options)
                 ? details.options["mysql-db-system-id"] as string : undefined;
 
-            if (bastionId && profileName && mysqlDbSystemId) {
+            if (!usesSocket && bastionId && profileName && mysqlDbSystemId) {
                 // We have bastion id and mds database id.
                 this.liveUpdateFields.profileName = profileName;
                 this.liveUpdateFields.bastionId.value = bastionId;
                 this.liveUpdateFields.dbSystemId = mysqlDbSystemId;
                 this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, currentPath, details);
-            } else if (details && !bastionId && profileName && mysqlDbSystemId) {
+            } else if (!usesSocket && details && !bastionId && profileName && mysqlDbSystemId) {
                 let compartmentId = "";
                 if ("compartment-id" in details.options) {
                     compartmentId = details.options["compartment-id"] as string;
@@ -290,22 +318,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         const informationSection = values.sections.get("information")!.values;
         const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
 
-        //const sqliteAdvancedSection = values.sections.get("sqliteAdvanced")!.values;
         const mysqlDetailsSection = values.sections.get("mysqlDetails")!.values;
-
-        //const mysqlSsSection = values.sections.get("ssl")!.values;
         const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
-
-        //const mysqlSshSection = values.sections.get("ssh")!.values;
-
-        /*if (mysqlDetailsSection.useMDS.value as boolean === false) {
-            mysqlSshSection.sshPublicKeyFile.options = [DialogValueOption.Disabled];
-            this.tmpShPublicKeyFile = mysqlSshSection.sshPublicKeyFile.value as string;
-            mysqlSshSection.sshPublicKeyFile.value = "";
-        } else {
-            mysqlSshSection.sshPublicKeyFile.options = [DialogValueOption.Resource];
-            mysqlSshSection.sshPublicKeyFile.value = this.tmpShPublicKeyFile;
-        }*/
 
         const isSqlite = generalSection.databaseType.value === "Sqlite";
         const isMySQL = generalSection.databaseType.value === "MySQL";
@@ -355,9 +369,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 }
             }
         } else if (isMySQL) {
+            const isSocketConnection = mysqlDetailsSection.scheme.value === mysqlSocketProtocol;
             if (closing) {
                 const host = mysqlDetailsSection.hostName.value as string;
-                if (!host || host.length === 0) {
+                if (!isSocketConnection && (!host || host.length === 0)) {
                     result.messages.hostName = "Specify a valid host name or IP address";
                 }
 
@@ -394,7 +409,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
             const sqliteAdvancedSection = values.sections.get("sqliteAdvanced")!.values;
             const mysqlDetailsSection = values.sections.get("mysqlDetails")!.values;
-            const mdsAdvancedSection = values.sections.get("mdsAdvanced")!.values;
+            const mdsBastionSection = values.sections.get("mdsBastion")!.values;
             const mysqlSshSection = values.sections.get("ssh")!.values;
             const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
             const mysqlSslSection = values.sections.get("ssl")!.values;
@@ -402,6 +417,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
             const isSqlite = generalSection.databaseType.value === "Sqlite";
             const isMySQL = generalSection.databaseType.value === "MySQL";
+            const mysqlConnectionMethod = mysqlDetailsSection.scheme.value as string;
+            const isSocketConnection = isMySQL && mysqlConnectionMethod === mysqlSocketProtocol;
+            const useSSH = isMySQL && mysqlConnectionMethod === mysqlSshTunnelMethod;
+            const useMHS = isMySQL && mysqlConnectionMethod === mysqlBastionMethod;
 
             let details: IConnectionDetails | undefined = data?.details as IConnectionDetails | undefined;
             const dbType = generalSection.databaseType.value as DBType; // value must be a string.
@@ -434,8 +453,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
             if (details) {
                 details.dbType = dbType;
-                details.useMHS = mysqlDetailsSection.useMDS.value as boolean;
-                details.useSSH = mysqlDetailsSection.useSSH.value as boolean;
+                details.useMHS = useMHS;
+                details.useSSH = useSSH;
                 details.caption = informationSection.caption.value as string;
                 details.description = informationSection.description.value as string;
 
@@ -452,13 +471,13 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         sshKeyFile = mysqlSshSection.sshKeyFile.value;
                     }
 
-                    if (details.useMHS && mdsAdvancedSection.sshKeyFile.value !== "") {
-                        sshKeyFile = mdsAdvancedSection.sshKeyFile.value;
+                    if (details.useMHS && mdsBastionSection.sshKeyFile.value !== "") {
+                        sshKeyFile = mdsBastionSection.sshKeyFile.value;
                     }
 
                     let sshKeyFilePublic;
-                    if (details.useMHS && mdsAdvancedSection.sshPublicKeyFile.value !== "") {
-                        sshKeyFilePublic = mdsAdvancedSection.sshPublicKeyFile.value;
+                    if (details.useMHS && mdsBastionSection.sshPublicKeyFile.value !== "") {
+                        sshKeyFilePublic = mdsBastionSection.sshPublicKeyFile.value;
                     }
 
                     const useSsl = mysqlSslSection.sslMode.value !== MySQLSslMode.Disabled;
@@ -474,11 +493,13 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     const compressionAlgorithms = Array.isArray(mysqlAdvancedSection.compressionAlgorithms.value)
                         ? mysqlAdvancedSection.compressionAlgorithms.value.join(",")
                         : undefined;
-
                     details.options = {
-                        "scheme": mysqlDetailsSection.scheme.value as MySQLConnectionScheme,
+                        "scheme": isSocketConnection || useSSH || useMHS ? MySQLConnectionScheme.MySQL
+                            : mysqlDetailsSection.scheme.value as MySQLConnectionScheme,
                         "host": mysqlDetailsSection.hostName.value as string,
-                        "port": mysqlDetailsSection.port.value as number,
+                        "port": isSocketConnection ? undefined : mysqlDetailsSection.port.value as number,
+                        "socket": isSocketConnection ? mysqlDetailsSection.port.value as string || undefined
+                            : undefined,
                         "user": mysqlDetailsSection.userName.value as string,
                         "schema": mysqlDetailsSection.defaultSchema.value as string,
 
@@ -505,10 +526,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                             ? mysqlSshSection.sshConfigFilePath.value as string
                             : undefined,
                         "ssh-public-identity-file": sshKeyFilePublic as string,
-                        "profile-name": details.useMHS ? mdsAdvancedSection.profileName.value as string : undefined,
-                        "bastion-id": details.useMHS ? mdsAdvancedSection.bastionId.value as string : undefined,
+                        "profile-name": details.useMHS ? mdsBastionSection.profileName.value as string : undefined,
+                        "bastion-id": details.useMHS ? mdsBastionSection.bastionId.value as string : undefined,
                         "mysql-db-system-id": details.useMHS
-                            ? mdsAdvancedSection.mysqlDbSystemId.value as string : undefined,
+                            ? mdsBastionSection.mysqlDbSystemId.value as string : undefined,
                         "disable-heat-wave-check": mysqlAdvancedSection.disableHeatwaveCheck.value as boolean,
                         "extra-options": mysqlAdvancedSection.extraOptions.value as string,
                         /* eslint-enabled @typescript-eslint/naming-convention */
@@ -539,6 +560,140 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     onUpdateConnection(details);
                 }
             }
+        }
+    };
+
+    private testConnection = async (values: IDialogValues): Promise<void> => {
+        const generalSection = values.sections.get("general")!.values;
+        const informationSection = values.sections.get("information")!.values;
+        const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
+        const sqliteAdvancedSection = values.sections.get("sqliteAdvanced")!.values;
+        const mysqlDetailsSection = values.sections.get("mysqlDetails")!.values;
+        const mdsBastionSection = values.sections.get("mdsBastion")!.values;
+        const mysqlSshSection = values.sections.get("ssh")!.values;
+        const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
+        const mysqlSslSection = values.sections.get("ssl")!.values;
+        const dbType = generalSection.databaseType.value as DBType;
+        const mysqlConnectionMethod = mysqlDetailsSection.scheme.value as string;
+        const isSocketConnection = mysqlConnectionMethod === mysqlSocketProtocol;
+        const useSSH = mysqlConnectionMethod === mysqlSshTunnelMethod;
+        const useMHS = mysqlConnectionMethod === mysqlBastionMethod;
+
+        if (dbType === DBType.MySQL) {
+            const user = mysqlDetailsSection.userName.value as string;
+            const host = mysqlDetailsSection.hostName.value as string;
+            if (!user || (!isSocketConnection && !host)) {
+                void ui.showErrorMessage("User and connection endpoint are required.", {});
+
+                return;
+            }
+
+            if (useSSH && !mysqlSshSection.ssh.value) {
+                void ui.showErrorMessage("SSH URI is required.", {});
+
+                return;
+            }
+        }
+
+        let options: IMySQLConnectionOptions | ISqliteConnectionOptions;
+        if (dbType === DBType.Sqlite) {
+            options = {
+                dbFile: sqliteDetailsSection.dbFilePath.value as string,
+                dbName: "",
+                otherParameters: sqliteAdvancedSection.otherParameters.value,
+            } as ISqliteConnectionOptions;
+        } else {
+            const useSsl = mysqlSslSection.sslMode.value !== MySQLSslMode.Disabled;
+            let sslMode: MySQLSslMode | undefined;
+            if (useSsl) {
+                ConnectionEditor.#mysqlSslModeMap.forEach((value: string, key: MySQLSslMode) => {
+                    if (value === mysqlSslSection.sslMode.value) {
+                        sslMode = key;
+                    }
+                });
+            }
+
+            const sshKeyFile = useMHS
+                ? mdsBastionSection.sshKeyFile.value
+                : (useSSH ? mysqlSshSection.sshKeyFile.value : undefined);
+            const compressionAlgorithms = Array.isArray(mysqlAdvancedSection.compressionAlgorithms.value)
+                ? mysqlAdvancedSection.compressionAlgorithms.value.join(",")
+                : undefined;
+            options = {
+                scheme: isSocketConnection || useSSH || useMHS ? MySQLConnectionScheme.MySQL
+                    : mysqlDetailsSection.scheme.value as MySQLConnectionScheme,
+                host: mysqlDetailsSection.hostName.value as string,
+                port: isSocketConnection ? undefined : mysqlDetailsSection.port.value as number,
+                socket: isSocketConnection ? mysqlDetailsSection.port.value as string || undefined : undefined,
+                user: mysqlDetailsSection.userName.value as string,
+                schema: mysqlDetailsSection.defaultSchema.value as string,
+                "ssl-mode": sslMode,
+                "ssl-ca": mysqlSslSection.sslCaFile.value as string,
+                "ssl-cert": mysqlSslSection.sslCertFile.value as string,
+                "ssl-key": mysqlSslSection.sslKeyFile.value as string,
+                "ssl-cipher": mysqlSslSection.sslCipher.value as string,
+                compression: mysqlAdvancedSection.compression.value !== ""
+                    ? mysqlAdvancedSection.compression.value as MySQLConnCompression : undefined,
+                "compression-algorithms": compressionAlgorithms,
+                "compression-level": mysqlAdvancedSection.compressionLevel.value as number,
+                "connect-timeout": mysqlAdvancedSection.timeout.value as number,
+                ssh: useSSH ? mysqlSshSection.ssh.value as string : undefined,
+                "ssh-identity-file": sshKeyFile as string,
+                "ssh-config-file": useSSH ? mysqlSshSection.sshConfigFilePath.value as string : undefined,
+                "ssh-public-identity-file": useMHS
+                    ? mdsBastionSection.sshPublicKeyFile.value as string : undefined,
+                "profile-name": useMHS ? mdsBastionSection.profileName.value as string : undefined,
+                "bastion-id": useMHS ? mdsBastionSection.bastionId.value as string : undefined,
+                "mysql-db-system-id": useMHS ? mdsBastionSection.mysqlDbSystemId.value as string : undefined,
+                "disable-heat-wave-check": mysqlAdvancedSection.disableHeatwaveCheck.value as boolean,
+                "extra-options": mysqlAdvancedSection.extraOptions.value as Record<string, string>,
+            };
+        }
+
+        const details: IConnectionDetails = {
+            id: 0,
+            dbType,
+            caption: informationSection.caption.value as string,
+            description: informationSection.description.value as string,
+            useSSH,
+            useMHS,
+            options,
+            index: -1,
+        };
+
+        if (dbType === DBType.Sqlite) {
+            try {
+                await ShellInterface.dbConnections.testConnection(details);
+                void ui.showInformationMessage("Connection test succeeded.", {});
+            } catch (reason) {
+                void ui.showErrorMessage(`Connection Error: ${convertErrorToString(reason)}`, {});
+            }
+
+            return;
+        }
+
+        const mysqlOptions = options as IMySQLConnectionOptions;
+        const connectionTarget = mysqlOptions.port
+            ? `${mysqlOptions.host}:${mysqlOptions.port}`
+            : `localhost${mysqlOptions.socket ? ":" + mysqlOptions.socket : ""}`;
+        const service = useSSH
+            ? `${connectionTarget} (via SSH ${mysqlOptions.ssh})`
+            : `${mysqlOptions.user}@${connectionTarget}`;
+        const password = await ui.requestPassword({
+            requestId: "testConnection",
+            caption: "Test Connection",
+            service,
+            user: mysqlOptions.user,
+        });
+        if (password === undefined) {
+            return;
+        }
+
+        try {
+            await ShellInterface.dbConnections.testConnection(details, password);
+            void ui.showInformationMessage("Connection test succeeded.", {});
+        } catch (reason) {
+            void ui.showErrorMessage(`Connection Error: ${convertErrorToString(reason)}`, {});
         }
     };
 
@@ -640,6 +795,25 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 host: "localhost",
             };
         }
+
+        const selectedMySQLMethod = optionsMySQL.socket !== undefined
+            ? mysqlSocketProtocol
+            : details.useSSH ? mysqlSshTunnelMethod
+                : details.useMHS ? mysqlBastionMethod
+                    : optionsMySQL.scheme;
+        const usesMySQLSocket = selectedMySQLMethod === mysqlSocketProtocol;
+        const mysqlEndpointValue = usesMySQLSocket ? {
+            type: "text" as const,
+            caption: "Socket Path",
+            value: optionsMySQL.socket,
+            placeholder: "Default",
+            horizontalSpan: 8,
+        } : {
+            type: "number" as const,
+            caption: "Port",
+            value: optionsMySQL.port ?? (optionsMySQL.scheme === MySQLConnectionScheme.MySQLx ? 33060 : 3306),
+            horizontalSpan: 4,
+        };
 
         const informationSection: IDialogSection = {
             values: {
@@ -763,25 +937,87 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             caption: "Basic",
             groupName: "group1",
             values: {
+                scheme: {
+                    type: "choice",
+                    caption: "Connection Method",
+                    value: selectedMySQLMethod,
+                    trailingDescription: connectionMethodDiagram(selectedMySQLMethod),
+                    choices: [
+                        MySQLConnectionScheme.MySQL,
+                        mysqlSocketProtocol,
+                        mysqlSshTunnelMethod,
+                        mysqlBastionMethod,
+                        MySQLConnectionScheme.MySQLx,
+                    ],
+                    onChange: (method: string, dialog: ValueEditDialog): void => {
+                        const selectedScheme = method as MySQLConnectionScheme;
+                        const values = dialog.getDialogValues();
+                        const mysqlDetails = values.sections.get("mysqlDetails");
+                        const connectionMethod = mysqlDetails?.values.scheme;
+                        const endpoint = mysqlDetails?.values.port;
+                        const hostName = mysqlDetails?.values.hostName;
+                        if (!mysqlDetails || connectionMethod?.type !== "choice" || !endpoint ||
+                            hostName?.type !== "text") {
+                            return;
+                        }
+
+                        connectionMethod.trailingDescription = connectionMethodDiagram(method);
+
+                        const socketConnection = method === mysqlSocketProtocol;
+                        hostName.options = socketConnection ? [CommonDialogValueOption.Hidden] : undefined;
+                        if (socketConnection) {
+                            mysqlDetails.values.port = {
+                                type: "text",
+                                caption: "Path",
+                                placeholder: "Default",
+                                horizontalSpan: 8,
+                            };
+                        } else {
+                            const currentPort = endpoint.type === "number" ? endpoint.value : undefined;
+                            const defaultPort = selectedScheme === MySQLConnectionScheme.MySQLx ? 33060 : 3306;
+                            mysqlDetails.values.port = {
+                                type: "number",
+                                caption: "Port",
+                                value: currentPort === 3306 && defaultPort === 33060 ? 33060
+                                    : currentPort === 33060 && defaultPort === 3306 ? 3306
+                                        : currentPort ?? defaultPort,
+                                horizontalSpan: 4,
+                            };
+                        }
+
+                        dialog.updateActiveContexts({
+                            add: [
+                                ...(method === mysqlSshTunnelMethod ? ["useSSH"] : []),
+                                ...(method === mysqlBastionMethod ? ["useMDS"] : []),
+                            ],
+                            remove: [
+                                ...(method === mysqlSshTunnelMethod ? ["useMDS"] : []),
+                                ...(method === mysqlBastionMethod ? ["useSSH"] : []),
+                                ...(method !== mysqlSshTunnelMethod && method !== mysqlBastionMethod
+                                    ? ["useSSH", "useMDS"] : []),
+                            ],
+                        });
+                        if (method === mysqlBastionMethod) {
+                            this.shellSession.mhs.getMdsConfigProfiles().then((profiles) => {
+                                this.fillProfileDropdown(profiles);
+                            }).catch((reason: unknown) => {
+                                const message = convertErrorToString(reason);
+                                void ui.showErrorMessage("Error while loading OCI profiles: " + message, {});
+                            });
+                        }
+
+                        dialog.setDialogValues(values);
+                    },
+                    horizontalSpan: 8,
+                },
                 hostName: {
                     type: "text",
                     caption: "Host Name or IP Address",
                     value: optionsMySQL.host,
                     horizontalSpan: 4,
+                    options: usesMySQLSocket ? [CommonDialogValueOption.Hidden] : undefined,
                 },
-                scheme: {
-                    type: "choice",
-                    caption: "Protocol",
-                    value: optionsMySQL.scheme,
-                    choices: [MySQLConnectionScheme.MySQL, MySQLConnectionScheme.MySQLx],
-                    horizontalSpan: 2,
-                },
-                port: {
-                    type: "number",
-                    caption: "Port",
-                    value: optionsMySQL.port ?? 3306,
-                    horizontalSpan: 2,
-                },
+                port: mysqlEndpointValue,
                 userName: {
                     type: "text",
                     caption: "User Name",
@@ -805,57 +1041,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     caption: "Default Schema",
                     value: optionsMySQL.schema,
                     horizontalSpan: 4,
-                },
-                connectionTunnelingTitle: {
-                    type: "description",
-                    caption: "Tunneling Options",
-                    horizontalSpan: 4,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                        CommonDialogValueOption.NewGroup,
-                    ],
-                },
-                useSSH: {
-                    type: "boolean",
-                    caption: "Connect using SSH Tunnel",
-                    value: details.useSSH === true,
-                    horizontalSpan: 4,
-                    onChange: (value: boolean, dialog: ValueEditDialog): void => {
-                        const contexts = {
-                            add: value ? ["useSSH"] : [],
-                            remove: value ? [] : ["useSSH"],
-                        };
-                        dialog.updateActiveContexts(contexts);
-                    },
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
-                },
-                useMDS: {
-                    type: "boolean",
-                    caption: "Connect using OCI Bastion service",
-                    value: details.useMHS === true,
-                    onChange: (value: boolean, dialog: ValueEditDialog): void => {
-                        // The MDS tab should be shown/hidden based on the checkbox value
-                        const contexts = {
-                            add: value ? ["useMDS"] : [],
-                            remove: value ? [] : ["useMDS"],
-                        };
-                        dialog.updateActiveContexts(contexts);
-
-                        if (value) {
-                            this.shellSession.mhs.getMdsConfigProfiles().then((profiles) => {
-                                this.fillProfileDropdown(profiles);
-                            }).catch((reason: unknown) => {
-                                const message = convertErrorToString(reason);
-                                void ui.showErrorMessage("Error while loading OCI profiles: " + message, {});
-                            });
-                        }
-                    },
-                    horizontalSpan: 4,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
                 },
             },
         };
@@ -907,14 +1092,15 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             values: {
                 ssh: {
                     type: "text",
-                    caption: "SSH URI (<user>@<host>:22)",
+                    caption: "SSH URI",
                     value: optionsMySQL.ssh,
+                    placeholder: "user@host:22",
                     horizontalSpan: 4,
                 },
                 sshKeyFile: {
                     type: "resource",
                     caption: "SSH Private Key File",
-                    value: optionsMySQL["ssh-identity-file"] ?? "id_rsa",
+                    value: optionsMySQL["ssh-identity-file"] ?? "",
                     horizontalSpan: 4,
                 },
                 sshConfigFilePath: {
@@ -1005,14 +1191,14 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         this.activeOciProfileName = optionsMySQL["profile-name"];
 
-        const mdsAdvancedSection: IDialogSection = {
+        const mdsBastionSection: IDialogSection = {
             contexts: ["MySQL", "useMDS"],
-            caption: "MDS/Bastion Service",
+            caption: "OCI Bastion Service",
             groupName: "group1",
             values: {
                 profileName: {
                     type: "choice",
-                    caption: "Profile Name",
+                    caption: "OCI Profile Name",
                     value: this.activeOciProfileName,
                     horizontalSpan: 4,
                     choices: this.ociProfileNames ? this.ociProfileNames.map((item) => {
@@ -1079,10 +1265,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 ["sqliteDetails", sqliteDetailsSection],
                 ["sqliteAdvanced", sqliteAdvancedSection],
                 ["mysqlDetails", mysqlDetailsSection],
+                ["ssh", mysqlSshSection],
+                ["mdsBastion", mdsBastionSection],
                 ["ssl", mysqlSslSection],
                 ["mysqlAdvanced", mysqlAdvancedSection],
-                ["ssh", mysqlSshSection],
-                ["mdsAdvanced", mdsAdvancedSection],
             ]),
         };
     };
@@ -1249,16 +1435,19 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         const user = mysqlDetailsSection.userName.value as string;
         const host = mysqlDetailsSection.hostName.value as string;
         const port = mysqlDetailsSection.port.value as string;
+        const connectionTarget = mysqlDetailsSection.scheme.value === mysqlSocketProtocol
+            ? mysqlDetailsSection.port.value as string || "localhost"
+            : `${host}:${port}`;
         if (user && host) {
             const passwordRequest: IServicePasswordRequest = {
                 requestId: "userInput",
                 caption: "Open MySQL Connection",
-                service: `${user}@${host}:${port}`,
+                service: `${user}@${connectionTarget}`,
                 user,
             };
             void ui.requestPassword(passwordRequest).then((password) => {
                 if (password !== undefined) {
-                    void ShellInterface.users.storePassword(`${user}@${host}:${port}`, password);
+                    void ShellInterface.users.storePassword(`${user}@${connectionTarget}`, password);
                 }
             });
         } else {
@@ -1271,8 +1460,11 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         const user = mysqlDetailsSection.userName.value as string;
         const host = mysqlDetailsSection.hostName.value as string;
         const port = mysqlDetailsSection.port.value as string;
+        const connectionTarget = mysqlDetailsSection.scheme.value === mysqlSocketProtocol
+            ? mysqlDetailsSection.port.value as string || "localhost"
+            : `${host}:${port}`;
         if (user && host) {
-            ShellInterface.users.clearPassword(`${user}@${host}:${port}`).then(() => {
+            ShellInterface.users.clearPassword(`${user}@${connectionTarget}`).then(() => {
                 if (this.confirmClearPasswordDialogRef.current) {
                     this.confirmClearPasswordDialogRef.current.show(
                         (<Container orientation={Orientation.TopDown}>

@@ -28,8 +28,7 @@ import "./LegacyConfigurationImportPanel.css";
 import { Component, type ComponentChild } from "preact";
 
 import { Button } from "../../components/ui/Button/Button.js";
-import { Icon } from "../../components/ui/Icon/Icon.js";
-import { Assets } from "../../supplement/Assets.js";
+import { ConnectionBrowserPanel } from "../../modules/db-editor/ConnectionBrowserPanel.js";
 import { ProfileState } from "../../supplement/ProfileState.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
@@ -106,19 +105,12 @@ export class LegacyConfigurationImportPanel extends Component<
 
         return (
             <>
-                {!dismissed && <section
+                {!dismissed && <ConnectionBrowserPanel
+                    id="legacyConfigurationImportPanel"
                     className="legacyConfigurationImportPanel"
-                    aria-labelledby="legacyConfigurationImportPanelTitle"
+                    closeButtonId="dismissLegacyConfigurationImportPanel"
+                    onClose={this.dismiss}
                 >
-                    <Button
-                        id="dismissLegacyConfigurationImportPanel"
-                        className="legacyConfigurationImportDismissButton"
-                        round
-                        data-tooltip="Dismiss configuration import panel"
-                        onClick={this.dismiss}
-                    >
-                        <Icon src={Assets.misc.close2Icon} data-tooltip="inherit" />
-                    </Button>
                     <div className="legacyConfigurationImportPanelContent">
                         <h2 id="legacyConfigurationImportPanelTitle">
                             Configuration Import
@@ -155,7 +147,7 @@ export class LegacyConfigurationImportPanel extends Component<
                                 onClick={this.openWizard}
                             />}
                     </div>
-                </section>}
+                </ConnectionBrowserPanel>}
                 {showWizard && discovery &&
                     <LegacyConfigurationImportWizard
                         discovery={discovery}
