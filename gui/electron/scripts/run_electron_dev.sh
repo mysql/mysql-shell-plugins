@@ -116,7 +116,7 @@ function resolve_mysqlsh_runtime_dir() {
         ELECTRON_MYSQLSH_PLATFORM="$(resolve_host_platform)"
     fi
 
-    echo "$ELECTRON_DIR/packaging/mysql-shell-staging/$ELECTRON_MYSQLSH_PLATFORM"
+    echo "$ELECTRON_DIR/packaging/mysql-shell-dev-staging/$ELECTRON_MYSQLSH_PLATFORM"
 }
 
 function validate_mysqlsh_runtime_dir() {
@@ -136,46 +136,11 @@ function validate_mysqlsh_runtime_dir() {
     fi
 }
 
-function install_plugin_link() {
-    local plugin_name="$1"
-    local source_dir="$2"
-    local plugins_dir="$3"
-    local target_dir="$plugins_dir/$plugin_name"
-
-    if [ ! -d "$source_dir" ]; then
-        echo "ERROR: Missing plugin source directory: $source_dir"
-        return 1
-    fi
-
-    if [ -L "$target_dir" ]; then
-        local link_target
-        link_target="$(readlink "$target_dir")"
-        if [ "$link_target" = "$source_dir" ]; then
-            return 0
-        fi
-    fi
-
-    rm -rf "$target_dir"
-    ln -s "$source_dir" "$target_dir"
-}
-
-function install_plugin_links() {
-    local runtime_dir="$1"
-    local plugins_dir="$runtime_dir/lib/mysqlsh/plugins"
-
-    install_plugin_link "gui_plugin" "$REPO_DIR/gui/backend/gui_plugin" "$plugins_dir"
-    install_plugin_link "mds_plugin" "$REPO_DIR/mds_plugin" "$plugins_dir"
-    install_plugin_link "mrs_plugin" "$REPO_DIR/mrs_plugin" "$plugins_dir"
-    install_plugin_link "msm_plugin" "$REPO_DIR/msm_plugin" "$plugins_dir"
-    install_plugin_link "util_plugin" "$REPO_DIR/util_plugin" "$plugins_dir"
-}
-
 trap cleanup EXIT INT TERM
 
 ELECTRON_MYSQLSH_RUNTIME_DIR="$(resolve_mysqlsh_runtime_dir)"
 echo "Using MySQL Shell runtime: $ELECTRON_MYSQLSH_RUNTIME_DIR"
 validate_mysqlsh_runtime_dir "$ELECTRON_MYSQLSH_RUNTIME_DIR"
-install_plugin_links "$ELECTRON_MYSQLSH_RUNTIME_DIR"
 
 if [ "$USE_VITE" -eq 1 ]; then
     ELECTRON_RENDERER_URL="${ELECTRON_RENDERER_URL:-http://${VITE_HOST}:${VITE_PORT}/}"

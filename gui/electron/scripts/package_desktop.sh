@@ -37,6 +37,7 @@ DOWNLOAD_ELECTRON=0
 MYSQLSH_TREE_PATH=""
 QUICK_MODE=0
 STAGE_MYSQLSH_ONLY=0
+DEV_MODE=0
 ARTIFACT_MODE=0
 ZIP_MODE=0
 
@@ -47,6 +48,7 @@ darwin-arm64, darwin-x64, win32-x64, linux-arm64, linux-x64
 
 Usage: package_desktop.sh [single-platform] [--download-electron]
                           [--mysqlsh-tree <path>]
+                          [--dev]
                           [--quick]
                           [--artifacts]
                           [--zip]
@@ -63,7 +65,12 @@ MySQL Shell tree override:
   subdirectories such as <path>/darwin-arm64, <path>/linux-x64, etc.
 - When --mysqlsh-tree points to a single unpacked tree and no platform is
   selected, the script stages that tree for the host platform and stops. This
-  prepares the runtime used by scripts/run_electron_dev.sh.
+  prepares the selected base or development runtime.
+
+Development mode:
+- --dev stages the host platform directly under
+  packaging/mysql-shell-dev-staging/<platform>, replaces the project plugin
+  directories with symlinks, and stops without packaging Electron.
 
 Quick update:
 - --quick requires a single platform and an existing packaged desktop bundle.
@@ -90,6 +97,10 @@ while [ $# -gt 0 ]; do
             ;;
         --quick)
             QUICK_MODE=1
+            shift
+            ;;
+        --dev)
+            DEV_MODE=1
             shift
             ;;
         --artifacts)
@@ -195,6 +206,14 @@ if [ -z "$TARGET_FILTER" ] && [ -n "$MYSQLSH_TREE_PATH" ] \
     STAGE_MYSQLSH_ONLY=1
 fi
 
+if [ "$DEV_MODE" -eq 1 ]; then
+    if [ -z "$TARGET_FILTER" ]; then
+        TARGET_FILTER="$(resolve_host_platform)"
+    fi
+
+    STAGE_MYSQLSH_ONLY=1
+fi
+
 if [ -n "$TARGET_FILTER" ] && ! array_contains "$TARGET_FILTER" "${SUPPORTED_PLATFORMS[@]}"; then
     echo "ERROR: Unsupported platform '$TARGET_FILTER'."
     usage
@@ -219,6 +238,24 @@ if [ "$QUICK_MODE" -eq 1 ] && [ "$ZIP_MODE" -eq 1 ]; then
     exit 1
 fi
 
+if [ "$DEV_MODE" -eq 1 ] && [ "$QUICK_MODE" -eq 1 ]; then
+    echo "ERROR: --dev cannot be combined with --quick."
+    usage
+    exit 1
+fi
+
+if [ "$DEV_MODE" -eq 1 ] && [ "$ARTIFACT_MODE" -eq 1 ]; then
+    echo "ERROR: --dev cannot be combined with --artifacts."
+    usage
+    exit 1
+fi
+
+if [ "$DEV_MODE" -eq 1 ] && [ "$ZIP_MODE" -eq 1 ]; then
+    echo "ERROR: --dev cannot be combined with --zip."
+    usage
+    exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ELECTRON_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 STRIP_MYSQLSH_TREE_SCRIPT="$SCRIPT_DIR/strip_mysqlsh_tree.sh"
@@ -227,7 +264,11 @@ cd "$ELECTRON_DIR"
 
 MYSQL_SHELL_CACHE_ROOT="$ELECTRON_DIR/packaging/mysql-shell"
 ELECTRON_CACHE_ROOT="$ELECTRON_DIR/packaging/electron"
-MYSQL_SHELL_STAGING_ROOT="$ELECTRON_DIR/packaging/mysql-shell-staging"
+if [ "$DEV_MODE" -eq 1 ]; then
+    MYSQL_SHELL_STAGING_ROOT="$ELECTRON_DIR/packaging/mysql-shell-dev-staging"
+else
+    MYSQL_SHELL_STAGING_ROOT="$ELECTRON_DIR/packaging/mysql-shell-staging"
+fi
 
 if [ -n "$MYSQLSH_TREE_PATH" ]; then
     if [ ! -d "$MYSQLSH_TREE_PATH" ]; then
@@ -249,6 +290,14 @@ PLUGIN_PATHS=(
     "$ELECTRON_DIR/../../mrs_plugin"
     "$ELECTRON_DIR/../../msm_plugin"
     "$ELECTRON_DIR/../../util_plugin"
+)
+
+PLUGIN_NAMES=(
+    "gui_plugin"
+    "mds_plugin"
+    "mrs_plugin"
+    "msm_plugin"
+    "util_plugin"
 )
 
 if [ "$QUICK_MODE" -ne 1 ]; then
@@ -455,6 +504,20 @@ function strip_mysqlsh_tree() {
     "$STRIP_MYSQLSH_TREE_SCRIPT" --apply "$target_dir"
 }
 
+function install_dev_plugin_links() {
+    local target_dir="$1"
+    local plugins_dir="$target_dir/lib/mysqlsh/plugins"
+
+    for index in "${!PLUGIN_NAMES[@]}"; do
+        local plugin_name="${PLUGIN_NAMES[$index]}"
+        local plugin_path="${PLUGIN_PATHS[$index]}"
+        local target_path="$plugins_dir/$plugin_name"
+
+        rm -rf "$target_path"
+        ln -s "$plugin_path" "$target_path"
+    done
+}
+
 function resolve_mysqlsh_package() {
     local platform="$1"
     local -a candidates=()
@@ -622,8 +685,16 @@ for platform in "${TARGETS[@]}"; do
 
     strip_mysqlsh_tree "$shell_dir"
 
+    if [ "$DEV_MODE" -eq 1 ]; then
+        install_dev_plugin_links "$shell_dir"
+    fi
+
     if [ "$STAGE_MYSQLSH_ONLY" -eq 1 ]; then
-        echo "MySQL Shell runtime staged for $platform at $shell_dir"
+        if [ "$DEV_MODE" -eq 1 ]; then
+            echo "MySQL Shell development runtime staged for $platform at $shell_dir"
+        else
+            echo "MySQL Shell runtime staged for $platform at $shell_dir"
+        fi
         continue
     fi
 
@@ -638,7 +709,11 @@ for platform in "${TARGETS[@]}"; do
 done
 
 if [ "$STAGE_MYSQLSH_ONLY" -eq 1 ]; then
-    echo "Completed MySQL Shell staging. Use npm run electron:dev:vite to launch with this runtime."
+    if [ "$DEV_MODE" -eq 1 ]; then
+        echo "Completed MySQL Shell development staging."
+    else
+        echo "Completed MySQL Shell staging."
+    fi
     exit 0
 fi
 
