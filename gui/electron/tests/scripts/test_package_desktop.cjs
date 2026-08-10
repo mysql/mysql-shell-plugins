@@ -310,6 +310,36 @@ test("macOS artifacts ignore Linux installer skip options", () => {
     assert.deepEqual(config.mac.target, ["dir", "dmg"]);
 });
 
+test("macOS artifacts configure the branded DMG layout", () => {
+    const options = parseArguments([
+        "node", "package_desktop.ts", "--targets=darwin-arm64", "--artifacts",
+    ]);
+    const config = JSON.parse(buildElectronBuilderConfig(
+        "darwin-arm64",
+        "/tmp/desktop-output",
+        options,
+        "mysql-workbench",
+    ));
+    const background = resolve(__dirname, "../../images/dmg-background.png");
+    const retinaBackground = resolve(__dirname, "../../images/dmg-background@2x.png");
+
+    assert.equal(config.dmg.background, background);
+    assert.equal(existsSync(background), true);
+    assert.equal(existsSync(retinaBackground), true);
+    assert.deepEqual(config.dmg.contents, [
+        {
+            x: 160,
+            y: 200,
+        },
+        {
+            x: 370,
+            y: 200,
+            type: "link",
+            path: "/Applications",
+        },
+    ]);
+});
+
 test("configured commercial suffix is accepted", () => {
     const options = parseArguments([
         "node", "package_desktop.ts", "--targets=linux-x64", "--zip",

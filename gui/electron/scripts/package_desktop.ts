@@ -559,6 +559,19 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions, packag
         },
         dmg: {
             sign: false,
+            background: join(electronImagesFolder, "dmg-background.png"),
+            contents: [
+                {
+                    x: 160,
+                    y: 200,
+                },
+                {
+                    x: 370,
+                    y: 200,
+                    type: "link",
+                    path: "/Applications",
+                },
+            ],
         },
         win: {
             target: target.startsWith("win32") ? targets : null,
