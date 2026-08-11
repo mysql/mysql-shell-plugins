@@ -458,7 +458,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         });
         this.disposables = [];
 
-        this.resizeObserver?.unobserve(this.hostRef.current as Element);
+        if (this.resizeObserver && this.hostRef.current) {
+            this.resizeObserver.unobserve(this.hostRef.current);
+        }
     }
 
     public override componentDidUpdate(prevProps: ICodeEditorProperties): void {

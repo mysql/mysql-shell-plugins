@@ -3014,48 +3014,64 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
         return this.activateConnectionWorkspace(data.connection, data.createNewWorkspace, false, data.initialEditor);
     };
 
-    private setCurrentSchema = (
+    private setCurrentSchema = async (
         data: { id: string; connectionInfo: IConnectionInfo; schema: string; }
     ): Promise<boolean> => {
-        return new Promise((resolve) => {
-            const { connectionWorkspaces } = this.state;
+        const { connectionWorkspaces } = this.state;
 
-            // Update all editor pages with this connection.
-            connectionWorkspaces.forEach((workspace: IConnectionWorkspacePage) => {
-                // Either update the current schema only for the given workspace page or for all pages using the same
-                // connection id (if no page id is given).
-                if (workspace.connection.details.id === data.connectionInfo.connectionId
-                    || data.id === workspace.dataModelEntry.id) {
-                    const connectionState = this.connectionPresentation.get(workspace.dataModelEntry);
-                    if (connectionState) {
-                        // Change for chat options
-                        this.onChatOptionsChange(data.id.length > 0 ? data.id : workspace.dataModelEntry.id, {
-                            options: {
-                                ...connectionState.chatOptionsState.options,
-                                schemaName: data.schema,
-                            },
-                        });
+        const matchingConnections = [...new Set(connectionWorkspaces.filter((workspace) => {
+            return workspace.connection.details.id === data.connectionInfo.connectionId
+                || data.id === workspace.dataModelEntry.id;
+        }).map((workspace) => {
+            return workspace.connection;
+        }))];
 
-                        // Change for new editors.
-                        workspace.connection.currentSchema = data.schema;
-
-                        // Change existing editors.
-                        connectionState.documentStates.forEach((state) => {
-                            if (state.state) {
-                                const contexts = state.state.model.executionContexts;
-                                if (contexts) {
-                                    contexts.currentSchema = data.schema;
-                                }
-                            }
-                        });
-                    }
+        try {
+            for (const connection of matchingConnections) {
+                if (connection.setCurrentSchema) {
+                    await connection.setCurrentSchema(data.schema);
+                } else {
+                    connection.currentSchema = data.schema;
                 }
-            });
+            }
+        } catch (reason) {
+            void ui.showErrorMessage(`Cannot set current database schema: ${convertErrorToString(reason)}`, {});
 
-            this.setState({ connectionWorkspaces }, () => {
-                resolve(true);
-            });
+            return false;
+        }
+
+        // Update all editor pages with this connection.
+        connectionWorkspaces.forEach((workspace: IConnectionWorkspacePage) => {
+            // Either update the current schema only for the given workspace page or for all pages using the same
+            // connection id (if no page id is given).
+            if (workspace.connection.details.id === data.connectionInfo.connectionId
+                || data.id === workspace.dataModelEntry.id) {
+                const connectionState = this.connectionPresentation.get(workspace.dataModelEntry);
+                if (connectionState) {
+                    // Change for chat options
+                    this.onChatOptionsChange(data.id.length > 0 ? data.id : workspace.dataModelEntry.id, {
+                        options: {
+                            ...connectionState.chatOptionsState.options,
+                            schemaName: data.schema,
+                        },
+                    });
+
+                    // Change existing editors.
+                    connectionState.documentStates.forEach((state) => {
+                        if (state.state) {
+                            const contexts = state.state.model.executionContexts;
+                            if (contexts) {
+                                contexts.currentSchema = data.schema;
+                            }
+                        }
+                    });
+                }
+            }
         });
+
+        this.setState({ connectionWorkspaces });
+
+        return true;
     };
 
     /**

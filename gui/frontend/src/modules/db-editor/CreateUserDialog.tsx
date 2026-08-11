@@ -345,7 +345,7 @@ export class CreateUserDialog extends ComponentBase<ICreateUserDialogProps, ICom
         const choices = [...new Set(authenticationPlugins.map((plugin) => {
             return plugin.trim();
         }).filter((plugin) => {
-            return plugin.length > 0;
+            return plugin.endsWith("_password");
         }))];
 
         return choices.length > 0 ? choices : this.fallbackAuthenticationPlugins;

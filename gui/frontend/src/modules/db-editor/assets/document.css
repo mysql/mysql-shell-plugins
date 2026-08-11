@@ -363,6 +363,11 @@ body[theme=light] .msg #workspaceSelector>.label {
     font-size: 1rem;
 }
 
+.msg #workspaceSelectorPopup > .popup.dropdownList,
+.msg#workspaceSelectorPopup > .popup.dropdownList {
+    cursor: pointer;
+}
+
 .msg #workspaceSelectorPopup .dropdownItem,
 .msg#workspaceSelectorPopup .dropdownItem {
     box-sizing: border-box;
@@ -2473,7 +2478,6 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 .msg.performanceDashboard .performanceStatusReportHeader {
     border-bottom: 1px solid var(--editorGroup-border);
     flex: 0 0 auto;
-    margin-bottom: 20px;
     padding-bottom: 16px;
 }
 
@@ -2494,8 +2498,29 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
     margin-bottom: 0;
 }
 
+.msg.performanceDashboard .slowQueriesReportHeaderControls {
+    display: flex;
+    gap: 8px;
+}
+
+.msg.performanceDashboard .slowQueriesReportHeader {
+    border-bottom: none;
+}
+
+.msg.performanceDashboard .slowQueriesReport .slowQueryStatementHistogram {
+    border-top: none;
+}
+
 .msg.performanceDashboard .slowQueriesReportHeader #slowQueriesOrderDropdown {
     width: 200px;
+}
+
+.msg.performanceDashboard .slowQueriesReportHeader #slowQueriesLimitDropdown {
+    width: 170px;
+}
+
+.msg.performanceDashboard .slowQueriesReportHeader #slowQueriesTimeRangeDropdown {
+    width: 210px;
 }
 
 .msg.performanceDashboard .performanceStatusOptionsButton.button {
@@ -2751,8 +2776,9 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 }
 
 .msg.performanceDashboard .slowQueriesTableHost {
-    flex: 0 0 auto;
-    overflow: visible;
+    flex: 1 1 320px;
+    min-height: 240px;
+    overflow: hidden;
 }
 
 .msg.performanceDashboard .performanceTableGrid {
@@ -2876,7 +2902,6 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
     flex: 0 0 auto;
     flex-direction: column;
     gap: 14px;
-    margin-top: 16px;
     min-width: 0;
     padding-top: 14px;
 }
@@ -3103,7 +3128,7 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 .msg.performanceDashboard .statementHistogramGraph {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
     min-width: 0;
     width: 100%;
 }
@@ -3118,8 +3143,8 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 
 .msg.performanceDashboard .statementHistogramBucketLabel {
     color: var(--descriptionForeground);
-    font-size: 12px;
-    line-height: 1.2;
+    font-size: 11px;
+    line-height: 12px;
     min-width: 0;
     overflow: hidden;
     text-align: right;
@@ -3130,7 +3155,7 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 .msg.performanceDashboard .statementHistogramBucketTrack {
     background-color: color-mix(in srgb, var(--foreground) 7%, transparent);
     border-radius: 2px;
-    height: 14px;
+    height: 10px;
     min-width: 0;
     overflow: hidden;
 }
@@ -3143,8 +3168,8 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 
 .msg.performanceDashboard .statementHistogramBucketValue {
     color: var(--descriptionForeground);
-    font-size: 12px;
-    line-height: 1.2;
+    font-size: 11px;
+    line-height: 12px;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;

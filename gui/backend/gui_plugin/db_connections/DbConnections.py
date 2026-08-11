@@ -201,6 +201,32 @@ def _settings_for_storage(connection):
     return settings
 
 
+def _connection_credential_url(connection):
+    if connection.get("db_type", "").lower() != "mysql":
+        return None
+
+    options = connection.get("options")
+    if not isinstance(options, dict):
+        return None
+
+    user = options.get("user")
+    if not isinstance(user, str) or not user:
+        return None
+
+    socket = options.get("socket")
+    if isinstance(socket, str) and socket:
+        target = socket
+    else:
+        host = options.get("host")
+        if not isinstance(host, str) or not host:
+            return None
+
+        port = options.get("port")
+        target = f"{host}:{port}" if port else host
+
+    return f"{user}@{target}"
+
+
 def _validate_new_connection(connection):
     if (
         "caption" not in connection
@@ -496,8 +522,21 @@ def remove_db_connection(profile_id, connection_id, be_session=None):
                 (connection_id,),
             )
 
-            # If no other profile is using this connection, remove it.
+            # If no other profile is using this connection, remove it and its
+            # password from the MySQL Shell credential store.
             if result[0]["cnt"] == 0:
+                connection = db.select(
+                    "SELECT db_type, options FROM db_connection WHERE id=?",
+                    (connection_id,),
+                )[0]
+                credential_url = _connection_credential_url(connection)
+                if credential_url:
+                    try:
+                        delete_credential(credential_url)
+                    except RuntimeError as error:
+                        if "Could not find the secret" not in str(error):
+                            raise
+
                 db.execute(
                     """DELETE FROM db_connection
                     WHERE id=?""",

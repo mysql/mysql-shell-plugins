@@ -363,6 +363,35 @@ class TestDbConnectionsSqlite:
 
 class TestDbConnectionMySQL:
 
+    def test_remove_db_connection_deletes_credential(self, monkeypatch):
+        default_root_config = config.Config.get_instance().database_connections[0]
+        deleted_credentials = []
+        monkeypatch.setattr(
+            DbConnections,
+            "delete_credential",
+            lambda url: deleted_credentials.append(url),
+        )
+
+        result = DbConnections.add_db_connection(
+            1,
+            {
+                "db_type": default_root_config["type"],
+                "caption": "Connection credential deletion test",
+                "description": "Connection credential deletion test",
+                "options": default_root_config["options"],
+            },
+        )
+
+        try:
+            DbConnections.remove_db_connection(1, result[0])
+        finally:
+            if result[0] in [row["id"] for row in DbConnections.list_db_connections(1)]:
+                DbConnections.remove_db_connection(1, result[0])
+
+        options = default_root_config["options"]
+        target = options.get("socket") or f"{options['host']}:{options['port']}"
+        assert deleted_credentials == [f"{options['user']}@{target}"]
+
     def test_add_db_connection_mysql(self):
         results1 = DbConnections.list_db_connections(1)
         default_root_config = config.Config.get_instance().database_connections[0]

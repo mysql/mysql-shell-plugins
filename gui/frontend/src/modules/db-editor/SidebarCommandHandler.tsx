@@ -1490,7 +1490,7 @@ export class SidebarCommandHandler {
             type: DialogType.Confirm,
             parameters: {
                 title: "Confirmation",
-                prompt: `Do you want to drop the ${typeName} ${entry.caption}?` +
+                prompt: `Do you want to drop the ${typeName} ${entry.caption}? ` +
                     "This operation cannot be reverted!",
                 accept: `Drop ${entry.caption}`,
                 refuse: "No",

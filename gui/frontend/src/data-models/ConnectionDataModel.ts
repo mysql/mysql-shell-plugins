@@ -619,6 +619,9 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
      */
     currentSchema: string;
 
+    /** Sets the current schema after the server accepts the change. */
+    setCurrentSchema?: (value: string) => Promise<void>;
+
     /** The list of schemas available in this connection. */
     readonly schemaEntries: ICdmSchemaEntry[];
 
@@ -630,6 +633,9 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
 
     /** Closes this connection and frees resources. Call {@link initialize} to open it again. */
     close(): Promise<void>;
+
+    /** Removes the password cached for this connection. */
+    forgetPassword?(): void;
 
     /** Opens the user DB connection and refreshes this entry's children. */
     initialize(callback?: ProgressCallback): Promise<boolean>;
@@ -948,6 +954,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 const index = parent.entries.indexOf(entry);
                 if (index >= 0) {
                     if (entry.type === CdmEntityType.Connection) {
+                        entry.forgetPassword?.();
                         await entry.close();
                     }
 

@@ -51,6 +51,9 @@ import {
 
 export type StatementDetailGroupId = "activity" | "latency" | "resources" | "results" | "access";
 type SlowQueryOrderCriteria = "executions" | "totalLatency" | "averageLatency" | "maximumLatency";
+type SlowQueryLimit = 10 | 20 | 50 | 100 | 200 | 500;
+type SlowQueryTimeRange = "15m" | "30m" | "1h" | "2h" | "3h" | "4h" | "8h" | "12h" |
+    "24h" | "48h" | "week" | "month" | "none";
 
 interface ISlowQueriesReportProperties extends IComponentProperties {
     backend?: ShellInterfaceSqlEditor;
@@ -71,6 +74,8 @@ interface ISlowQueriesReportState extends IComponentState {
     percentiles: IStatementPercentileEntry[];
     detailGroupId: StatementDetailGroupId;
     orderCriteria: SlowQueryOrderCriteria;
+    queryLimit: SlowQueryLimit;
+    timeRange: SlowQueryTimeRange;
 }
 
 interface ISlowQueryRow {
@@ -152,6 +157,64 @@ const slowQueryOrderCriteria: Array<{
     column: "max_latency",
 }];
 
+const slowQueryLimits: SlowQueryLimit[] = [10, 20, 50, 100, 200, 500];
+const slowQueryTimeRanges: Array<{
+    id: SlowQueryTimeRange;
+    caption: string;
+    interval?: string;
+}> = [{
+    id: "15m",
+    caption: "Seen in the last 15min",
+    interval: "15 MINUTE",
+}, {
+    id: "30m",
+    caption: "Seen in the last 30min",
+    interval: "30 MINUTE",
+}, {
+    id: "1h",
+    caption: "Seen in the last 1h",
+    interval: "1 HOUR",
+}, {
+    id: "2h",
+    caption: "Seen in the last 2h",
+    interval: "2 HOUR",
+}, {
+    id: "3h",
+    caption: "Seen in the last 3h",
+    interval: "3 HOUR",
+}, {
+    id: "4h",
+    caption: "Seen in the last 4h",
+    interval: "4 HOUR",
+}, {
+    id: "8h",
+    caption: "Seen in the last 8h",
+    interval: "8 HOUR",
+}, {
+    id: "12h",
+    caption: "Seen in the last 12h",
+    interval: "12 HOUR",
+}, {
+    id: "24h",
+    caption: "Seen in the last 24h",
+    interval: "24 HOUR",
+}, {
+    id: "48h",
+    caption: "Seen in the last 48h",
+    interval: "48 HOUR",
+}, {
+    id: "week",
+    caption: "Seen in the last week",
+    interval: "1 WEEK",
+}, {
+    id: "month",
+    caption: "Seen in the last month",
+    interval: "1 MONTH",
+}, {
+    id: "none",
+    caption: "No limit",
+}];
+
 const tableOptions: ITreeGridOptions = {
     layout: "fitColumns",
     verticalGridLines: false,
@@ -162,6 +225,7 @@ const tableOptions: ITreeGridOptions = {
     selectOnMouseDown: true,
     rowHeight: 20,
     index: "id",
+    updateDataOnComponentUpdate: false,
 };
 
 export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportProperties, ISlowQueriesReportState> {
@@ -199,6 +263,7 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
         placement: ComponentPlacement.TopRight,
     }];
     private listRequestId = 0;
+    private tableDataVersion = 0;
     private detailsRequestId = 0;
     private explainerSeen = ProfileState.get("general.slowQueriesExplainerSeen", false);
 
@@ -214,6 +279,8 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
             percentiles: [],
             detailGroupId: props.initialDetailGroupId,
             orderCriteria: "averageLatency",
+            queryLimit: 20,
+            timeRange: "none",
         };
         this.addHandledProperties("backend", "capabilities", "initialDetailGroupId", "onDetailGroupIdChange");
     }
@@ -292,23 +359,51 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
                         mainAlignment={ContentAlignment.SpaceBetween}
                         crossAlignment={ContentAlignment.Center}
                     >
-                        <h3 className="performanceReportSectionTitle">Top 20 Queries</h3>
+                        <div className="slowQueriesReportHeaderControls">
+                            <Dropdown
+                                id="slowQueriesLimitDropdown"
+                                selection={String(this.state.queryLimit)}
+                                onSelect={this.handleLimitSelection}
+                            >
+                                {slowQueryLimits.map((limit) => {
+                                    return <DropdownItem
+                                        key={limit}
+                                        caption={`Top ${limit} Queries`}
+                                        id={String(limit)}
+                                    />;
+                                })}
+                            </Dropdown>
+                            <Dropdown
+                                id="slowQueriesOrderDropdown"
+                                selection={this.state.orderCriteria}
+                                onSelect={this.handleOrderSelection}
+                            >
+                                {slowQueryOrderCriteria.map((criteria) => {
+                                    return <DropdownItem
+                                        key={criteria.id}
+                                        caption={criteria.caption}
+                                        id={criteria.id}
+                                    />;
+                                })}
+                            </Dropdown>
+                        </div>
                         <Dropdown
-                            id="slowQueriesOrderDropdown"
-                            selection={this.state.orderCriteria}
-                            onSelect={this.handleOrderSelection}
+                            id="slowQueriesTimeRangeDropdown"
+                            selection={this.state.timeRange}
+                            onSelect={this.handleTimeRangeSelection}
                         >
-                            {slowQueryOrderCriteria.map((criteria) => {
+                            {slowQueryTimeRanges.map((range) => {
                                 return <DropdownItem
-                                    key={criteria.id}
-                                    caption={criteria.caption}
-                                    id={criteria.id}
+                                    key={range.id}
+                                    caption={range.caption}
+                                    id={range.id}
                                 />;
                             })}
                         </Dropdown>
                     </Container>
                     <div ref={this.tableRef} className="performanceTableHost slowQueriesTableHost">
                         <TreeGrid
+                            key={this.tableDataVersion}
                             id="slowQueriesPerformanceGrid"
                             className="performanceTableGrid"
                             options={tableOptions}
@@ -416,15 +511,23 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
             percentiles: [],
         });
         try {
+            const timeRange = slowQueryTimeRanges.find((range) => {
+                return range.id === this.state.timeRange;
+            });
+            const timeRangeFilter = timeRange?.interval
+                ? ` where last_seen >= now() - interval ${timeRange.interval}`
+                : "";
             const result = await backend.executeService("select db, digest, query, exec_count, " +
                 "sys.format_time(total_latency), sys.format_time(avg_latency), sys.format_time(max_latency), " +
-                "rows_sent, rows_examined, tmp_tables, full_scan from sys.x$statement_analysis " +
-                `order by ${this.orderColumn()} desc limit 20`);
+                "rows_sent, rows_examined, tmp_tables, full_scan from sys.x$statement_analysis" +
+                timeRangeFilter + " " +
+                `order by ${this.orderColumn()} desc limit ${this.state.queryLimit}`);
             const rows = this.parseRows(result?.rows);
             if (requestId !== this.listRequestId) {
                 return;
             }
 
+            ++this.tableDataVersion;
             this.setState({
                 loading: false,
                 selectedId: rows[0]?.id,
@@ -646,6 +749,40 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
 
         ++this.listRequestId;
         this.setState({ orderCriteria, rows: [] }, () => {
+            void this.updateValues();
+        });
+    };
+
+    private handleLimitSelection = (accept: boolean, selectedIds: Set<string>): void => {
+        if (!accept) {
+            return;
+        }
+
+        const queryLimit = Number([...selectedIds][0]) as SlowQueryLimit;
+        if (!slowQueryLimits.includes(queryLimit) || queryLimit === this.state.queryLimit) {
+            return;
+        }
+
+        ++this.listRequestId;
+        this.setState({ queryLimit, rows: [] }, () => {
+            void this.updateValues();
+        });
+    };
+
+    private handleTimeRangeSelection = (accept: boolean, selectedIds: Set<string>): void => {
+        if (!accept) {
+            return;
+        }
+
+        const timeRange = [...selectedIds][0] as SlowQueryTimeRange;
+        if (!slowQueryTimeRanges.some((range) => {
+            return range.id === timeRange;
+        }) || timeRange === this.state.timeRange) {
+            return;
+        }
+
+        ++this.listRequestId;
+        this.setState({ timeRange, rows: [] }, () => {
             void this.updateValues();
         });
     };

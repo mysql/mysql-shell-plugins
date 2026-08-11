@@ -330,10 +330,21 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     public override componentDidUpdate(prevProps: ITreeGridProperties): void {
         if (this.tabulator && this.tableReady) {
             const { selectedRows, columns, tableData, options } = this.props;
+            const selectionChanged = prevProps.selectedRows?.length !== selectedRows?.length ||
+                selectedRows?.some((row, index) => {
+                    return row !== prevProps.selectedRows?.[index];
+                }) === true;
 
             // When we are editing, we don't want to update the table.
             if (this.isEditing) {
                 return;
+            }
+
+            if (selectionChanged && !this.cancelled) {
+                this.tabulator.deselectRow();
+                if (selectedRows && selectedRows.length > 0) {
+                    this.tabulator.selectRow(selectedRows);
+                }
             }
 
             if (tableData && options?.updateDataOnComponentUpdate === false) {
@@ -378,13 +389,11 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                         }
                     }
                 });
-            } else if (selectedRows && prevProps.selectedRows !== selectedRows && !this.cancelled) {
+            } else if (selectionChanged && !this.cancelled) {
                 if (columns) {
                     // No data here, so no need to restore the scroll position.
                     this.tabulator.setColumns(TreeGrid.addDefaultHeaderTooltips(columns));
                 }
-
-                this.tabulator.selectRow(selectedRows);
             }
         }
     }

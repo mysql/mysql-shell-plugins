@@ -785,6 +785,33 @@ describe("PerformanceDashboard Tests", (): void => {
         expect(executeService).toHaveBeenCalledWith(expect.stringContaining("limit 20"));
         expect(executeService).toHaveBeenCalledWith(expect.stringContaining("avg_latency desc"));
         expect(executeService).toHaveBeenCalledWith(expect.stringContaining("sys.format_time"));
+        fireEvent.click(container.querySelector("#slowQueriesLimitDropdown")!);
+        const limitPopup = document.querySelector("#slowQueriesLimitDropdownPopup")!;
+        expect(limitPopup.textContent).toContain("Top 10 Queries");
+        expect(limitPopup.textContent).toContain("Top 20 Queries");
+        expect(limitPopup.textContent).toContain("Top 50 Queries");
+        expect(limitPopup.textContent).toContain("Top 100 Queries");
+        expect(limitPopup.textContent).toContain("Top 200 Queries");
+        expect(limitPopup.textContent).toContain("Top 500 Queries");
+        fireEvent.click(screen.getByText("Top 50 Queries"));
+        await waitFor(() => {
+            expect(executeService).toHaveBeenCalledWith(expect.stringContaining("limit 50"));
+        });
+        fireEvent.click(container.querySelector("#slowQueriesTimeRangeDropdown")!);
+        const timeRangePopup = document.querySelector("#slowQueriesTimeRangeDropdownPopup")!;
+        expect(timeRangePopup.textContent).toContain("Seen in the last 15min");
+        expect(timeRangePopup.textContent).toContain("Seen in the last 30min");
+        expect(timeRangePopup.textContent).toContain("Seen in the last 1h");
+        expect(timeRangePopup.textContent).toContain("Seen in the last 48h");
+        expect(timeRangePopup.textContent).toContain("Seen in the last week");
+        expect(timeRangePopup.textContent).toContain("Seen in the last month");
+        expect(timeRangePopup.textContent).toContain("No limit");
+        fireEvent.click(screen.getByText("Seen in the last 1h"));
+        await waitFor(() => {
+            expect(executeService).toHaveBeenCalledWith(expect.stringContaining(
+                "where last_seen >= now() - interval 1 HOUR",
+            ));
+        });
         fireEvent.click(container.querySelector("#slowQueriesOrderDropdown")!);
         const orderPopup = document.querySelector("#slowQueriesOrderDropdownPopup")!;
         expect(orderPopup.textContent).toContain("By Executions");

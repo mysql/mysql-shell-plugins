@@ -1370,7 +1370,7 @@ describe("UserAccounts module", () => {
         expect(values.sections.get("general")?.values.comment.value).toBe("existing comment");
         expect(values.sections.get("authentication")?.values.authenticationPlugin.value).toBe("auth_socket");
         expect(values.sections.get("authentication")?.values.authenticationPlugin.choices)
-            .toEqual(["caching_sha2_password", "auth_socket"]);
+            .toEqual(["caching_sha2_password"]);
         expect(values.sections.get("authentication")?.values.authenticationPlugin.options)
             .toContain(CommonDialogValueOption.Disabled);
         expect(values.sections.get("authentication")?.values.passwordExpire.value).toBe(true);
@@ -4578,7 +4578,7 @@ describe("UserAccounts module", () => {
         expect(values.sections.get("authentication")?.values.authenticationPlugin.value)
             .toBe("caching_sha2_password");
         expect(values.sections.get("authentication")?.values.authenticationPlugin.choices)
-            .toEqual(["auth_socket", "caching_sha2_password"]);
+            .toEqual(["caching_sha2_password"]);
 
         unmount();
     });
@@ -4619,9 +4619,9 @@ describe("UserAccounts module", () => {
     it("create user dialog defaults to the first discovered plugin without caching_sha2_password", ({ expect }) => {
         const values = CreateUserDialog.createDialogValues(["auth_socket", "mysql_clear_password"]);
 
-        expect(values.sections.get("authentication")?.values.authenticationPlugin.value).toBe("auth_socket");
+        expect(values.sections.get("authentication")?.values.authenticationPlugin.value).toBe("mysql_clear_password");
         expect(values.sections.get("authentication")?.values.authenticationPlugin.choices)
-            .toEqual(["auth_socket", "mysql_clear_password"]);
+            .toEqual(["mysql_clear_password"]);
     });
 
     it("accepting create user dialog calls backend and refreshes list", async ({ expect }) => {

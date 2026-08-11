@@ -77,10 +77,12 @@ if (new URLSearchParams(window.location.search).get("view") === "fileViewer") {
 
 export class LazyAppRouter extends Component {
     public override render(): ComponentChild {
+        const isStandaloneFileViewer = new URLSearchParams(window.location.search).get("view") === "fileViewer";
+
         return (
-            <Suspense fallback={hasElectronDesktopRuntime()
-                ? StartupConnectionPlaceholder
-                : LoadingIndicator}>
+            <Suspense fallback={isStandaloneFileViewer
+                ? null
+                : hasElectronDesktopRuntime() ? StartupConnectionPlaceholder : LoadingIndicator}>
                 <Root />
             </Suspense>
         );

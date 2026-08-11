@@ -103,14 +103,26 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         await this.closeConnection();
     }
 
+    public forgetPassword(): void {
+        connectionPasswordCache.delete(this.details.id);
+    }
+
     public get currentSchema(): string {
         return this.#currentSchema;
     }
 
     public set currentSchema(value: string) {
         if (this.#currentSchema !== value) {
+            void this.setCurrentSchema(value).catch((reason: unknown) => {
+                void ui.showErrorMessage(`Cannot set current database schema: ${convertErrorToString(reason)}`, {});
+            });
+        }
+    }
+
+    public async setCurrentSchema(value: string): Promise<void> {
+        if (this.#currentSchema !== value) {
+            await this.backend.setCurrentSchema(value);
             this.#currentSchema = value;
-            void this.backend.setCurrentSchema(value);
         }
     }
 

@@ -142,7 +142,7 @@ exports[`Application host tests > Rendering About 1`] = `
                                 aria-sort="none"
                                 class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
                                 role="columnheader"
-                                style="min-width: 40px; width: 40px;"
+                                style="min-width: 40px; width: 40px; height: 0px;"
                                 tabulator-field="caption"
                               >
                                 <div
@@ -715,7 +715,7 @@ exports[`Application host tests > Rendering Debugger Maximized 1`] = `
                                 aria-sort="none"
                                 class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
                                 role="columnheader"
-                                style="min-width: 40px; width: 40px;"
+                                style="min-width: 40px; width: 40px; height: 0px;"
                                 tabulator-field="caption"
                               >
                                 <div
@@ -1288,7 +1288,7 @@ exports[`Application host tests > Rendering Debugger Normal 1`] = `
                                 aria-sort="none"
                                 class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
                                 role="columnheader"
-                                style="min-width: 40px; width: 40px;"
+                                style="min-width: 40px; width: 40px; height: 0px;"
                                 tabulator-field="caption"
                               >
                                 <div

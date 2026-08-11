@@ -164,6 +164,54 @@ describe("TreeGrid tests", (): void => {
         unmount();
     });
 
+    it("updates the selected row when data updates are disabled", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const { rerender, unmount } = render(
+            <TreeGrid
+                ref={gridRef}
+                columns={[{ title: "col1", field: "field1" }]}
+                tableData={[
+                    { id: "1", field1: "a" },
+                    { id: "2", field1: "b" },
+                ]}
+                options={{
+                    index: "id",
+                    selectionType: SelectionType.Single,
+                    updateDataOnComponentUpdate: false,
+                }}
+                selectedRows={["1"]}
+            />,
+        );
+
+        await nextRunLoop();
+        await gridRef.current!.table;
+
+        rerender(
+            <TreeGrid
+                ref={gridRef}
+                columns={[{ title: "col1", field: "field1" }]}
+                tableData={[
+                    { id: "1", field1: "a" },
+                    { id: "2", field1: "b" },
+                ]}
+                options={{
+                    index: "id",
+                    selectionType: SelectionType.Single,
+                    updateDataOnComponentUpdate: false,
+                }}
+                selectedRows={["2"]}
+            />,
+        );
+
+        await nextRunLoop();
+        const selectedRows = gridRef.current!.getSelectedRows();
+        expect(selectedRows.map((row) => {
+            return (row.getData() as { id: string }).id;
+        })).toEqual(["2"]);
+
+        unmount();
+    });
+
     it("does not toggle tree rows without children", async () => {
         const gridRef = createRef<TreeGrid>();
         const { unmount } = render(

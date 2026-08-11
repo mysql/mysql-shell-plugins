@@ -249,6 +249,20 @@ describe("ConnectionDataModel", () => {
         expect(roots[2].type).toBe(CdmEntityType.Connection);
         const secondConnection = roots[2] as ICdmConnectionEntry;
 
+        const previousSchema = firstConnection.currentSchema;
+        const showErrorMessage = vi.spyOn(uiLayerMock, "showErrorMessage");
+        const setCurrentSchema = vi.spyOn(firstConnection.backend, "setCurrentSchema")
+            .mockRejectedValue(new Error("Unknown database 'missing_schema'"));
+        firstConnection.currentSchema = "missing_schema";
+        await sleep(0);
+        expect(firstConnection.currentSchema).toBe(previousSchema);
+        expect(showErrorMessage).toHaveBeenCalledWith(
+            "Cannot set current database schema: Unknown database 'missing_schema'",
+            {},
+        );
+        setCurrentSchema.mockRestore();
+        showErrorMessage.mockClear();
+
         // The connection member of a connection points to itself.
         expect(firstConnection.connection).toEqual(firstConnection);
         expect(firstConnection.isOpen).toBe(false);
