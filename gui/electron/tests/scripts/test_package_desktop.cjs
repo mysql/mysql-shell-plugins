@@ -46,6 +46,7 @@ const {
     parseArguments,
     resolveElectronBuilderCacheFolder,
     resolveElectronBuilderInvocation,
+    validateDesktopMsiUpgradeCode,
     validateDesktopPackageSuffixes,
     writeArtifactManifest,
 } = require("../../scripts/package_desktop.ts");
@@ -91,6 +92,21 @@ test("package metadata defines the shared suffixes", () => {
         commercial: "-commercial",
     });
 });
+
+test("package metadata defines the shared MSI upgrade code", () => {
+    assert.equal(
+        validateDesktopMsiUpgradeCode(packageMetadata),
+        "b1b42b98-a76f-4301-8689-99759b1696b2",
+    );
+});
+
+for (const upgradeCode of [undefined, "", "not-a-uuid"]) {
+    test(`MSI upgrade code rejects ${upgradeCode ?? "missing metadata"}`, () => {
+        assert.throws(() => {
+            validateDesktopMsiUpgradeCode({ desktopMsiUpgradeCode: upgradeCode });
+        }, /desktopMsiUpgradeCode must be a canonical UUID/);
+    });
+}
 
 test("package name suffix defaults to the configured community suffix", () => {
     const options = parseArguments([
@@ -146,6 +162,34 @@ test("unsigned Windows builds have no signing configuration", () => {
     assert.equal(config.win.signExecutable, false);
     assert.equal(config.win.signExts, undefined);
     assert.equal(config.win.signtoolOptions, undefined);
+});
+
+for (const packageNameSuffix of ["", "-commercial"]) {
+    test(`Windows ${packageNameSuffix || "community"} config allows choosing the MSI install scope`, () => {
+        const packageName = getDesktopPackageName(packageNameSuffix);
+        const config = JSON.parse(buildElectronBuilderConfig(
+            "win32-x64",
+            "/tmp/desktop-output",
+            { artifacts: true, zip: false, packageNameSuffix, sign: false },
+            packageName,
+        ));
+
+        assert.equal(config.msi.oneClick, false);
+        assert.equal(config.msi.perMachine, false);
+        assert.equal(config.msi.menuCategory, "MySQL");
+        assert.equal(config.msi.upgradeCode, packageMetadata.desktopMsiUpgradeCode);
+    });
+}
+
+test("non-Windows config has no MSI settings", () => {
+    const config = JSON.parse(buildElectronBuilderConfig(
+        "linux-x64",
+        "/tmp/desktop-output",
+        { artifacts: true, zip: false, packageNameSuffix: "" },
+        "mysql-workbench",
+    ));
+
+    assert.equal(config.msi, undefined);
 });
 
 for (const packageOption of ["--zip", "--artifacts"]) {

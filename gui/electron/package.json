@@ -8,6 +8,7 @@
         "community": "",
         "commercial": "-commercial"
     },
+    "desktopMsiUpgradeCode": "b1b42b98-a76f-4301-8689-99759b1696b2",
     "desktopElectronBuilderCache": "packaging/electron-builder-cache",
     "main": "src/main.cjs",
     "scripts": {

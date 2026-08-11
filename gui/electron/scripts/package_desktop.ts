@@ -184,7 +184,18 @@ const validateDesktopPackageSuffixes = (metadata) => {
     return suffixes;
 };
 
+const validateDesktopMsiUpgradeCode = (metadata) => {
+    const upgradeCode = metadata.desktopMsiUpgradeCode;
+    if (typeof upgradeCode !== "string"
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(upgradeCode)) {
+        throw new Error("desktopMsiUpgradeCode must be a canonical UUID.");
+    }
+
+    return upgradeCode;
+};
+
 const desktopPackageSuffixes = validateDesktopPackageSuffixes(packageJson);
+const desktopMsiUpgradeCode = validateDesktopMsiUpgradeCode(packageJson);
 const desktopPackageName = packageJson.name;
 const desktopPackageVersion = packageJson.version;
 
@@ -585,6 +596,15 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions, packag
                 }
                 : undefined,
         },
+        msi: target.startsWith("win32")
+            ? {
+                // Keep both false to let users choose per-user or per-machine installation.
+                oneClick: false,
+                perMachine: false,
+                menuCategory: "MySQL",
+                upgradeCode: desktopMsiUpgradeCode,
+            }
+            : undefined,
         linux: {
             target: target.startsWith("linux") ? targets : null,
             category: "Development",
@@ -985,6 +1005,7 @@ module.exports = {
     parseArguments,
     resolveElectronBuilderCacheFolder,
     resolveElectronBuilderInvocation,
+    validateDesktopMsiUpgradeCode,
     validateDesktopPackageSuffixes,
     writeArtifactManifest,
 };
