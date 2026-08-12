@@ -178,9 +178,10 @@ class DbModuleSession(ModuleSession):
             self._db_type, options, _ = self._web_session.db.get_connection_details(
                 connection
             )
+            options = options.copy()
         elif isinstance(connection, dict):
             self._db_type = connection["db_type"]
-            options = connection["options"]
+            options = connection["options"].copy()
 
         if password is not None:
             # Override the password

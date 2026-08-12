@@ -1512,6 +1512,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     private viewAccountSqlDialogRef = createRef<ValueEditDialog>();
     private userAccountContextMenuRef = createRef<Menu>();
     private userAccountColumns?: ColumnDefinition[];
+    private initialLoad?: Promise<void>;
     private ignoreEmptyPasswordConfirmationForSession = false;
     private editingAccountDetails?: IMySQLUser;
     private editingAccountRow?: RowComponent;
@@ -1535,13 +1536,13 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     }
 
     public override componentDidMount(): void {
-        void this.loadUsers();
+        this.initialLoad = this.loadUsers();
     }
 
     public override componentDidUpdate(prevProps: IUserAccountsProperties): void {
         const { backend } = this.props;
         if (backend !== prevProps.backend) {
-            void this.loadUsers();
+            this.initialLoad = this.loadUsers();
         }
     }
 
@@ -2612,6 +2613,8 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     private async showManageRolesAndPrivilegesDialog(
         row: RowComponent, activeTab: ManageRolesAndPrivilegesTab,
     ): Promise<void> {
+        await this.initialLoad;
+
         const { backend } = this.props;
         if (!backend) {
             return;
@@ -3585,6 +3588,8 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     };
 
     private showCreateUserDialog = async (): Promise<void> => {
+        await this.initialLoad;
+
         this.editingAccountDetails = undefined;
         this.editingAccountRow = undefined;
         this.setState({ editingAccount: null });

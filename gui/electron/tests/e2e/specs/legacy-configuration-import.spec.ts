@@ -93,6 +93,9 @@ test.describe("Legacy configuration import", () => {
             await expect(panel).toBeVisible();
             await panel.locator("#dismissLegacyConfigurationImportPanel").click();
             await expect(panel).toBeHidden();
+            await expect(launched.workbench.page.locator(".notificationCenter .toast.info")).toContainText(
+                "Profile updated successfully.",
+            );
             await closeElectronApp(launched.app);
             launched = undefined;
 

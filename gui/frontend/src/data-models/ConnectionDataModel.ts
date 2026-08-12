@@ -634,9 +634,6 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
     /** Closes this connection and frees resources. Call {@link initialize} to open it again. */
     close(): Promise<void>;
 
-    /** Removes the password cached for this connection. */
-    forgetPassword?(): void;
-
     /** Opens the user DB connection and refreshes this entry's children. */
     initialize(callback?: ProgressCallback): Promise<boolean>;
 
@@ -954,7 +951,6 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 const index = parent.entries.indexOf(entry);
                 if (index >= 0) {
                     if (entry.type === CdmEntityType.Connection) {
-                        entry.forgetPassword?.();
                         await entry.close();
                     }
 

@@ -33,6 +33,7 @@ import gui_plugin.core.Logger as logger
 from gui_plugin import db_connections, sql_editor
 import gui_plugin.sql_editor.SqlEditor as sql_editor_module
 from gui_plugin.core.Error import MSGException
+from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from tests.lib.MockWebSession import MockWebSession
 from tests.lib.utils import backend_callback, backend_callback_with_pending
 
@@ -48,6 +49,30 @@ class Parameters:
     _module_session_id = None
     _db_connection_id = None
     _open_connection_info = None
+
+
+def test_password_prompt_keeps_the_credential_for_both_editor_sessions():
+    web_session = MockWebSession()
+    module_session = DbModuleSession.__new__(DbModuleSession)
+    module_session._module_session_id = "module-1"
+    module_session._db_service_session = None
+    module_session._connection_options = {}
+    module_session._current_request_id = "request-1"
+    module_session._prompt_replied = True
+    module_session._prompt_reply = "secret"
+    module_session._web_session = web_session
+    module_session.send_prompt_response = lambda _request_id, _options, callback: callback()
+
+    replied, password = module_session.on_shell_prompt(
+        "Please provide the password for 'root@localhost:3306'",
+        {"type": "password"},
+    )
+
+    assert replied is True
+    assert password == "secret"
+    assert module_session._connection_options["password"] == "secret"
+
+    module_session.close()
 
 
 @pytest.fixture(scope="module")

@@ -453,30 +453,4 @@ describe("ConnectionDataModel", () => {
         checkNoUiWarningsOrErrors();
     });
 
-    it("reuses an accepted MySQL password for later connection opens", async () => {
-        await dataModel.reloadConnections();
-        const connection = dataModel.roots.find((entry) => {
-            return entry.type === CdmEntityType.Connection;
-        });
-        expect(connection).toBeDefined();
-        await connection!.close();
-
-        cdmMockState.haveMockConnectionResponse = true;
-        promptForPassword = true;
-        vi.mocked(uiLayerMock.requestPassword).mockResolvedValueOnce("secret");
-
-        await connection!.refresh?.();
-        await vi.waitFor(() => {
-            expect(uiLayerMock.requestPassword).toHaveBeenCalled();
-        });
-        await connection!.close();
-
-        promptForPassword = false;
-        await connection!.refresh?.();
-
-        expect(openConnectionCredentials.at(-1)).toEqual({
-            userName: "root",
-            password: "secret",
-        });
-    });
 });
