@@ -508,19 +508,16 @@ export class MigrationAssistant {
 
     private async advanceFromTargetSelectionToMigrationType(): Promise<void> {
         const next = this.page.locator(locator.mainPage.next);
+        const migrationTypeRadios = this.page.locator(locator.steps.migrationType.type);
         await expect(next).toBeVisible({ timeout: wait1second * 15 });
         await expect.poll(async () => {
             return await this.isButtonEnabled(MigrationButton.Next);
         }, { timeout: wait1second * 15, message: "Next button should be enabled on Target Selection" }).toBe(true);
 
         await next.click({ force: true });
-        const firstClickResult = await this.waitForTargetSelectionAdvanceActivity(wait1second * 3);
-        if (firstClickResult === "none") {
-            await next.click({ force: true });
-        }
 
         try {
-            await this.waitUntilStepIs({ caption: migrationType, isExpanded: true }, wait1second * 90);
+            await expect(migrationTypeRadios.first()).toBeVisible({ timeout: wait1second * 90 });
         } catch (error) {
             const state = this.page.isClosed()
                 ? "page closed before the Target Selection state could be collected"
@@ -566,30 +563,6 @@ export class MigrationAssistant {
             .toHaveValue(process.env.DB_ROOT_PASSWORD ?? "");
     }
 
-    private async waitForTargetSelectionAdvanceActivity(timeout: number): Promise<"activity" | "advanced" | "none"> {
-        const result = await Promise.race([
-            this.waitUntilStepIs({ caption: migrationType, isExpanded: true }, timeout).then(() => {
-                return "advanced" as const;
-            }).catch(() => {
-                return "none" as const;
-            }),
-            this.page.locator(locator.mainPage.loadingIcon).first().waitFor({
-                state: "visible",
-                timeout,
-            }).then(() => {
-                return "activity" as const;
-            }).catch(() => {
-                return "none" as const;
-            }),
-        ]);
-
-        if (result === "activity") {
-            await this.waitForLoadingIcon();
-        }
-
-        return result;
-    }
-
     private async closeOpenPopup(): Promise<void> {
         await this.page.keyboard.press("Escape");
         await this.page.locator(".migration-sub-app").click({ position: { x: 5, y: 5 }, force: true });
@@ -627,25 +600,10 @@ export class MigrationAssistant {
     }
 
     public async setMigrationType(): Promise<void> {
-        const radios = await this.page.locator(locator.steps.migrationType.type).all();
-        for (const radio of radios) {
-            if ((await radio.textContent()) === "Hot Migration") {
-                await radio.click();
+        const hotMigration = this.page.locator(locator.steps.migrationType.type).filter({ hasText: "Hot Migration" });
 
-                return;
-            }
-        }
-    }
-
-    public async setMigrationTypeIfVisible(): Promise<void> {
-        const migrationTypeRadios = this.page.locator(locator.steps.migrationType.type);
-        if (!await this.waitForOptionalVisible(migrationTypeRadios.first(), wait1second * 5)) {
-            return;
-        }
-
-        await this.setMigrationType();
-        await expect(migrationTypeRadios.filter({ hasText: "Hot Migration" }))
-            .toHaveAttribute("aria-checked", "true");
+        await hotMigration.click();
+        await expect(hotMigration).toHaveAttribute("aria-checked", "true");
     }
 
     public async setNetworkConnectivity(): Promise<void> {

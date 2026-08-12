@@ -158,7 +158,7 @@ const fillMigrationPlan = async (migrationAssistant: MigrationAssistant): Promis
     if (!await migrationAssistant.fillUseExistingTargetSelectionAndAdvance()) {
         return false;
     }
-    await migrationAssistant.setMigrationTypeIfVisible();
+    await migrationAssistant.setMigrationType();
     await migrationAssistant.setNetworkConnectivityIfVisible();
     await migrationAssistant.next();
     await migrationAssistant.waitUntilStepIs({ caption: objectSelection, isExpanded: true }, 90000);
