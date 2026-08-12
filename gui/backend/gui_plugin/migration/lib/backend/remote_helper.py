@@ -45,8 +45,8 @@ k_bundled_mysqlsh_rpm = {
 }
 
 k_repo_mysqlsh_url = {
-    "aarch64": "https://cdn.mysql.com/Downloads/MySQL-Shell/mysql-shell-9.7.0-1.el8.aarch64.rpm",
-    "x86_64": "https://cdn.mysql.com/Downloads/MySQL-Shell/mysql-shell-9.7.0-1.el8.x86_64.rpm",
+    "aarch64": "https://cdn.mysql.com/Downloads/MySQL-Shell/mysql-shell-26.7.0-1.el8.aarch64.rpm",
+    "x86_64": "https://cdn.mysql.com/Downloads/MySQL-Shell/mysql-shell-26.7.0-1.el8.x86_64.rpm",
 }
 
 
