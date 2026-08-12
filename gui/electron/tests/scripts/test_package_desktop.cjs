@@ -86,6 +86,24 @@ test("Electron Builder cache location must be relative", () => {
     }, /desktopElectronBuilderCache must be a non-empty relative path/);
 });
 
+test("Electron Builder packages the Workbench license in the application content", () => {
+    const config = JSON.parse(buildElectronBuilderConfig(
+        "linux-x64",
+        "/tmp/desktop-output",
+        { artifacts: true, zip: true, packageNameSuffix: "" },
+        "mysql-workbench",
+    ));
+    const license = resolve(__dirname, "../../LICENSE");
+
+    assert.equal(existsSync(license), true);
+    assert.deepEqual(config.extraFiles, [
+        {
+            from: license,
+            to: "LICENSE",
+        },
+    ]);
+});
+
 test("package metadata defines the shared suffixes", () => {
     assert.deepEqual(packageMetadata.desktopPackageSuffixes, {
         community: "",

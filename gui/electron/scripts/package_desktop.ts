@@ -561,6 +561,12 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions, packag
         files: [
             "**/*",
         ],
+        extraFiles: [
+            {
+                from: join(electronFolder, "LICENSE"),
+                to: "LICENSE",
+            },
+        ],
         artifactName: getArtifactFileName(packageName, target, "${ext}"),
         mac: {
             target: target.startsWith("darwin") ? targets : null,
