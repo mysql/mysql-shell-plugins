@@ -415,6 +415,20 @@ test("configured commercial suffix is accepted", () => {
     );
 });
 
+test("community app manifest keeps the base version and an empty desktop suffix", () => {
+    const manifest = JSON.parse(buildAppManifest("mysql-workbench", ""));
+
+    assert.equal(manifest.version, packageMetadata.version);
+    assert.equal(manifest.desktopPackageSuffix, "");
+});
+
+test("commercial app manifest keeps the base version and commercial desktop suffix", () => {
+    const manifest = JSON.parse(buildAppManifest("mysql-workbench-commercial", "-commercial"));
+
+    assert.equal(manifest.version, packageMetadata.version);
+    assert.equal(manifest.desktopPackageSuffix, "-commercial");
+});
+
 test("unknown suffix is rejected", () => {
     assert.throws(() => {
         parseArguments([
@@ -580,7 +594,7 @@ const targetCases = [
 for (const [target, platform, installerTarget, executableName] of targetCases) {
     test(`commercial package metadata is consistent for ${target}`, () => {
         const packageName = getDesktopPackageName("-commercial");
-        const manifest = JSON.parse(buildAppManifest(packageName));
+        const manifest = JSON.parse(buildAppManifest(packageName, "-commercial"));
         const config = JSON.parse(buildElectronBuilderConfig(
             target,
             "/tmp/desktop-output",

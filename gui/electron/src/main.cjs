@@ -26,6 +26,11 @@
 const fs = require("fs");
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
+const { handleVersionCommand } = require("./version-command.cjs");
+
+if (handleVersionCommand(process.argv, require("../package.json"))) {
+    process.exit(0);
+}
 
 const {
     app,

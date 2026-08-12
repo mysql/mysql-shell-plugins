@@ -411,11 +411,12 @@ const cleanPluginArtifacts = (folder) => {
     }
 };
 
-const buildAppManifest = (packageName) => {
+const buildAppManifest = (packageName, packageNameSuffix) => {
     return JSON.stringify({
         name: packageName,
         productName: desktopProductName,
         version: desktopPackageVersion,
+        desktopPackageSuffix: packageNameSuffix,
         description: packageJson.description,
         author: desktopPackageAuthor,
         homepage: desktopPackageHomepage,
@@ -874,7 +875,7 @@ const installProductBundleHelper = (target, targetFolder) => {
     }
 };
 
-const installAppPayload = (target, appFolder, includeShellBundle, packageName) => {
+const installAppPayload = (target, appFolder, includeShellBundle, packageName, packageNameSuffix) => {
     if (includeShellBundle) {
         resetDirectory(appFolder);
     } else {
@@ -889,7 +890,7 @@ const installAppPayload = (target, appFolder, includeShellBundle, packageName) =
         }
     }
 
-    writeFileSync(join(appFolder, "package.json"), buildAppManifest(packageName));
+    writeFileSync(join(appFolder, "package.json"), buildAppManifest(packageName, packageNameSuffix));
     cpSync(electronSourceFolder, join(appFolder, "src"), { recursive: true, force: true });
     ensureDirectory(join(appFolder, "frontend"));
     cpSync(buildFolder, join(appFolder, "frontend", "build"), { recursive: true, force: true });
@@ -913,7 +914,7 @@ const packageTarget = (target, packageOptions) => {
     const builderConfigPath = join(targetStagingFolder, "electron-builder.json");
 
     resetDirectory(targetStagingFolder);
-    installAppPayload(target, appFolder, true, packageName);
+    installAppPayload(target, appFolder, true, packageName, packageOptions.packageNameSuffix);
     writeFileSync(
         builderConfigPath,
         buildElectronBuilderConfig(target, builderOutputFolder, packageOptions, packageName),
@@ -954,7 +955,7 @@ const quickPackageTarget = (target, packageOptions) => {
         throw new Error(`Could not locate the packaged app payload for ${target} at ${appFolder}`);
     }
 
-    installAppPayload(target, appFolder, false, packageName);
+    installAppPayload(target, appFolder, false, packageName, packageOptions.packageNameSuffix);
     installProductBundleHelper(target, targetOutputFolder);
     Logger.success(`Updated desktop package app payload for ${target} in ${targetOutputFolder}`);
 };
