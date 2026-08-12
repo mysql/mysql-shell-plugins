@@ -78,6 +78,12 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
 
         return root
 
+    def add_oci_installation(self, tree: Path) -> Path:
+        site_packages = tree / "runtime" / "python3.13" / "site-packages"
+        (site_packages / "oci").mkdir(parents=True)
+        (site_packages / "oci-2.177.0.dist-info").mkdir()
+        return site_packages
+
     def run_helper(self, *arguments: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [sys.executable, str(SCRIPT_PATH), *arguments],
@@ -226,6 +232,141 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Prepare an unpacked MySQL Shell tree", result.stdout)
+
+    def test_finds_oci_site_packages_from_distribution_metadata(self) -> None:
+        helper = self.load_helper()
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
+            site_packages = self.add_oci_installation(tree)
+            self.assertEqual(helper.find_oci_site_packages(tree), site_packages)
+
+    def test_rejects_missing_oci_metadata(self) -> None:
+        helper = self.load_helper()
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
+            with self.assertRaisesRegex(ValueError, "OCI SDK metadata"):
+                helper.find_oci_site_packages(tree)
+
+    def test_rejects_ambiguous_oci_metadata(self) -> None:
+        helper = self.load_helper()
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
+            self.add_oci_installation(tree)
+            second = tree / "other" / "site-packages"
+            (second / "oci-2.176.0.dist-info").mkdir(parents=True)
+            with self.assertRaisesRegex(ValueError, "multiple OCI SDK metadata"):
+                helper.find_oci_site_packages(tree)
+
+    def test_rejects_symlinked_oci_metadata(self) -> None:
+        helper = self.load_helper()
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            tree = self.create_shell_tree(root / "mysqlsh")
+            site_packages = self.add_oci_installation(tree)
+            metadata = site_packages / "oci-2.177.0.dist-info"
+            external = root / "external-oci.dist-info"
+            metadata.replace(external)
+            metadata.symlink_to(external, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "OCI SDK metadata"):
+                helper.find_oci_site_packages(tree)
+
+    def test_rejects_mysqlsh_executable_symlink_escaping_tree(self) -> None:
+        helper = self.load_helper()
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
+            executable = tree / "bin" / "mysqlsh.exe"
+            external = tree.parent / "external-mysqlsh.exe"
+            executable.replace(external)
+            executable.symlink_to(external)
+            with self.assertRaisesRegex(ValueError, "MySQL Shell executable"):
+                helper.find_mysqlsh_executable(tree)
+
+    def test_oci_preparation_uses_staged_mysqlsh(self) -> None:
+        helper = self.load_helper()
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
+            site_packages = self.add_oci_installation(tree)
+
+            def record_command(
+                command: object, **keywords: object
+            ) -> subprocess.CompletedProcess[str]:
+                environment = keywords["env"]
+                self.assertIsInstance(environment, dict)
+                self.assertTrue(Path(environment["MYSQLSH_USER_CONFIG_HOME"]).is_dir())
+                return subprocess.CompletedProcess(
+                    args=[],
+                    returncode=0,
+                    stdout="",
+                )
+
+            with mock.patch.object(helper.subprocess, "run", side_effect=record_command) as run:
+                helper.prepare_oci_sdk(tree)
+
+            self.assertEqual(run.call_args.args[0], [
+                str(tree / "bin/mysqlsh.exe"),
+                "--disable-builtin-plugins",
+                "--py",
+                "-f",
+                str(helper.PREPARE_OCI_SDK_SCRIPT),
+                str(site_packages),
+            ])
+            self.assertFalse(run.call_args.kwargs["check"])
+            self.assertEqual(run.call_args.kwargs["creationflags"], 0)
+
+    def test_oci_preparation_uses_python_36_subprocess_arguments(self) -> None:
+        helper = self.load_helper()
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
+            self.add_oci_installation(tree)
+            output = io.StringIO()
+
+            def python_36_run(
+                command,
+                *,
+                check,
+                creationflags,
+                env,
+                stdout,
+                stderr,
+                universal_newlines,
+                encoding,
+                errors,
+            ):
+                return subprocess.CompletedProcess(
+                    args=command,
+                    returncode=0,
+                    stdout="Preparing OCI SDK\n",
+                )
+
+            with mock.patch.object(
+                helper.subprocess, "run", side_effect=python_36_run
+            ), contextlib.redirect_stdout(output):
+                helper.prepare_oci_sdk(tree)
+
+            self.assertEqual(output.getvalue(), "Preparing OCI SDK\n")
+
+    def test_oci_preparation_uses_extended_path_and_no_console_on_windows(self) -> None:
+        helper = self.load_helper()
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
+            site_packages = self.add_oci_installation(tree)
+            output = io.StringIO()
+            completed = subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout="Preparing OCI SDK\n",
+            )
+            with mock.patch.object(helper.os, "name", "nt"), mock.patch.object(
+                helper.subprocess, "CREATE_NO_WINDOW", 0x08000000, create=True
+            ), mock.patch.object(
+                helper.subprocess, "run", return_value=completed
+            ) as run, contextlib.redirect_stdout(output):
+                helper.prepare_oci_sdk(tree)
+            self.assertEqual(run.call_args.args[0][-1], "\\\\?\\" + str(site_packages.resolve()))
+            self.assertEqual(run.call_args.kwargs["creationflags"], 0x08000000)
+            self.assertIs(run.call_args.kwargs.get("stdout"), subprocess.PIPE)
+            self.assertIs(run.call_args.kwargs.get("stderr"), subprocess.STDOUT)
+            self.assertEqual(output.getvalue(), "Preparing OCI SDK\n")
 
     def test_stage_copies_required_tree_and_optional_libexec(self) -> None:
         helper = self.load_helper()

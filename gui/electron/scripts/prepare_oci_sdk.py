@@ -22,88 +22,15 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
+import argparse
+import compileall
 import shutil
-import subprocess
 import sys
 import tempfile
 import zipfile
+from os import close
 from pathlib import Path
-from typing import Dict, List, Optional
-
-
-def _is_within_tree(path: Path, tree: Path) -> bool:
-    try:
-        path.resolve().relative_to(tree.resolve())
-    except ValueError:
-        return False
-
-    return True
-
-
-def find_oci_directory(tree: Path) -> Path:
-    candidates = sorted(
-        path
-        for root, pattern in (
-            (
-                tree / "lib" / "mysqlsh" / "lib",
-                "python*/site-packages/oci",
-            ),
-            (tree / "lib", "Python*/Lib/site-packages/oci"),
-        )
-        for path in root.glob(pattern)
-        if path.is_dir() and not path.is_symlink() and _is_within_tree(path, tree)
-    )
-    if not candidates:
-        raise ValueError(f"OCI SDK directory does not exist under {tree}")
-    if len(candidates) != 1:
-        raise ValueError(f"Found multiple OCI SDK directories under {tree}")
-
-    return candidates[0]
-
-
-def find_mysqlsh_executable(tree: Path) -> Path:
-    candidates = [
-        path
-        for path in (tree / "bin" / "mysqlsh", tree / "bin" / "mysqlsh.exe")
-        if path.is_file() and _is_within_tree(path, tree)
-    ]
-    if len(candidates) != 1:
-        raise ValueError(
-            f"Expected one MySQL Shell executable under {tree / 'bin'}"
-        )
-
-    return candidates[0]
-
-
-def _compile_bytecode(tree: Path, oci_directory: Path) -> None:
-    environment = os.environ.copy()
-    with tempfile.TemporaryDirectory(prefix="mysqlsh-oci-sdk-") as config_home:
-        environment["MYSQLSH_USER_CONFIG_HOME"] = config_home
-        compile_directory = str(oci_directory)
-        if os.name == "nt":
-            resolved_oci_directory = str(oci_directory.resolve())
-            compile_directory = "\\\\?\\" + resolved_oci_directory
-
-        command = [
-            str(find_mysqlsh_executable(tree)),
-            "--disable-builtin-plugins",
-            "--pym",
-            "compileall",
-            "-q",
-            "-f",
-            "-b",
-            compile_directory,
-        ]
-        creationflags = (
-            subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
-        )
-        subprocess.run(
-            command,
-            check=True,
-            creationflags=creationflags,
-            env=environment,
-        )
+from typing import Dict, List, Optional, Sequence
 
 
 def _find_expected_files(oci_directory: Path) -> List[Path]:
@@ -143,7 +70,7 @@ def _temporary_sibling(site_packages: Path, suffix: str) -> Path:
         prefix=".oci-",
         suffix=suffix,
     )
-    os.close(descriptor)
+    close(descriptor)
 
     return Path(name)
 
@@ -177,16 +104,36 @@ def _path_exists(path: Path) -> bool:
     return path.exists() or path.is_symlink()
 
 
-def prepare_oci_sdk(tree: Path) -> None:
-    oci_directory = find_oci_directory(tree)
-    site_packages = oci_directory.parent
+def prepare_oci_sdk(site_packages: Path) -> None:
+    site_packages = site_packages.resolve()
+    if not site_packages.is_dir():
+        raise ValueError(f"OCI SDK site-packages directory does not exist: {site_packages}")
+
+    oci_directory = site_packages / "oci"
     final_archive = site_packages / "oci.zip"
     final_pth = site_packages / "oci.pth"
+    for path in (oci_directory, final_archive, final_pth):
+        if path.is_symlink():
+            raise ValueError(f"OCI SDK path must not be a symlink: {path}")
+
+    if not oci_directory.exists():
+        if final_archive.is_file() and final_pth.is_file():
+            print(f"OCI SDK is already prepared: {final_archive}", flush=True)
+            return
+        raise ValueError(f"OCI SDK directory does not exist: {oci_directory}")
+    if not oci_directory.is_dir():
+        raise ValueError(f"OCI SDK directory is not a directory: {oci_directory}")
+
     print("Preparing OCI SDK:")
     print(f"  From: {oci_directory}")
     print(f"  To:   {final_archive}", flush=True)
     print("Compiling OCI SDK bytecode...", flush=True)
-    _compile_bytecode(tree, oci_directory)
+    if not compileall.compile_dir(
+        str(oci_directory), force=True, quiet=1, legacy=True
+    ):
+        raise RuntimeError(
+            f"OCI SDK bytecode compilation failed: {oci_directory}"
+        )
     expected_files = _find_expected_files(oci_directory)
     temporary_archive: Optional[Path] = None
     temporary_pth: Optional[Path] = None
@@ -272,3 +219,28 @@ def prepare_oci_sdk(tree: Path) -> None:
         for backup in backups.values():
             backup.unlink()
         print("OCI SDK preparation complete.", flush=True)
+
+
+def parse_arguments(
+    arguments: Optional[Sequence[str]] = None,
+) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Prepare an OCI SDK installation for packaging."
+    )
+    parser.add_argument("site_packages", type=Path)
+    return parser.parse_args(arguments)
+
+
+def main(arguments: Optional[Sequence[str]] = None) -> int:
+    options = parse_arguments(arguments)
+    try:
+        prepare_oci_sdk(options.site_packages)
+    except (OSError, RuntimeError, ValueError) as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

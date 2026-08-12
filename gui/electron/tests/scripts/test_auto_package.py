@@ -95,6 +95,7 @@ class AutoPackageTest(unittest.TestCase):
         )
         oci.mkdir(parents=True)
         (oci / "__init__.py").write_text("oci = True\n", encoding="utf-8")
+        (oci.parent / "oci-2.177.0.dist-info").mkdir()
         plugin = root / "lib" / "mysqlsh" / "plugins" / "gui_plugin"
         plugin.mkdir(parents=True)
         (plugin / "init.py").write_text("plugin = True\n", encoding="utf-8")

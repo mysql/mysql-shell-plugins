@@ -31,7 +31,10 @@ import tempfile
 from pathlib import Path
 from typing import List, Optional, Sequence
 
-from prepare_oci_sdk import prepare_oci_sdk
+
+PREPARE_OCI_SDK_SCRIPT = Path(__file__).resolve().with_name(
+    "prepare_oci_sdk.py"
+)
 
 
 CLEANUP_DIRECTORY_NAMES = {
@@ -49,6 +52,83 @@ CLEANUP_FILE_NAMES = {
     "python.env",
     "run_tests.py",
 }
+
+
+def _is_within_tree(path: Path, tree: Path) -> bool:
+    try:
+        path.resolve().relative_to(tree.resolve())
+    except ValueError:
+        return False
+
+    return True
+
+
+def find_mysqlsh_executable(tree: Path) -> Path:
+    candidates = [
+        path
+        for path in (tree / "bin" / "mysqlsh", tree / "bin" / "mysqlsh.exe")
+        if path.is_file() and _is_within_tree(path, tree)
+    ]
+    if len(candidates) != 1:
+        raise ValueError(
+            f"Expected one MySQL Shell executable under {tree / 'bin'}"
+        )
+
+    return candidates[0]
+
+
+def find_oci_site_packages(tree: Path) -> Path:
+    candidates = sorted(
+        metadata
+        for metadata in tree.glob("**/site-packages/oci-*.dist-info")
+        if metadata.is_dir()
+        and not metadata.is_symlink()
+        and _is_within_tree(metadata, tree)
+    )
+    if not candidates:
+        raise ValueError(f"OCI SDK metadata does not exist under {tree}")
+    if len(candidates) != 1:
+        raise ValueError(
+            f"Found multiple OCI SDK metadata directories under {tree}"
+        )
+
+    return candidates[0].parent
+
+
+def prepare_oci_sdk(tree: Path) -> None:
+    tree = tree.resolve()
+    site_packages = find_oci_site_packages(tree)
+    site_packages_argument = str(site_packages)
+    if os.name == "nt":
+        site_packages_argument = "\\\\?\\" + str(site_packages.resolve())
+
+    environment = os.environ.copy()
+    with tempfile.TemporaryDirectory(prefix="mysqlsh-oci-sdk-") as config_home:
+        environment["MYSQLSH_USER_CONFIG_HOME"] = config_home
+        command = [
+            str(find_mysqlsh_executable(tree)),
+            "--disable-builtin-plugins",
+            "--py",
+            "-f",
+            str(PREPARE_OCI_SDK_SCRIPT),
+            site_packages_argument,
+        ]
+        creationflags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+        result = subprocess.run(
+            command,
+            check=False,
+            creationflags=creationflags,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if result.stdout:
+            print(result.stdout, end="", flush=True)
+
+        result.check_returncode()
 
 
 def validate_mysqlsh_tree(tree: Path) -> None:
