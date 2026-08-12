@@ -734,7 +734,7 @@ def test_connection(connection, password=None):
 
     Args:
         connection (object): The id of the db_connection or connection information
-        password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
+        password (str): Optional password to use when opening the connection.
 
     Allowed options for connection:
         db_type (str): The db type name
@@ -744,17 +744,13 @@ def test_connection(connection, password=None):
         None
     """
     new_session = DbModuleSession()
-    new_session.open_connection(connection, password)
-    if (
-        not new_session.completion_event.has_errors
-        and password is None
-        and not "password" in connection["options"]
-    ):
-        return {"module_session_id": new_session.module_session_id}
+    try:
+        new_session.open_connection(connection, password)
+        new_session.completion_event.wait()
 
-    new_session.completion_event.wait()
-
-    if not new_session.completion_event.has_errors:
+        if new_session.completion_event.has_errors:
+            raise new_session.completion_event.get_errors()[0]
+    finally:
         new_session.close()
 
 

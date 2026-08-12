@@ -24,7 +24,7 @@
  */
 
 import { IDictionary } from "../../app-logic/general-types.js";
-import { IMySQLConnectionOptions } from "../../communication/MySQL.js";
+import { IAuthenticationHints, IMySQLConnectionOptions } from "../../communication/MySQL.js";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite.js";
 
 /** Database types we can handle. */
@@ -43,6 +43,7 @@ type IShellConnectionOptions = IMySQLConnectionOptions | ISqliteConnectionOption
 export interface IConnectionSettings {
     defaultEditor?: ConnectionEditorType;
     badge?: string;
+    authenticationHints?: IAuthenticationHints;
     enterpriseBackup?: {
         mysqlbackupPath?: string;
         backupHomePath?: string;

@@ -26,10 +26,11 @@
 import { ComponentChild, createRef, type JSX } from "preact";
 
 import {
-    DialogResponseClosure, DialogType, IDictionary, IServicePasswordRequest, MessageType,
+    DialogResponseClosure, IDictionary, IServicePasswordRequest, MessageType,
 } from "../../app-logic/general-types.js";
 import {
-    IMySQLConnectionOptions, MySQLConnCompression, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode,
+    IAuthenticationHints, IMySQLConnectionOptions, mysqlAuthenticationPluginChoices,
+    MySQLAuthenticationPlugin, MySQLConnCompression, MySQLConnectionScheme, MySQLSslMode,
 } from "../../communication/MySQL.js";
 import { IBastionSummary } from "../../communication/Oci.js";
 import { IMdsProfileData } from "../../communication/ProtocolMds.js";
@@ -38,10 +39,8 @@ import { ConfirmDialog } from "../../components/Dialogs/ConfirmDialog.js";
 import {
     CommonDialogValueOption, DialogValueType, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
 } from "../../components/Dialogs/ValueEditDialog.js";
-import { CheckState, ICheckboxProperties } from "../../components/ui/Checkbox/Checkbox.js";
 import { Codicon } from "../../components/ui/Codicon.js";
 
-import { DialogHost } from "../../app-logic/DialogHost.js";
 import { ui } from "../../app-logic/UILayer.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
@@ -53,7 +52,9 @@ import { CdmEntityType } from "../../data-models/ConnectionDataModel.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
-import { ConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import {
+    ConnectionEditorType, DBType, IConnectionDetails, IConnectionSettings,
+} from "../../supplement/ShellInterface/index.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
 import { ConnectionBadgeEditor } from "./ConnectionBadgeEditor.js";
@@ -65,23 +66,147 @@ const globalDefaultEditor = "Default";
 const mysqlSocketProtocol = "mysql (socket/pipe)";
 const mysqlSshTunnelMethod = "mysql + SSH tunnel";
 const mysqlBastionMethod = "mysql + OCI Bastion";
+const noAuthenticationPlugin = "None";
+const internalPasswordAuthenticationPlugins = new Set([
+    "caching_sha2_password",
+    "mysql_native_password",
+    "sha256_password",
+    MySQLAuthenticationPlugin.Password,
+]);
+// These authentication methods either have no client plugin or use client
+// functionality that is built into the MySQL client library.
+const authenticationPluginsWithoutSeparateClientPlugin = new Set([
+    MySQLAuthenticationPlugin.Password,
+    MySQLAuthenticationPlugin.AuthenticationLdapSimple,
+    MySQLAuthenticationPlugin.AuthenticationPam,
+    MySQLAuthenticationPlugin.AuthenticationWindows,
+    MySQLAuthenticationPlugin.AuthSocket,
+]);
+const clearTextPasswordAuthenticationPlugins = new Set([
+    MySQLAuthenticationPlugin.AuthenticationLdapSimple,
+    MySQLAuthenticationPlugin.AuthenticationPam,
+]);
+const authenticationRequiresClearTextPassword = (factors: readonly MySQLAuthenticationPlugin[]): boolean => {
+    return factors.some((plugin) => {
+        return clearTextPasswordAuthenticationPlugins.has(plugin);
+    });
+};
 
-const connectionMethodDiagram = (method: string): string => {
-    switch (method) {
-        case mysqlSocketProtocol:
-            return "Workbench  ── socket ──▻  MySQL";
+const authenticationPluginInputDescription = (plugin: string): string => {
+    switch (plugin as MySQLAuthenticationPlugin | typeof noAuthenticationPlugin) {
+        case MySQLAuthenticationPlugin.Password:
+            return "Password will be prompted";
 
-        case mysqlSshTunnelMethod:
-            return "Workbench  ───▻  SSH Host  ───▻  MySQL";
+        case MySQLAuthenticationPlugin.AuthenticationKerberos:
+            return "Kerberos ticket or credentials will be required";
 
-        case mysqlBastionMethod:
-            return "Workbench  ───▻  Bastion  ───▻  MySQL";
+        case MySQLAuthenticationPlugin.AuthenticationLdapSasl:
+            return "LDAP/SASL credentials will be prompted";
 
-        case String(MySQLConnectionScheme.MySQLx):
-            return "Workbench  ── tcp/X protocol ──▻  MySQL";
+        case MySQLAuthenticationPlugin.AuthenticationLdapSimple:
+            return "LDAP password will be prompted.\n⚠️ passwords will be sent in cleartext. " +
+                "TLS encryption is required.";
+
+        case MySQLAuthenticationPlugin.AuthenticationOci:
+            return "Enter OCI config and profile below.";
+
+        case MySQLAuthenticationPlugin.AuthenticationOpenIdConnect:
+            return "OpenID Connect sign-in will be required";
+
+        case MySQLAuthenticationPlugin.AuthenticationPam:
+            return "PAM password will be prompted.\n⚠️ passwords will be sent in cleartext. " +
+                "TLS encryption is required.";
+
+        case MySQLAuthenticationPlugin.AuthenticationWebAuthn:
+            return "Registered FIDO2/WebAuthn device will be required";
+
+        case MySQLAuthenticationPlugin.AuthenticationWindows:
+            return "Windows credentials will be used";
+
+        case MySQLAuthenticationPlugin.AuthSocket:
+            return "Local OS user must match the MySQL account";
+
+        case noAuthenticationPlugin:
+            return "No authentication factor configured";
 
         default:
-            return "Workbench  ── tcp ──▻  MySQL";
+            return "Plugin-specific authentication input will be required";
+    }
+};
+
+interface IConnectionDiagramEndpoints {
+    mysqlHost?: string;
+    mysqlPort?: number;
+    ssh?: string;
+}
+
+const connectionDiagramEndpoints = (values: IDialogValues): IConnectionDiagramEndpoints => {
+    const mysqlDetails = values.sections.get("mysqlDetails")?.values;
+    const sshDetails = values.sections.get("ssh")?.values;
+    const host = mysqlDetails?.hostName;
+    const port = mysqlDetails?.port;
+    const ssh = sshDetails?.ssh;
+
+    return {
+        mysqlHost: host?.type === "text" ? host.value! : undefined,
+        mysqlPort: port?.type === "number" ? port.value! as number : undefined,
+        ssh: ssh?.type === "text" ? ssh.value! : undefined,
+    };
+};
+
+const connectionMethodDiagram = (method: string, sslMode?: MySQLSslMode,
+    endpoints: IConnectionDiagramEndpoints = {}): ComponentChild => {
+    const mysqlProtocol = sslMode === MySQLSslMode.Preferred ? "ssl?"
+        : sslMode === MySQLSslMode.Required || sslMode === MySQLSslMode.VerifyCA
+            || sslMode === MySQLSslMode.VerifyIdentity ? "ssl" : "tcp";
+    const defaultMySQLPort = method === String(MySQLConnectionScheme.MySQLx) ? 33060 : 3306;
+    const mysqlHost = endpoints.mysqlHost?.startsWith("[") || !endpoints.mysqlHost?.includes(":")
+        ? endpoints.mysqlHost
+        : `[${endpoints.mysqlHost}]`;
+    const mysqlEndpoint = method === mysqlSocketProtocol ? "localhost" : mysqlHost
+        ? `${mysqlHost}:${endpoints.mysqlPort ?? defaultMySQLPort}`
+        : undefined;
+    let sshEndpoint: string | undefined;
+    if (endpoints.ssh) {
+        try {
+            const url = new URL(endpoints.ssh.includes("://") ? endpoints.ssh : `ssh://${endpoints.ssh}`);
+            const sshHost = url.hostname.startsWith("[") || !url.hostname.includes(":")
+                ? url.hostname : `[${url.hostname}]`;
+            sshEndpoint = `${sshHost}:${url.port || 22}`;
+        } catch {
+            // The SSH URI is validated before connecting.
+        }
+    }
+    const link = (protocol: string, network = true): ComponentChild => {
+        return <span className="connectionMethodLink"><span className="connectionMethodProtocol">{protocol}</span>
+            <span className={"connectionMethodArrow" + (network ? " network" : "")} aria-hidden={true} />
+        </span>;
+    };
+    const mysqlNode = <strong className="connectionMethodNode" data-endpoint={mysqlEndpoint}>MySQL</strong>;
+
+    switch (method) {
+        case String(DBType.Sqlite):
+            return <><strong>Workbench</strong>{"  "}{link("local file", false)}{"  "}<strong>SQLite</strong></>;
+
+        case mysqlSocketProtocol:
+            return <><strong>Workbench</strong>{"  "}{link("socket", false)}{"  "}{mysqlNode}</>;
+
+        case mysqlSshTunnelMethod:
+            return <><strong>Workbench</strong>{"  "}{link("ssh")}{"  "}
+                <strong className="connectionMethodNode" data-endpoint={sshEndpoint}>SSH Host</strong>
+                {"  "}{link(mysqlProtocol)}{"  "}{mysqlNode}</>;
+
+        case mysqlBastionMethod:
+            return <><strong>Workbench</strong>{"  "}{link("ssh")}{"  "}
+                <strong className="connectionMethodNode"
+                    data-endpoint="assigned dynamically">Bastion</strong>
+                {"  "}{link(mysqlProtocol)}{"  "}{mysqlNode}</>;
+
+        case String(MySQLConnectionScheme.MySQLx):
+            return <><strong>Workbench</strong>{"  "}{link(mysqlProtocol+"/X protocol")}{"  "}{mysqlNode}</>;
+
+        default:
+            return <><strong>Workbench</strong>{"  "}{link(mysqlProtocol)}{"  "}{mysqlNode}</>;
     }
 };
 
@@ -123,9 +248,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
     private knowDbTypes: string[] = [];
 
-    // A list of paths created from the folder structure for connections.
-    private knownPaths: string[] = [];
-
     private selectedTagsBeforeEdit: string[] = [];
 
     private liveUpdateFields: IConnectionDialogLiveUpdateFields = {
@@ -139,6 +261,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     private shellSession = new ShellInterfaceShellSession();
     private ociProfileNames?: IMdsProfileData[];
     private activeOciProfileName?: string;
+    private connectionSettings: IConnectionSettings = {};
+    private xAuthenticationMethod?: IMySQLConnectionOptions["auth-method"];
+    private bundledAuthenticationPlugins = new Set<MySQLAuthenticationPlugin>();
 
     static #mysqlSslModeMap = new Map<MySQLSslMode, string>([
         [MySQLSslMode.Disabled, "Disable"],
@@ -147,6 +272,24 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         [MySQLSslMode.VerifyCA, "Require and Verify CA"],
         [MySQLSslMode.VerifyIdentity, "Require and Verify Identity"],
     ]);
+
+    static #mysqlSslMode(value: unknown): MySQLSslMode | undefined {
+        for (const [mode, label] of ConnectionEditor.#mysqlSslModeMap) {
+            if (value === mode || value === label) {
+                return mode;
+            }
+        }
+
+        return undefined;
+    }
+
+    static #atLeastRequiredSslMode(value: unknown): MySQLSslMode {
+        const mode = ConnectionEditor.#mysqlSslMode(value);
+
+        return mode === MySQLSslMode.VerifyCA || mode === MySQLSslMode.VerifyIdentity
+            ? mode
+            : MySQLSslMode.Required;
+    }
 
     public constructor(props: IConnectionEditorProperties) {
         super(props);
@@ -186,6 +329,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 <ValueEditDialog
                     ref={this.editorRef}
                     id="connectionEditor"
+                    className="connectionEditorDialog"
                     onValidate={this.validateConnectionValues}
                     onClose={this.handleOptionsDialogClose}
                     onSelectTab={this.handleTabSelect}
@@ -227,7 +371,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         if (this.knowDbTypes.length === 0) {
             this.knowDbTypes = await ShellInterface.core.getDbTypes();
         }
-        await this.loadKnownFolders();
+        this.bundledAuthenticationPlugins = new Set(
+            await ShellInterface.core.getBundledAuthenticationPlugins() as MySQLAuthenticationPlugin[],
+        );
         await ConnectionTags.load();
 
         this.liveUpdateFields.bastionName.value = "";
@@ -318,21 +464,18 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             messages: {},
         };
 
-        const generalSection = values.sections.get("general")!.values;
+        const connectionMethodSection = values.sections.get("connectionMethod")!.values;
         const informationSection = values.sections.get("information")!.values;
         const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
 
         const mysqlDetailsSection = values.sections.get("mysqlDetails")!.values;
         const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
+        const authenticationSection = values.sections.get("authentication")?.values;
 
-        const isSqlite = generalSection.databaseType.value === "Sqlite";
-        const isMySQL = generalSection.databaseType.value === "MySQL";
+        const isSqlite = connectionMethodSection.connectionMethod.value === DBType.Sqlite;
+        const isMySQL = !isSqlite;
 
-        if (!isSqlite && !isMySQL) {
-            result.messages.databaseType = "Select one of the database types for your connection";
-        }
-
-        const tags = Object.hasOwn(generalSection, "tags") ? generalSection.tags.value as string[] : [];
+        const tags = Object.hasOwn(informationSection, "tags") ? informationSection.tags.value as string[] : [];
         if (tags.length > ConnectionEditor.maxTags) {
             result.messages.tags = `Select at most ${ConnectionEditor.maxTags} tags`;
         }
@@ -375,7 +518,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         } else if (isMySQL) {
             Object.assign(result.messages, this.validateTlsOptions(values));
 
-            const isSocketConnection = mysqlDetailsSection.scheme.value === mysqlSocketProtocol;
+            const isSocketConnection = connectionMethodSection.connectionMethod.value === mysqlSocketProtocol;
             if (closing) {
                 const host = mysqlDetailsSection.hostName.value as string;
                 if (!isSocketConnection && (!host || host.length === 0)) {
@@ -400,6 +543,19 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 const timeout = this.checkValidInt(mysqlAdvancedSection.timeout.value);
                 if (timeout === undefined || isNaN(timeout) || timeout < 0) {
                     result.messages.timeout = "The timeout must be a valid integer >= 0";
+                }
+            }
+
+            if (authenticationSection && closing) {
+                const authenticationHints = this.getAuthenticationHints(values);
+                if (authenticationHints.factors.includes(MySQLAuthenticationPlugin.AuthenticationOci)) {
+                    const authenticationValues = values.sections.get("authentication")!.values;
+                    if (!authenticationValues.ociConfigFile.value) {
+                        result.messages.ociConfigFile = "Specify the OCI config file used for authentication";
+                    }
+                    if (!authenticationValues.ociConfigProfile.value) {
+                        result.messages.ociConfigProfile = "Specify the OCI config profile used for authentication";
+                    }
                 }
             }
         }
@@ -434,11 +590,18 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     private mysqlTlsOptions(values: IDialogValues): Pick<IMySQLConnectionOptions,
         typeof ConnectionEditor.mysqlTlsOptionKeys[number]> {
         const ssl = values.sections.get("ssl")!.values;
-        const mode = [...ConnectionEditor.#mysqlSslModeMap].find(([, caption]) => {
-            return caption === ssl.sslMode.value;
-        })?.[0];
+        const selectedMode = ConnectionEditor.#mysqlSslMode(ssl.sslMode.value);
+        const mode = selectedMode !== undefined
+            && authenticationRequiresClearTextPassword(this.getAuthenticationHints(values).factors)
+            ? ConnectionEditor.#atLeastRequiredSslMode(selectedMode)
+            : selectedMode;
         if (mode === MySQLSslMode.Disabled) {
-            return { "ssl-mode": mode };
+            return {
+                "ssl-mode": mode,
+                "tls-kex": undefined,
+                "force-pqc": undefined,
+                "use-pqc-sign": undefined,
+            };
         }
 
         const forcePqc = this.pqcBooleanValue(ssl.forcePqc.value);
@@ -455,7 +618,16 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     private handleTlsOptionsChange = (_value: string | boolean, dialog: ValueEditDialog): void => {
         const values = dialog.getDialogValues();
         const ssl = values.sections.get("ssl")!.values;
+        const connectionMethod = values.sections.get("connectionMethod")?.values.connectionMethod;
         const options = this.mysqlTlsOptions(values);
+        if (options["ssl-mode"] !== undefined) {
+            ssl.sslMode.value = ConnectionEditor.#mysqlSslModeMap.get(options["ssl-mode"]);
+        }
+        if (connectionMethod?.type === "choice") {
+            connectionMethod.trailingDescription = connectionMethodDiagram(
+                connectionMethod.value!, options["ssl-mode"], connectionDiagramEndpoints(values),
+            );
+        }
 
         for (const key of ["tlsKex", "forcePqc", "usePqcSign"]) {
             const field = ssl[key];
@@ -476,6 +648,17 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         }
 
         dialog.setDialogValues(values);
+    };
+
+    private updateConnectionMethodDiagram = (_value: string | number | bigint, dialog: ValueEditDialog): void => {
+        const values = dialog.getDialogValues();
+        const connectionMethod = values.sections.get("connectionMethod")?.values.connectionMethod;
+        const sslMode = values.sections.get("ssl")?.values.sslMode;
+        if (connectionMethod?.type === "choice") {
+            connectionMethod.trailingDescription = connectionMethodDiagram(connectionMethod.value!,
+                ConnectionEditor.#mysqlSslMode(sslMode?.value), connectionDiagramEndpoints(values));
+            dialog.setDialogValues(values);
+        }
     };
 
     private validateTlsOptions(values: IDialogValues): Record<string, string> {
@@ -509,17 +692,70 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             });
 
             if (duplicates.length > 0) {
-                messages.extraOptions = `Configure ${duplicates.join(", ")} in the SSL tab instead.`;
+                messages.extraOptions = `Configure ${duplicates.join(", ")} in the TLS tab instead.`;
             }
         }
 
         return messages;
     }
 
+    private getAuthenticationHints = (values: IDialogValues): IAuthenticationHints => {
+        if (this.isMySQLXConnection(values)) {
+            return { factors: [MySQLAuthenticationPlugin.Password] };
+        }
+
+        const authenticationValues = values.sections.get("authentication")?.values;
+        const factors = ["factor1", "factor2", "factor3"].reduce<MySQLAuthenticationPlugin[]>((result, key) => {
+            const plugin = authenticationValues?.[key]?.value;
+            if (typeof plugin === "string" && plugin !== noAuthenticationPlugin) {
+                result.push(plugin as MySQLAuthenticationPlugin);
+            }
+
+            return result;
+        }, []);
+
+        return {
+            factors,
+            pluginDir: authenticationValues?.pluginDir.value as string | undefined,
+        };
+    };
+
+    private getAuthenticationConnectionOptions = (values: IDialogValues): Partial<IMySQLConnectionOptions> => {
+        const authenticationValues = this.isMySQLXConnection(values)
+            ? undefined
+            : values.sections.get("authentication")?.values;
+        const authenticationFactors = this.getAuthenticationHints(values).factors;
+        const usesWebAuthn = authenticationFactors.includes(
+            MySQLAuthenticationPlugin.AuthenticationWebAuthn,
+        );
+
+        return {
+            "auth-method": this.isMySQLXConnection(values) ? this.xAuthenticationMethod
+                : authenticationRequiresClearTextPassword(authenticationFactors)
+                    ? "mysql_clear_password" : undefined,
+            "plugin-authentication-kerberos-client-mode": authenticationValues?.kerberosClientMode.value as
+                "SSPI" | "GSSAPI" | undefined,
+            ...(usesWebAuthn ? {
+                "plugin-authentication-webauthn-device": authenticationValues?.webauthnDevice.value as number,
+                "plugin-authentication-webauthn-client-preserve-privacy":
+                    authenticationValues?.webauthnPreservePrivacy.value as boolean,
+            } : {}),
+            "oci-config-file": authenticationValues?.ociConfigFile.value as string | undefined,
+            "authentication-oci-client-config-profile": authenticationValues?.ociConfigProfile.value as
+                string | undefined,
+            "authentication-openid-connect-client-id-token-file": authenticationValues?.openidConnectClientIdTokenFile
+                .value as string | undefined,
+        };
+    };
+
+    private isMySQLXConnection = (values: IDialogValues): boolean => {
+        return values.sections.get("connectionMethod")?.values.connectionMethod.value === MySQLConnectionScheme.MySQLx;
+    };
+
     private handleOptionsDialogClose = (closure: DialogResponseClosure, values: IDialogValues,
         data?: IDictionary): void => {
         if (closure === DialogResponseClosure.Accept) {
-            const generalSection = values.sections.get("general")!.values;
+            const connectionMethodSection = values.sections.get("connectionMethod")!.values;
             const informationSection = values.sections.get("information")!.values;
             const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
             const sqliteAdvancedSection = values.sections.get("sqliteAdvanced")!.values;
@@ -528,21 +764,23 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             const mysqlSshSection = values.sections.get("ssh")!.values;
             const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
             const mysqlSslSection = values.sections.get("ssl")!.values;
+            const authenticationHints = this.getAuthenticationHints(values);
             const currentPath = data?.currentPath as string | undefined ?? "";
 
-            const isSqlite = generalSection.databaseType.value === "Sqlite";
-            const isMySQL = generalSection.databaseType.value === "MySQL";
+            const isSqlite = connectionMethodSection.connectionMethod.value === DBType.Sqlite;
+            const isMySQL = !isSqlite;
             if (isMySQL && Object.keys(this.validateTlsOptions(values)).length > 0) {
                 return;
             }
 
-            const mysqlConnectionMethod = mysqlDetailsSection.scheme.value as string;
+            const mysqlConnectionMethod = connectionMethodSection.connectionMethod.value as string;
             const isSocketConnection = isMySQL && mysqlConnectionMethod === mysqlSocketProtocol;
             const useSSH = isMySQL && mysqlConnectionMethod === mysqlSshTunnelMethod;
             const useMHS = isMySQL && mysqlConnectionMethod === mysqlBastionMethod;
 
             let details: IConnectionDetails | undefined = data?.details as IConnectionDetails | undefined;
-            const dbType = generalSection.databaseType.value as DBType; // value must be a string.
+            const dbType = isSqlite ? DBType.Sqlite : DBType.MySQL;
+            const authenticationConnectionOptions = this.getAuthenticationConnectionOptions(values);
 
             if (data?.createNew) {
                 details = {
@@ -571,6 +809,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             }
 
             if (details) {
+                const existingMySQLConnection = details.dbType === DBType.MySQL;
                 details.dbType = dbType;
                 details.useMHS = useMHS;
                 details.useSSH = useSSH;
@@ -602,9 +841,16 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     const compressionAlgorithms = Array.isArray(mysqlAdvancedSection.compressionAlgorithms.value)
                         ? mysqlAdvancedSection.compressionAlgorithms.value.join(",")
                         : undefined;
+                    const existingOptions = existingMySQLConnection
+                        ? { ...details.options } as IMySQLConnectionOptions & Record<string, unknown>
+                        : {} as IMySQLConnectionOptions & Record<string, unknown>;
+                    delete existingOptions["auth-method"];
+                    delete existingOptions["plugin-authentication-webauthn-device"];
+                    delete existingOptions["plugin-authentication-webauthn-client-preserve-privacy"];
                     details.options = {
+                        ...existingOptions,
                         "scheme": isSocketConnection || useSSH || useMHS ? MySQLConnectionScheme.MySQL
-                            : mysqlDetailsSection.scheme.value as MySQLConnectionScheme,
+                            : mysqlConnectionMethod as MySQLConnectionScheme,
                         "host": mysqlDetailsSection.hostName.value as string,
                         "port": isSocketConnection ? undefined : mysqlDetailsSection.port.value as number,
                         "socket": isSocketConnection ? mysqlDetailsSection.port.value as string || undefined
@@ -622,10 +868,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         "compression-algorithms": compressionAlgorithms,
                         "compression-level": mysqlAdvancedSection.compressionLevel.value as number,
 
-                        //useAnsiQuotes: section5.ansiQuotes.value,
-                        //enableClearTextAuthPlugin: section5.clearTextAuth.value,
+                        ...authenticationConnectionOptions,
                         "connect-timeout": mysqlAdvancedSection.timeout.value ?? 0,
-                        //sqlMode: section5.sqlMode.value,
+                        "sql-mode": mysqlAdvancedSection.sqlMode.value
+                            ? [mysqlAdvancedSection.sqlMode.value as string] : undefined,
                         "ssh": details.useSSH ? mysqlSshSection.ssh.value as string : undefined,
 
                         //"ssh-password": details.useSSH ? mysqlSshSection.sshPassword.value : undefined,
@@ -638,18 +884,22 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         "bastion-id": details.useMHS ? mdsBastionSection.bastionId.value as string : undefined,
                         "mysql-db-system-id": details.useMHS
                             ? mdsBastionSection.mysqlDbSystemId.value as string : undefined,
-                        "disable-heat-wave-check": mysqlAdvancedSection.disableHeatwaveCheck.value as boolean,
                         "extra-options": mysqlAdvancedSection.extraOptions.value as Record<string, string>,
                         /* eslint-enabled @typescript-eslint/naming-convention */
                     };
 
                 }
 
-                const tags = generalSection.tags.value as string[];
+                const tags = informationSection.tags.value as string[];
                 const settings = { ...details.settings };
                 delete settings.badge;
+                if (this.isMySQLXConnection(values)) {
+                    delete settings.authenticationHints;
+                } else {
+                    settings.authenticationHints = authenticationHints;
+                }
                 details.tags = tags;
-                const defaultEditor = generalSection.defaultEditor.value;
+                const defaultEditor = (isSqlite ? sqliteAdvancedSection : mysqlAdvancedSection).defaultEditor.value;
                 if (defaultEditor === globalDefaultEditor) {
                     delete settings.defaultEditor;
                     details.settings = settings;
@@ -671,8 +921,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         }
     };
 
-    private testConnection = async (values: IDialogValues): Promise<void> => {
-        const generalSection = values.sections.get("general")!.values;
+    private testConnection = async (values: IDialogValues, registerFactor?: 2 | 3): Promise<void> => {
+        const connectionMethodSection = values.sections.get("connectionMethod")!.values;
         const informationSection = values.sections.get("information")!.values;
         const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
         const sqliteAdvancedSection = values.sections.get("sqliteAdvanced")!.values;
@@ -681,8 +931,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         const mysqlSshSection = values.sections.get("ssh")!.values;
         const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
         const mysqlSslSection = values.sections.get("ssl")!.values;
-        const dbType = generalSection.databaseType.value as DBType;
-        const mysqlConnectionMethod = mysqlDetailsSection.scheme.value as string;
+        const dbType = connectionMethodSection.connectionMethod.value === DBType.Sqlite
+            ? DBType.Sqlite : DBType.MySQL;
+        const mysqlConnectionMethod = connectionMethodSection.connectionMethod.value as string;
         const isSocketConnection = mysqlConnectionMethod === mysqlSocketProtocol;
         const useSSH = mysqlConnectionMethod === mysqlSshTunnelMethod;
         const useMHS = mysqlConnectionMethod === mysqlBastionMethod;
@@ -711,6 +962,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         }
 
         let options: IMySQLConnectionOptions | ISqliteConnectionOptions;
+        let authenticationHintsForSettings: IAuthenticationHints | undefined;
         if (dbType === DBType.Sqlite) {
             options = {
                 dbFile: sqliteDetailsSection.dbFilePath.value as string,
@@ -718,15 +970,18 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 otherParameters: sqliteAdvancedSection.otherParameters.value,
             } as ISqliteConnectionOptions;
         } else {
+            const authenticationHints = this.getAuthenticationHints(values);
             const sshKeyFile = useMHS
                 ? mdsBastionSection.sshKeyFile.value
                 : (useSSH ? mysqlSshSection.sshKeyFile.value : undefined);
             const compressionAlgorithms = Array.isArray(mysqlAdvancedSection.compressionAlgorithms.value)
                 ? mysqlAdvancedSection.compressionAlgorithms.value.join(",")
                 : undefined;
+            authenticationHintsForSettings = this.isMySQLXConnection(values) ? undefined : authenticationHints;
+            const authenticationConnectionOptions = this.getAuthenticationConnectionOptions(values);
             options = {
                 scheme: isSocketConnection || useSSH || useMHS ? MySQLConnectionScheme.MySQL
-                    : mysqlDetailsSection.scheme.value as MySQLConnectionScheme,
+                    : mysqlConnectionMethod as MySQLConnectionScheme,
                 host: mysqlDetailsSection.hostName.value as string,
                 port: isSocketConnection ? undefined : mysqlDetailsSection.port.value as number,
                 socket: isSocketConnection ? mysqlDetailsSection.port.value as string || undefined : undefined,
@@ -741,6 +996,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     ? mysqlAdvancedSection.compression.value as MySQLConnCompression : undefined,
                 "compression-algorithms": compressionAlgorithms,
                 "compression-level": mysqlAdvancedSection.compressionLevel.value as number,
+                ...authenticationConnectionOptions,
+                "register-factor": registerFactor === undefined ? undefined : String(registerFactor) as "2" | "3",
                 "connect-timeout": mysqlAdvancedSection.timeout.value as number,
                 ssh: useSSH ? mysqlSshSection.ssh.value as string : undefined,
                 "ssh-identity-file": sshKeyFile as string,
@@ -750,7 +1007,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 "profile-name": useMHS ? mdsBastionSection.profileName.value as string : undefined,
                 "bastion-id": useMHS ? mdsBastionSection.bastionId.value as string : undefined,
                 "mysql-db-system-id": useMHS ? mdsBastionSection.mysqlDbSystemId.value as string : undefined,
-                "disable-heat-wave-check": mysqlAdvancedSection.disableHeatwaveCheck.value as boolean,
                 "extra-options": mysqlAdvancedSection.extraOptions.value as Record<string, string>,
             };
         }
@@ -763,6 +1019,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             useSSH,
             useMHS,
             options,
+            settings: authenticationHintsForSettings
+                ? { authenticationHints: authenticationHintsForSettings } : undefined,
             index: -1,
         };
 
@@ -778,12 +1036,27 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         }
 
         try {
-            // MySQL Shell resolves saved credentials and prompts only when none is available.
             await ShellInterface.dbConnections.testConnection(details);
-            void ui.showInformationMessage("Connection test succeeded.", {});
+            void ui.showInformationMessage(registerFactor === undefined
+                ? "Connection test succeeded."
+                : `WebAuthn factor ${registerFactor} registration succeeded.`, {});
         } catch (reason) {
-            void ui.showErrorMessage(`Connection Error: ${convertErrorToString(reason)}`, {});
+            const operation = registerFactor === undefined ? "Connection" : "WebAuthn factor registration";
+            void ui.showErrorMessage(`${operation} Error: ${convertErrorToString(reason)}`, {});
         }
+    };
+
+    private registerWebAuthnFactor = (values: IDialogValues): void => {
+        const webauthnFactor = this.getAuthenticationHints(values).factors.indexOf(
+            MySQLAuthenticationPlugin.AuthenticationWebAuthn,
+        );
+        if (webauthnFactor < 0) {
+            return;
+        }
+
+        // Passwordless WebAuthn accounts use the initial password as factor 1 while registering the device.
+        const registerFactor = webauthnFactor === 0 ? 2 : (webauthnFactor + 1) as 2 | 3;
+        void this.testConnection(values, registerFactor);
     };
 
     /**
@@ -844,6 +1117,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             folderPath: currentPath,
             index: -1,
         };
+        this.connectionSettings = { ...details.settings };
 
         // In the dialog config we have to provide values for each DB type, because the user can switch the type.
         // However the specific option object for the not-used DB type is initialized to default values only.
@@ -885,17 +1159,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             };
         }
 
-        const sslMode = String(optionsMySQL["ssl-mode"] ?? MySQLSslMode.Preferred).toUpperCase() as MySQLSslMode;
-        const sslModeCaption = ConnectionEditor.#mysqlSslModeMap.get(sslMode) ?? String(optionsMySQL["ssl-mode"]);
-        const sslModeChoices = Array.from(ConnectionEditor.#mysqlSslModeMap.values());
-        if (!sslModeChoices.includes(sslModeCaption)) {
-            sslModeChoices.push(sslModeCaption);
-        }
-
-        const forcePqc = this.pqcBooleanValue(optionsMySQL["force-pqc"]);
-        const usePqcSign = this.pqcBooleanValue(optionsMySQL["use-pqc-sign"]);
-        const tlsControlOptions = sslMode === MySQLSslMode.Disabled ? [CommonDialogValueOption.Disabled] : [];
-
+        this.xAuthenticationMethod = optionsMySQL.scheme === MySQLConnectionScheme.MySQLx
+            ? optionsMySQL["auth-method"] : undefined;
         const selectedMySQLMethod = optionsMySQL.socket !== undefined
             ? mysqlSocketProtocol
             : details.useSSH ? mysqlSshTunnelMethod
@@ -907,12 +1172,14 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             caption: "Socket Path",
             value: optionsMySQL.socket,
             placeholder: "Default",
-            horizontalSpan: 8,
+            horizontalSpan: 5,
+            onFocusLost: this.updateConnectionMethodDiagram,
         } : {
             type: "number" as const,
             caption: "Port",
             value: optionsMySQL.port ?? (optionsMySQL.scheme === MySQLConnectionScheme.MySQLx ? 33060 : 3306),
-            horizontalSpan: 4,
+            horizontalSpan: 1,
+            onFocusLost: this.updateConnectionMethodDiagram,
         };
 
         const informationSection: IDialogSection = {
@@ -924,7 +1191,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     placeholder: "<enter a unique caption>",
                     options: [CommonDialogValueOption.AutoFocus],
                     description: "Short label for this database connection",
-                    horizontalSpan: 3,
+                    horizontalSpan: 2,
                 },
                 description: {
                     type: "text",
@@ -932,13 +1199,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     value: details.description,
                     placeholder: "<describe the connection>",
                     description: "More detailed description of the connection",
-                    horizontalSpan: 5,
+                    horizontalSpan: 3,
                 },
-            },
-        };
-
-        const generalSection: IDialogSection = {
-            values: {
                 tags: {
                     type: "set",
                     caption: "Tags",
@@ -954,50 +1216,67 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         onClick: this.openBadgeEditor,
                     },
                 },
-                defaultEditor: {
+            },
+        };
+
+        const connectionMethodSection: IDialogSection = {
+            values: {
+                connectionMethod: {
                     type: "choice",
-                    caption: "Default Editor",
-                    value: defaultEditor,
-                    choices: [globalDefaultEditor, ConnectionEditorType.DbNotebook, ConnectionEditorType.DbScript],
-                    description: "Choose the global default or override it for this connection",
-                    horizontalSpan: 3,
-                },
-                folderPath: {
-                    type: "choice",
-                    caption: "Folder Path",
-                    value: details.folderPath ?? "/",
-                    choices: this.knownPaths,
-                    description: "Path of the folder holding the connection",
-                    horizontalSpan: 3,
-                    options: [CommonDialogValueOption.Grouped],
-                    onChange: this.addFolder,
-                },
-                databaseType: {
-                    type: "choice",
-                    caption: "Database Type",
-                    value: details.dbType,
-                    choices: this.knowDbTypes,
-                    onChange: (value: DialogValueType, dialog: ValueEditDialog): void => {
-                        const availableNames = [...this.knowDbTypes]; // Need a copy.
-                        const index = availableNames.findIndex((name) => {
-                            return name === value as string;
-                        });
-                        availableNames.splice(index, 1);
+                    caption: "Connection Method",
+                    value: isSqlite ? DBType.Sqlite : selectedMySQLMethod,
+                    trailingDescription: connectionMethodDiagram(isSqlite ? DBType.Sqlite : selectedMySQLMethod,
+                        optionsMySQL["ssl-mode"] ?? MySQLSslMode.Preferred, {
+                            mysqlHost: optionsMySQL.host,
+                            mysqlPort: optionsMySQL.port,
+                            ssh: optionsMySQL.ssh,
+                        }),
+                    trailingDescriptionClassName: "connectionMethodDiagram",
+                    choices: [
+                        MySQLConnectionScheme.MySQL,
+                        mysqlSocketProtocol,
+                        mysqlSshTunnelMethod,
+                        mysqlBastionMethod,
+                        MySQLConnectionScheme.MySQLx,
+                        DBType.Sqlite,
+                    ],
+                    onChange: (method: DialogValueType, dialog: ValueEditDialog): void => {
+                        const values = dialog.getDialogValues();
+                        const mysqlMethod = values.sections.get("mysqlDetails")?.values.scheme;
+                        const connectionMethod = values.sections.get("connectionMethod")?.values.connectionMethod;
+                        if (mysqlMethod?.type !== "choice" || connectionMethod?.type !== "choice") {
+                            return;
+                        }
+
+                        if (method === DBType.Sqlite) {
+                            connectionMethod.trailingDescription = connectionMethodDiagram(method as string);
+                            dialog.updateActiveContexts({
+                                add: [DBType.Sqlite],
+                                remove: [DBType.MySQL, "useSSH", "useMDS"],
+                            });
+                            dialog.setDialogValues(values);
+
+                            return;
+                        }
+
+                        const mysqlMethodValue = method as string;
+                        mysqlMethod.value = mysqlMethodValue;
                         dialog.updateActiveContexts({
-                            add: [value as string],
-                            remove: availableNames,
+                            add: [DBType.MySQL],
+                            remove: [DBType.Sqlite],
                         });
+                        mysqlMethod.onChange?.(mysqlMethodValue, dialog);
+                        const sslMode = values.sections.get("ssl")?.values.sslMode;
+                        connectionMethod.trailingDescription = connectionMethodDiagram(mysqlMethodValue,
+                            ConnectionEditor.#mysqlSslMode(sslMode?.value), connectionDiagramEndpoints(values));
                     },
-                    horizontalSpan: 2,
-                    description: "Database connection type",
+                    horizontalSpan: 8,
                 },
             },
         };
 
         const sqliteDetailsSection: IDialogSection = {
             contexts: ["Sqlite"],
-            caption: "Basic",
-            groupName: "groupSqlite",
             values: {
                 dbFilePath: {
                     type: "resource",
@@ -1006,22 +1285,35 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
                     filters: { "SQLite 3": ["sqlite3", "sqlite"] },
                     placeholder: "<Enter the DB file location>",
-                    horizontalSpan: 8,
+                    horizontalSpan: 7,
                 },
                 dbName: {
                     type: "text",
                     caption: "Database Name",
                     value: optionsSqlite.dbName,
                     placeholder: "<enter a database name>",
+                    horizontalSpan: 2,
                 },
             },
         };
 
         const sqliteAdvancedSection: IDialogSection = {
             contexts: ["Sqlite"],
-            caption: "Advanced",
+            caption: "Options",
             groupName: "groupSqlite",
             values: {
+                defaultEditorSeparator: {
+                    type: "separator",
+                    horizontalSpan: 8,
+                },
+                defaultEditor: {
+                    type: "choice",
+                    caption: "Default Editor",
+                    value: defaultEditor,
+                    choices: [globalDefaultEditor, ConnectionEditorType.DbNotebook, ConnectionEditorType.DbScript],
+                    description: "Choose the global default or override it for this connection",
+                    horizontalSpan: 3,
+                },
                 otherParameters: {
                     type: "text",
                     caption: "Other Parameters",
@@ -1034,14 +1326,18 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         const mysqlDetailsSection: IDialogSection = {
             contexts: ["MySQL"],
-            caption: "Basic",
-            groupName: "group1",
             values: {
                 scheme: {
                     type: "choice",
                     caption: "Connection Method",
                     value: selectedMySQLMethod,
-                    trailingDescription: connectionMethodDiagram(selectedMySQLMethod),
+                    trailingDescription: connectionMethodDiagram(selectedMySQLMethod,
+                        optionsMySQL["ssl-mode"] ?? MySQLSslMode.Preferred, {
+                            mysqlHost: optionsMySQL.host,
+                            mysqlPort: optionsMySQL.port,
+                            ssh: optionsMySQL.ssh,
+                        }),
+                    trailingDescriptionClassName: "connectionMethodDiagram",
                     choices: [
                         MySQLConnectionScheme.MySQL,
                         mysqlSocketProtocol,
@@ -1049,6 +1345,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         mysqlBastionMethod,
                         MySQLConnectionScheme.MySQLx,
                     ],
+                    options: [CommonDialogValueOption.Hidden],
                     onChange: (method: string, dialog: ValueEditDialog): void => {
                         const selectedScheme = method as MySQLConnectionScheme;
                         const values = dialog.getDialogValues();
@@ -1061,7 +1358,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                             return;
                         }
 
-                        connectionMethod.trailingDescription = connectionMethodDiagram(method);
+                        const sslMode = values.sections.get("ssl")?.values.sslMode;
+                        connectionMethod.trailingDescription = connectionMethodDiagram(method,
+                            ConnectionEditor.#mysqlSslMode(sslMode?.value), connectionDiagramEndpoints(values));
 
                         const socketConnection = method === mysqlSocketProtocol;
                         hostName.options = socketConnection ? [CommonDialogValueOption.Hidden] : undefined;
@@ -1070,7 +1369,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                                 type: "text",
                                 caption: "Path",
                                 placeholder: "Default",
-                                horizontalSpan: 8,
+                                horizontalSpan: 5,
+                                onFocusLost: this.updateConnectionMethodDiagram,
                             };
                         } else {
                             const currentPort = endpoint.type === "number" ? endpoint.value : undefined;
@@ -1081,8 +1381,39 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                                 value: currentPort === 3306 && defaultPort === 33060 ? 33060
                                     : currentPort === 33060 && defaultPort === 3306 ? 3306
                                         : currentPort ?? defaultPort,
-                                horizontalSpan: 4,
+                                horizontalSpan: 1,
+                                onFocusLost: this.updateConnectionMethodDiagram,
                             };
+                        }
+
+                        const authenticationValues = values.sections.get("authentication")?.values;
+                        if (authenticationValues?.factor1.type === "choice"
+                            && authenticationValues.factor2.type === "choice"
+                            && authenticationValues.factor3.type === "choice") {
+                            const usesMySQLX = selectedScheme === MySQLConnectionScheme.MySQLx;
+                            authenticationValues.factor1.caption = usesMySQLX ? undefined : "Factor 1";
+                            authenticationValues.factor1.choices = usesMySQLX
+                                ? [MySQLAuthenticationPlugin.Password]
+                                : authenticationPluginChoices;
+                            authenticationValues.factor2.choices = usesMySQLX
+                                ? [noAuthenticationPlugin]
+                                : additionalAuthenticationPluginChoices;
+                            authenticationValues.factor3.choices = authenticationValues.factor2.choices;
+                            const additionalFactorOptions = usesMySQLX
+                                ? [CommonDialogValueOption.Hidden]
+                                : [];
+                            authenticationValues.factor2Separator.options = additionalFactorOptions;
+                            authenticationValues.factor2.options = additionalFactorOptions;
+                            authenticationValues.factor3Separator.options = additionalFactorOptions;
+                            authenticationValues.factor3.options = additionalFactorOptions;
+                            if (usesMySQLX) {
+                                authenticationValues.factor1.value = MySQLAuthenticationPlugin.Password;
+                                authenticationValues.factor2.value = noAuthenticationPlugin;
+                                authenticationValues.factor3.value = noAuthenticationPlugin;
+                            }
+                            updateAuthenticationFactorDescription(
+                                "factor1", authenticationValues.factor1.value!, dialog,
+                            );
                         }
 
                         dialog.updateActiveContexts({
@@ -1110,49 +1441,425 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     },
                     horizontalSpan: 8,
                 },
+                userName: {
+                    type: "text",
+                    caption: "User Name",
+                    value: optionsMySQL.user,
+                    horizontalSpan: 2,
+                },
                 hostName: {
                     type: "text",
                     caption: "Host Name or IP Address",
                     value: optionsMySQL.host,
                     horizontalSpan: 4,
                     options: usesMySQLSocket ? [CommonDialogValueOption.Hidden] : undefined,
+                    onFocusLost: this.updateConnectionMethodDiagram,
                 },
                 port: mysqlEndpointValue,
-                userName: {
+                defaultSchema: {
                     type: "text",
-                    caption: "User Name",
-                    value: optionsMySQL.user,
+                    caption: "Default Schema",
+                    value: optionsMySQL.schema,
+                    horizontalSpan: 2,
+                },
+            },
+        };
+
+        const usesMySQLX = selectedMySQLMethod === MySQLConnectionScheme.MySQLx;
+        const authenticationHints = usesMySQLX ? undefined : details.settings?.authenticationHints;
+        const authenticationFactors = (usesMySQLX
+            ? [MySQLAuthenticationPlugin.Password]
+            : authenticationHints?.factors ?? [])
+            .map((plugin) => {
+                return internalPasswordAuthenticationPlugins.has(plugin)
+                    ? MySQLAuthenticationPlugin.Password
+                    : plugin;
+            });
+        const authenticationPluginChoices = [
+            ...mysqlAuthenticationPluginChoices.filter((plugin) => {
+                return this.bundledAuthenticationPlugins.has(plugin) ||
+                    authenticationPluginsWithoutSeparateClientPlugin.has(plugin);
+            }),
+            ...authenticationFactors,
+        ].filter((plugin, index, choices) => {
+            return choices.indexOf(plugin) === index;
+        });
+        const optionalAuthenticationPluginChoices = [
+            noAuthenticationPlugin,
+            ...authenticationPluginChoices,
+        ];
+        const additionalAuthenticationPluginChoices = optionalAuthenticationPluginChoices.filter((plugin) => {
+            return !internalPasswordAuthenticationPlugins.has(plugin);
+        });
+        const authenticationUsesPassword = authenticationFactors.length === 0
+            || authenticationFactors.includes(MySQLAuthenticationPlugin.Password);
+        const authenticationUsesClientPlugin = authenticationFactors.some((plugin) => {
+            return [
+                MySQLAuthenticationPlugin.AuthenticationKerberos,
+                MySQLAuthenticationPlugin.AuthenticationLdapSasl,
+                MySQLAuthenticationPlugin.AuthenticationLdapSimple,
+            ].includes(plugin);
+        });
+        const authenticationUsesKerberos = authenticationFactors.includes(
+            MySQLAuthenticationPlugin.AuthenticationKerberos,
+        );
+        const authenticationUsesWebAuthn = authenticationFactors.includes(
+            MySQLAuthenticationPlugin.AuthenticationWebAuthn,
+        );
+        const authenticationUsesOpenIdConnect = authenticationFactors.includes(
+            MySQLAuthenticationPlugin.AuthenticationOpenIdConnect,
+        );
+        const authenticationUsesOci = authenticationFactors.includes(MySQLAuthenticationPlugin.AuthenticationOci);
+
+        const moveAuthenticationOptionsAfterFactor = (section: IDialogSection): void => {
+            const ociConfigFile = section.values.ociConfigFile;
+            const ociConfigProfile = section.values.ociConfigProfile;
+            const storePassword = section.values.storePassword;
+            const clearPassword = section.values.clearPassword;
+            const passwordButtonsEndOfRow = section.values.passwordButtonsEndOfRow;
+            const pluginDir = section.values.pluginDir;
+            const kerberosClientMode = section.values.kerberosClientMode;
+            const webauthnDevice = section.values.webauthnDevice;
+            const webauthnPreservePrivacy = section.values.webauthnPreservePrivacy;
+            const registerWebAuthnFactor = section.values.registerWebAuthnFactor;
+            const openidConnectClientIdTokenFile = section.values.openidConnectClientIdTokenFile;
+
+            const ociFactor = ["factor1", "factor2", "factor3"].find((factor) => {
+                return section.values[factor].value === MySQLAuthenticationPlugin.AuthenticationOci;
+            });
+            const passwordFactor = ["factor1", "factor2", "factor3"].find((factor) => {
+                return section.values[factor].value === MySQLAuthenticationPlugin.Password;
+            });
+            const clientPluginFactor = ["factor1", "factor2", "factor3"].find((factor) => {
+                const plugin = section.values[factor].value;
+
+                return [
+                    MySQLAuthenticationPlugin.AuthenticationKerberos,
+                    MySQLAuthenticationPlugin.AuthenticationLdapSasl,
+                    MySQLAuthenticationPlugin.AuthenticationLdapSimple,
+                ].includes(plugin as MySQLAuthenticationPlugin);
+            });
+            const kerberosFactor = ["factor1", "factor2", "factor3"].find((factor) => {
+                return section.values[factor].value === MySQLAuthenticationPlugin.AuthenticationKerberos;
+            });
+            const webauthnFactor = ["factor1", "factor2", "factor3"].find((factor) => {
+                return section.values[factor].value === MySQLAuthenticationPlugin.AuthenticationWebAuthn;
+            });
+            const openidConnectFactor = ["factor1", "factor2", "factor3"].find((factor) => {
+                return section.values[factor].value === MySQLAuthenticationPlugin.AuthenticationOpenIdConnect;
+            });
+            const reorderedValues: IDialogSection["values"] = {};
+            for (const [key, value] of Object.entries(section.values)) {
+                if (key === "ociConfigFile" || key === "ociConfigProfile" || key === "storePassword" ||
+                    key === "clearPassword" || key === "passwordButtonsEndOfRow" || key === "pluginDir" ||
+                    key === "kerberosClientMode" || key === "webauthnDevice" || key === "webauthnPreservePrivacy" ||
+                    key === "registerWebAuthnFactor" || key === "openidConnectClientIdTokenFile") {
+                    continue;
+                }
+
+                reorderedValues[key] = value;
+                if (key === ociFactor) {
+                    reorderedValues.ociConfigFile = ociConfigFile;
+                    reorderedValues.ociConfigProfile = ociConfigProfile;
+                }
+                if (key === passwordFactor) {
+                    reorderedValues.storePassword = storePassword;
+                    reorderedValues.clearPassword = clearPassword;
+                    reorderedValues.passwordButtonsEndOfRow = passwordButtonsEndOfRow;
+                }
+                if (key === clientPluginFactor) {
+                    reorderedValues.pluginDir = pluginDir;
+                }
+                if (key === kerberosFactor) {
+                    reorderedValues.kerberosClientMode = kerberosClientMode;
+                }
+                if (key === webauthnFactor) {
+                    reorderedValues.webauthnDevice = webauthnDevice;
+                    reorderedValues.webauthnPreservePrivacy = webauthnPreservePrivacy;
+                    reorderedValues.registerWebAuthnFactor = registerWebAuthnFactor;
+                }
+                if (key === openidConnectFactor) {
+                    reorderedValues.openidConnectClientIdTokenFile = openidConnectClientIdTokenFile;
+                }
+            }
+
+            if (!ociFactor) {
+                reorderedValues.ociConfigFile = ociConfigFile;
+                reorderedValues.ociConfigProfile = ociConfigProfile;
+            }
+            if (!passwordFactor) {
+                reorderedValues.storePassword = storePassword;
+                reorderedValues.clearPassword = clearPassword;
+                reorderedValues.passwordButtonsEndOfRow = passwordButtonsEndOfRow;
+            }
+            if (!clientPluginFactor) {
+                reorderedValues.pluginDir = pluginDir;
+            }
+            if (!kerberosFactor) {
+                reorderedValues.kerberosClientMode = kerberosClientMode;
+            }
+            if (!webauthnFactor) {
+                reorderedValues.webauthnDevice = webauthnDevice;
+                reorderedValues.webauthnPreservePrivacy = webauthnPreservePrivacy;
+                reorderedValues.registerWebAuthnFactor = registerWebAuthnFactor;
+            }
+            if (!openidConnectFactor) {
+                reorderedValues.openidConnectClientIdTokenFile = openidConnectClientIdTokenFile;
+            }
+            section.values = reorderedValues;
+        };
+        const updateAuthenticationFactorDescription = (
+            factor: string, plugin: string, dialog: ValueEditDialog,
+        ): void => {
+            const values = dialog.getDialogValues();
+            const authenticationValues = values.sections.get("authentication")?.values;
+            const field = authenticationValues?.[factor];
+            if (field?.type === "choice") {
+                field.trailingDescription = authenticationPluginInputDescription(plugin);
+            }
+            if (authenticationValues) {
+                const secondFactor = authenticationValues.factor2;
+                const thirdFactor = authenticationValues.factor3;
+                if (!this.isMySQLXConnection(values) && secondFactor.type === "choice"
+                    && thirdFactor.type === "choice" && secondFactor.value === noAuthenticationPlugin) {
+                    const thirdFactorPlugin = thirdFactor.value;
+                    if (typeof thirdFactorPlugin === "string" && thirdFactorPlugin !== noAuthenticationPlugin) {
+                        secondFactor.value = thirdFactorPlugin;
+                        secondFactor.trailingDescription = authenticationPluginInputDescription(
+                            thirdFactorPlugin,
+                        );
+                    }
+                    thirdFactor.value = noAuthenticationPlugin;
+                    thirdFactor.options = secondFactor.value === noAuthenticationPlugin
+                        ? [CommonDialogValueOption.Disabled] : [];
+                } else if (!this.isMySQLXConnection(values)) {
+                    thirdFactor.options = [];
+                }
+                const factors = this.getAuthenticationHints(values).factors;
+                if (authenticationRequiresClearTextPassword(factors)) {
+                    const sslMode = values.sections.get("ssl")?.values.sslMode;
+                    if (sslMode) {
+                        const mode = ConnectionEditor.#atLeastRequiredSslMode(sslMode.value);
+                        sslMode.value = ConnectionEditor.#mysqlSslModeMap.get(mode);
+                    }
+                }
+                const usesClientPlugin = factors.some((selectedPlugin) => {
+                    return [
+                        MySQLAuthenticationPlugin.AuthenticationKerberos,
+                        MySQLAuthenticationPlugin.AuthenticationLdapSasl,
+                        MySQLAuthenticationPlugin.AuthenticationLdapSimple,
+                    ].includes(selectedPlugin);
+                });
+                const usesOci = factors.includes(MySQLAuthenticationPlugin.AuthenticationOci);
+                const usesPassword = factors.includes(MySQLAuthenticationPlugin.Password);
+                const usesKerberos = factors.includes(MySQLAuthenticationPlugin.AuthenticationKerberos);
+                const usesWebAuthn = factors.includes(MySQLAuthenticationPlugin.AuthenticationWebAuthn);
+                const usesOpenIdConnect = factors.includes(MySQLAuthenticationPlugin.AuthenticationOpenIdConnect);
+                authenticationValues.storePassword.options = usesPassword
+                    ? [] : [CommonDialogValueOption.Hidden];
+                authenticationValues.clearPassword.options = usesPassword
+                    ? [] : [CommonDialogValueOption.Hidden];
+                authenticationValues.pluginDir.options = usesClientPlugin
+                    ? [] : [CommonDialogValueOption.Hidden];
+                authenticationValues.ociConfigFile.options = usesOci
+                    ? [] : [CommonDialogValueOption.Hidden];
+                authenticationValues.ociConfigProfile.options = usesOci
+                    ? [] : [CommonDialogValueOption.Hidden];
+                authenticationValues.kerberosClientMode.options = usesKerberos
+                    ? [] : [CommonDialogValueOption.Hidden];
+                authenticationValues.webauthnDevice.options = usesWebAuthn
+                    ? [] : [CommonDialogValueOption.Hidden];
+                authenticationValues.webauthnPreservePrivacy.options = !usesWebAuthn
+                    ? [CommonDialogValueOption.Hidden] : [];
+                authenticationValues.registerWebAuthnFactor.options = usesWebAuthn
+                    ? [] : [CommonDialogValueOption.Hidden];
+                authenticationValues.openidConnectClientIdTokenFile.options = usesOpenIdConnect
+                    ? [] : [CommonDialogValueOption.Hidden];
+                moveAuthenticationOptionsAfterFactor(values.sections.get("authentication")!);
+            }
+            this.handleTlsOptionsChange(plugin, dialog);
+        };
+
+        const authenticationSection: IDialogSection = {
+            contexts: ["MySQL"],
+            caption: "Authentication",
+            groupName: "group1",
+            values: {
+                factor1: {
+                    type: "choice",
+                    caption: usesMySQLX ? undefined : "Factor 1",
+                    value: authenticationFactors[0] ?? MySQLAuthenticationPlugin.Password,
+                    choices: usesMySQLX ? [MySQLAuthenticationPlugin.Password] : authenticationPluginChoices,
+                    trailingDescription: authenticationPluginInputDescription(
+                        authenticationFactors[0] ?? MySQLAuthenticationPlugin.Password,
+                    ),
+                    trailingDescriptionClassName: "authenticationFactorDescription",
+                    horizontalSpan: 8,
+                    onChange: (plugin, dialog): void => {
+                        updateAuthenticationFactorDescription("factor1", plugin, dialog);
+                    },
+                },
+                factor2Separator: {
+                    type: "separator",
+                    options: usesMySQLX ? [CommonDialogValueOption.Hidden] : [],
+                    horizontalSpan: 8,
+                },
+                factor2: {
+                    type: "choice",
+                    caption: "Factor 2",
+                    value: authenticationFactors[1] ?? noAuthenticationPlugin,
+                    choices: usesMySQLX ? [noAuthenticationPlugin] : additionalAuthenticationPluginChoices,
+                    trailingDescription: authenticationPluginInputDescription(
+                        authenticationFactors[1] ?? noAuthenticationPlugin,
+                    ),
+                    trailingDescriptionClassName: "authenticationFactorDescription",
+                    horizontalSpan: 8,
+                    options: usesMySQLX
+                        ? [CommonDialogValueOption.Hidden]
+                        : [],
+                    onChange: (plugin, dialog): void => {
+                        updateAuthenticationFactorDescription("factor2", plugin, dialog);
+                    },
+                },
+                factor3Separator: {
+                    type: "separator",
+                    options: usesMySQLX ? [CommonDialogValueOption.Hidden] : [],
+                    horizontalSpan: 8,
+                },
+                factor3: {
+                    type: "choice",
+                    caption: "Factor 3",
+                    value: authenticationFactors[2] ?? noAuthenticationPlugin,
+                    choices: usesMySQLX ? [noAuthenticationPlugin] : additionalAuthenticationPluginChoices,
+                    trailingDescription: authenticationPluginInputDescription(
+                        authenticationFactors[2] ?? noAuthenticationPlugin,
+                    ),
+                    trailingDescriptionClassName: "authenticationFactorDescription",
+                    horizontalSpan: 8,
+                    options: usesMySQLX ? [CommonDialogValueOption.Hidden] : [],
+                    onChange: (plugin, dialog): void => {
+                        updateAuthenticationFactorDescription("factor3", plugin, dialog);
+                    },
+                },
+                ociConfigFile: {
+                    type: "resource",
+                    caption: "OCI Config File",
+                    value: optionsMySQL["oci-config-file"],
+                    description: "The file must contain a fingerprint and key_file, or security_token_file.",
+                    canSelectFiles: true,
+                    canSelectFolders: false,
                     horizontalSpan: 4,
+                    options: authenticationUsesOci ? [] : [CommonDialogValueOption.Hidden],
+                },
+                ociConfigProfile: {
+                    type: "text",
+                    caption: "OCI Config Profile",
+                    value: optionsMySQL["authentication-oci-client-config-profile"],
+                    placeholder: "DEFAULT",
+                    description: "The profile in the OCI config file to use for authentication.",
+                    horizontalSpan: 4,
+                    options: authenticationUsesOci ? [] : [CommonDialogValueOption.Hidden],
                 },
                 storePassword: {
                     type: "button",
                     value: "Store Password",
                     onClick: this.storePassword,
                     horizontalSpan: 2,
+                    options: authenticationUsesPassword
+                        ? [] : [CommonDialogValueOption.Hidden],
                 },
                 clearPassword: {
                     type: "button",
                     value: "Clear Password",
                     onClick: this.clearPassword,
                     horizontalSpan: 2,
+                    options: authenticationUsesPassword
+                        ? [] : [CommonDialogValueOption.Hidden],
                 },
-                defaultSchema: {
-                    type: "text",
-                    caption: "Default Schema",
-                    value: optionsMySQL.schema,
-                    horizontalSpan: 4,
+                passwordButtonsEndOfRow: {
+                    type: "separator",
+                    endOfRow: true,
+                },
+                kerberosClientMode: {
+                    type: "choice",
+                    caption: "Kerberos Client Mode",
+                    value: optionsMySQL["plugin-authentication-kerberos-client-mode"],
+                    choices: ["SSPI", "GSSAPI"],
+                    horizontalSpan: 8,
+                    options: authenticationUsesKerberos ? [] : [CommonDialogValueOption.Hidden],
+                },
+                pluginDir: {
+                    type: "resource",
+                    caption: "Client Authentication Plugin Directory",
+                    value: authenticationHints?.pluginDir,
+                    canSelectFiles: false,
+                    canSelectFolders: true,
+                    horizontalSpan: 8,
+                    options: authenticationUsesClientPlugin ? [] : [CommonDialogValueOption.Hidden],
+                },
+                webauthnDevice: {
+                    type: "number",
+                    caption: "WebAuthn Device",
+                    value: optionsMySQL["plugin-authentication-webauthn-device"] ?? 0,
+                    min: 0,
+                    horizontalSpan: 2,
+                    options: authenticationUsesWebAuthn ? [] : [CommonDialogValueOption.Hidden],
+                },
+                webauthnPreservePrivacy: {
+                    type: "boolean",
+                    caption: "Preserve WebAuthn Privacy",
+                    tooltip: "When multiple discoverable credentials exist, prompt to select one credential instead " +
+                        "of sending assertions for all of them.",
+                    value: optionsMySQL["plugin-authentication-webauthn-client-preserve-privacy"] ?? false,
+                    horizontalSpan: 3,
+                    options: !authenticationUsesWebAuthn
+                        ? [CommonDialogValueOption.Hidden] : [],
+                },
+                registerWebAuthnFactor: {
+                    type: "button",
+                    caption: "Register Factor",
+                    tooltip: "Register a WebAuthn device for this authentication factor.",
+                    horizontalSpan: 3,
+                    options: !authenticationUsesWebAuthn
+                        ? [CommonDialogValueOption.Hidden] : [],
+                    onClick: (_id, values): void => {
+                        this.registerWebAuthnFactor(values);
+                    },
+                },
+                openidConnectClientIdTokenFile: {
+                    type: "resource",
+                    caption: "OpenID Connect Token File",
+                    value: optionsMySQL["authentication-openid-connect-client-id-token-file"],
+                    canSelectFiles: true,
+                    canSelectFolders: false,
+                    horizontalSpan: 8,
+                    options: authenticationUsesOpenIdConnect ? [] : [CommonDialogValueOption.Hidden],
                 },
             },
         };
+        moveAuthenticationOptionsAfterFactor(authenticationSection);
+
+        const savedSslMode = String(optionsMySQL["ssl-mode"] ?? MySQLSslMode.Preferred).toUpperCase() as MySQLSslMode;
+        const sslMode = authenticationRequiresClearTextPassword(authenticationFactors)
+            ? ConnectionEditor.#atLeastRequiredSslMode(savedSslMode) : savedSslMode;
+        const sslModeCaption = ConnectionEditor.#mysqlSslModeMap.get(sslMode) ?? String(optionsMySQL["ssl-mode"]);
+        const sslModeChoices = Array.from(ConnectionEditor.#mysqlSslModeMap.values());
+        if (!sslModeChoices.includes(sslModeCaption)) {
+            sslModeChoices.push(sslModeCaption);
+        }
+
+        const forcePqc = this.pqcBooleanValue(optionsMySQL["force-pqc"]);
+        const usePqcSign = this.pqcBooleanValue(optionsMySQL["use-pqc-sign"]);
+        const tlsControlOptions = sslMode === MySQLSslMode.Disabled ? [CommonDialogValueOption.Disabled] : [];
 
         const mysqlSslSection: IDialogSection = {
             contexts: ["MySQL"],
-            caption: "SSL",
+            caption: "TLS",
             groupName: "group1",
             values: {
                 sslMode: {
                     type: "choice",
-                    caption: "SSL Mode",
+                    caption: "TLS Mode",
                     value: sslModeCaption,
                     choices: sslModeChoices,
                     onChange: this.handleTlsOptionsChange,
@@ -1161,30 +1868,35 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 sslCipher: {
                     type: "text",
                     caption: "Permitted ciphers (optional, comma separated list)",
+                    tooltip: "Comma-separated list of TLS cipher suites permitted for this connection.",
                     value: optionsMySQL["ssl-cipher"]!,
-                    horizontalSpan: 5,
+                    horizontalSpan: 6,
                 },
                 sslCaFile: {
                     type: "resource",
-                    caption: "Path to Certificate Authority file for SSL",
+                    caption: "CA Certificate Path",
+                    tooltip: "Path to the CA certificate used to validate the server certificate.",
                     value: optionsMySQL["ssl-ca"],
-                    horizontalSpan: 8,
+                    horizontalSpan: 3,
                 },
                 sslCertFile: {
                     type: "resource",
-                    caption: "Path to Client Certificate file for SSL",
+                    caption: "Client Certificate Path",
+                    tooltip: "Path to the client certificate presented to the server.",
                     value: optionsMySQL["ssl-cert"],
-                    horizontalSpan: 8,
+                    horizontalSpan: 3,
                 },
                 sslKeyFile: {
                     type: "resource",
-                    caption: "Path to Client Key file for SSL",
+                    caption: "Client Key Path",
+                    tooltip: "Path to the private key for the client certificate.",
                     value: optionsMySQL["ssl-key"],
-                    horizontalSpan: 8,
+                    horizontalSpan: 3,
                 },
                 pqcTitle: {
                     type: "description",
                     caption: "Post-Quantum Cryptography",
+                    framed: true,
                     horizontalSpan: 8,
                     options: [CommonDialogValueOption.NewGroup, CommonDialogValueOption.Grouped],
                 },
@@ -1193,7 +1905,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     label: "TLS key-exchange groups",
                     value: optionsMySQL["tls-kex"],
                     placeholder: "Client default",
-                    description: "Optional, case-sensitive, colon-separated names, e.g. X25519MLKEM768:X25519. "
+                    tooltip: "Optional, case-sensitive, colon-separated names, e.g. X25519MLKEM768:X25519. "
                         + "PQC and classical groups are supported; availability depends on the client and server.",
                     horizontalSpan: 8,
                     options: [CommonDialogValueOption.Grouped, ...tlsControlOptions],
@@ -1203,8 +1915,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         ? { type: "text", value: forcePqc } as const
                         : { type: "boolean", value: forcePqc } as const),
                     label: "Require PQC key exchange",
-                    description: "When TLS is used, this option enforces TLSv1.3 and PQC key exchange automatically. "
-                        + "Select an SSL Mode that requires encryption to prevent unencrypted connections.",
+                    tooltip: "When TLS is used, this option enforces TLSv1.3 and PQC key exchange automatically. "
+                        + "Select a TLS Mode that requires encryption to prevent unencrypted connections.",
                     onChange: this.handleTlsOptionsChange,
                     horizontalSpan: 4,
                     options: [CommonDialogValueOption.Grouped, ...tlsControlOptions],
@@ -1212,8 +1924,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 forcePqcWarning: {
                     type: "description",
                     messageType: MessageType.Warning,
-                    value: "SSL Mode Preferred may allow an unencrypted connection. "
-                        + "Select an SSL Mode that requires encryption to guarantee PQC protection.",
+                    value: "TLS Mode Preferred may allow an unencrypted connection. "
+                        + "Select a TLS Mode that requires encryption to guarantee PQC protection.",
                     horizontalSpan: 8,
                     options: [CommonDialogValueOption.Grouped,
                         ...((forcePqc === true && sslMode === MySQLSslMode.Preferred)
@@ -1224,14 +1936,13 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         ? { type: "text", value: usePqcSign } as const
                         : { type: "boolean", value: usePqcSign } as const),
                     label: "Allow PQC handshake signatures",
-                    description: "Allows PQC signatures to be advertised; "
+                    tooltip: "Allows PQC signatures to be advertised; "
                         + "a classical signature may still be selected.",
                     horizontalSpan: 4,
                     options: [CommonDialogValueOption.Grouped, ...tlsControlOptions],
                 },
             },
         };
-
         const mysqlSshSection: IDialogSection = {
             contexts: ["MySQL", "useSSH"],
             caption: "SSH Tunnel",
@@ -1243,6 +1954,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     value: optionsMySQL.ssh,
                     placeholder: "user@host:22",
                     horizontalSpan: 4,
+                    onFocusLost: this.updateConnectionMethodDiagram,
                 },
                 sshKeyFile: {
                     type: "resource",
@@ -1261,31 +1973,33 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         const mysqlAdvancedSection: IDialogSection = {
             contexts: ["MySQL"],
-            caption: "Advanced",
+            caption: "Options",
             groupName: "group1",
             values: {
+                defaultEditor: {
+                    type: "choice",
+                    caption: "Default Editor",
+                    value: defaultEditor,
+                    choices: [globalDefaultEditor, ConnectionEditorType.DbNotebook, ConnectionEditorType.DbScript],
+                    description: "Choose the global default or override it for this connection",
+                    horizontalSpan: 3,
+                },
+                defaultEditorSeparator: {
+                    type: "separator",
+                    horizontalSpan: 8,
+                },
                 sqlMode: {
-                    type: "checkList",
+                    type: "text",
                     caption: "SQL Mode",
-                    value: optionsMySQL["sql-mode"],
-                    checkList: Object.entries(MySQLSqlMode).map(([key, value]) => {
-                        const result: ICheckboxProperties = {
-                            id: key,
-                            caption: value,
-                            checkState: CheckState.Unchecked,
-                        };
-
-                        return { data: result };
-                    }),
-                    horizontalSpan: 4,
-                    verticalSpan: 3,
+                    value: optionsMySQL["sql-mode"]?.join(","),
+                    horizontalSpan: 5,
                 },
                 timeout: {
                     type: "number",
                     caption: "Connection Timeout",
-                    value: optionsMySQL["connect-timeout"],
+                    value: optionsMySQL["connect-timeout"] ?? 15000,
                     placeholder: 0,
-                    horizontalSpan: 4,
+                    horizontalSpan: 3,
                 },
                 compression: {
                     type: "choice",
@@ -1300,7 +2014,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     caption: "Compression Level",
                     value: optionsMySQL["compression-level"] ?? 3,
                     horizontalSpan: 2,
-
                 },
                 compressionAlgorithms: {
                     type: "set",
@@ -1308,24 +2021,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     value: optionsMySQL["compression-algorithms"]?.split(","),
                     tagSet: ["zstd", "zlib", "lz4", "uncompressed"],
                     horizontalSpan: 4,
-                },
-                disableHeatwaveCheckTitle: {
-                    type: "description",
-                    caption: "Connection Startup Checks",
-                    horizontalSpan: 4,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                        CommonDialogValueOption.NewGroup,
-                    ],
-                },
-                disableHeatwaveCheck: {
-                    type: "boolean",
-                    caption: "Disable HeatWave Check",
-                    value: optionsMySQL["disable-heat-wave-check"] ?? false,
-                    horizontalSpan: 4,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
                 },
                 extraOptions: {
                     type: "matrix",
@@ -1406,12 +2101,14 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         return {
             id: String(details.id),
+            columns: 9,
             sections: new Map<string, IDialogSection>([
                 ["information", informationSection],
-                ["general", generalSection],
+                ["connectionMethod", connectionMethodSection],
                 ["sqliteDetails", sqliteDetailsSection],
                 ["sqliteAdvanced", sqliteAdvancedSection],
                 ["mysqlDetails", mysqlDetailsSection],
+                ["authentication", authenticationSection],
                 ["ssh", mysqlSshSection],
                 ["mdsBastion", mdsBastionSection],
                 ["ssl", mysqlSslSection],
@@ -1465,7 +2162,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     };
 
     private openBadgeEditor = (_id: string, values: IDialogValues): void => {
-        this.selectedTagsBeforeEdit = values.sections.get("general")?.values.tags.value as string[] | undefined ?? [];
+        this.selectedTagsBeforeEdit =
+            values.sections.get("information")?.values.tags.value as string[] | undefined ?? [];
         this.badgeEditorRef.current?.show(this.generateBadgeEditorConfig(), {
             title: "Connection Tags",
             autoMinWidth: true,
@@ -1582,7 +2280,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         const user = mysqlDetailsSection.userName.value as string;
         const host = mysqlDetailsSection.hostName.value as string;
         const port = mysqlDetailsSection.port.value as string;
-        const connectionTarget = mysqlDetailsSection.scheme.value === mysqlSocketProtocol
+        const connectionMethod = values.sections.get("connectionMethod")!.values.connectionMethod.value;
+        const connectionTarget = connectionMethod === mysqlSocketProtocol
             ? mysqlDetailsSection.port.value as string || "localhost"
             : `${host}:${port}`;
         if (user && host) {
@@ -1607,7 +2306,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         const user = mysqlDetailsSection.userName.value as string;
         const host = mysqlDetailsSection.hostName.value as string;
         const port = mysqlDetailsSection.port.value as string;
-        const connectionTarget = mysqlDetailsSection.scheme.value === mysqlSocketProtocol
+        const connectionMethod = values.sections.get("connectionMethod")!.values.connectionMethod.value;
+        const connectionTarget = connectionMethod === mysqlSocketProtocol
             ? mysqlDetailsSection.port.value as string || "localhost"
             : `${host}:${port}`;
         if (user && host) {
@@ -1900,57 +2600,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 });
         }
     });
-
-    private addFolder = (value: string, dialog: ValueEditDialog): void => {
-        const values = dialog.getDialogValues();
-        const generalSection = values.sections.get("general")!.values;
-        const folderPath = generalSection.folderPath.value as string;
-
-        if (folderPath === "<Add new folder>") {
-            void DialogHost.showDialog({
-                id: "connectionFolderPath",
-                type: DialogType.Prompt,
-                title: "Create New Folder",
-                values: {
-                    prompt: "Enter the name of the new folder to create:",
-                    value: "folder",
-                },
-                description: ["A connection folder is an organizational unit for connections."],
-            }).then((response) => {
-                if (response.closure === DialogResponseClosure.Accept && response.values) {
-                    let newFolderName = response.values.input as string;
-                    if (newFolderName.length === 0 || !newFolderName.startsWith("/")) {
-                        newFolderName = "/" + newFolderName;
-                    }
-                    this.editorRef.current?.updateInputValue(newFolderName, "folderPath");
-                } else {
-                    this.editorRef.current?.updateInputValue("/", "folderPath");
-                }
-            });
-        }
-    };
-
-    /**
-     * Loads all known folders from the database and creates a list of paths out of the hierarchical folder structure.
-     */
-    private loadKnownFolders = async (): Promise<void> => {
-        this.knownPaths = ["<Add new folder>"];
-
-        const addPaths = async (parent: number, currentPath: string): Promise<void> => {
-            const list = await ShellInterface.dbConnections.listFolderPaths(parent);
-            for (const entry of list) {
-                const newPath = (currentPath.length === 1 ? "" : currentPath) + "/" + entry.caption;
-                this.knownPaths.push(newPath);
-                await addPaths(entry.id, newPath);
-            }
-        };
-
-        const topLevel = await ShellInterface.dbConnections.listFolderPaths();
-        for (const entry of topLevel) {
-            this.knownPaths.push(entry.caption);
-            await addPaths(entry.id, entry.caption);
-        }
-    };
 
     private setProgressMessage = (message: string): void => {
         this.setState({ progressMessage: message });

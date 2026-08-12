@@ -48,6 +48,7 @@ import {
     type IDialogValues,
     ValueEditDialog,
 } from "../../../../components/Dialogs/ValueEditDialog.js";
+import { PasswordDialog } from "../../../../components/Dialogs/PasswordDialog.js";
 import { DialogResponseClosure, DialogType } from "../../../../app-logic/general-types.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import type { IToolbarItems } from "../../../../modules/db-editor/index.js";
@@ -112,7 +113,7 @@ const baseRow = (overrides: Partial<ITestUserRow> = {}): ITestUserRow => {
         host: overrides.host ?? (separator === -1 ? "%" : account.slice(separator + 1)),
         accountLocked: overrides.accountLocked ?? false,
         temporarilyLocked: overrides.temporarilyLocked ?? false,
-        plugin: overrides.plugin ?? "mysql_native_password",
+        authenticationPlugins: overrides.authenticationPlugins ?? ["mysql_native_password"],
         isRole: overrides.isRole ?? false,
         ssl: overrides.ssl ?? "",
         sslOptions: overrides.sslOptions ?? null,
@@ -133,6 +134,9 @@ const baseUserDetails = (overrides: Partial<IMySQLUser> = {}): IMySQLUser => {
     return {
         host: overrides.host ?? "localhost",
         user: overrides.user ?? "root",
+        authenticationFactors: overrides.authenticationFactors ?? [{
+            plugin: "mysql_native_password", password: null, authenticationString: null,
+        }],
         sslType: overrides.sslType ?? "",
         sslCipher: overrides.sslCipher ?? "",
         x509Issuer: overrides.x509Issuer ?? "",
@@ -141,7 +145,6 @@ const baseUserDetails = (overrides: Partial<IMySQLUser> = {}): IMySQLUser => {
         maxUpdates: overrides.maxUpdates ?? 0,
         maxConnections: overrides.maxConnections ?? 0,
         maxUserConnections: overrides.maxUserConnections ?? 0,
-        plugin: overrides.plugin ?? "mysql_native_password",
         passwordExpire: overrides.passwordExpire ?? false,
         passwordLastChanged: overrides.passwordLastChanged ?? "2100-10-01T00:00:00Z",
         passwordLifetime: overrides.passwordLifetime ?? 0,
@@ -152,6 +155,7 @@ const baseUserDetails = (overrides: Partial<IMySQLUser> = {}): IMySQLUser => {
         comment: overrides.comment ?? null,
         failedLoginAttempts: overrides.failedLoginAttempts ?? 0,
         passwordLockTime: overrides.passwordLockTime ?? null,
+        randomPassword: overrides.randomPassword ?? false,
     };
 };
 
@@ -282,6 +286,7 @@ const makeEvent = (target?: EventTarget): TestEvent => {
 const uiLayerMockFunctions = uiLayerMock as typeof uiLayerMock & {
     confirm: ReturnType<typeof vi.fn>;
     showErrorMessage: ReturnType<typeof vi.fn>;
+    showInformationMessage: ReturnType<typeof vi.fn>;
 };
 
 const makeUserAccountPill = (): HTMLElement => {
@@ -300,6 +305,10 @@ type TestSorter = (
     dir: "asc" | "desc",
     sorterParams: {},
 ) => number;
+
+type UserAccountMenuCommandHandler = (
+    props: IMenuItemProperties, altActive: boolean, payload: unknown
+) => boolean;
 
 describe("UserAccounts module", () => {
     beforeEach(() => {
@@ -340,17 +349,14 @@ describe("UserAccounts module", () => {
             passwordReuseInterval: 365,
             passwordRequireCurrent: true,
             maxUserConnections: 0,
+            authenticationPolicy: "*,,",
+            defaultAuthenticationPlugin: "caching_sha2_password",
+            passwordValidationInstalled: true,
+            passwordValidationPolicy: "MEDIUM",
+            passwordValidationLength: 12,
+            requireSecureTransport: true,
         });
         vi.spyOn(backend1, "isPartialRevokesEnabled").mockResolvedValue(false);
-        vi.spyOn(backend1, "execute").mockResolvedValue({
-            rows: [
-                ["authentication_policy", "*,,"],
-                ["default_authentication_plugin", "caching_sha2_password"],
-                ["require_secure_transport", "ON"],
-                ["validate_password.policy", "MEDIUM"],
-                ["validate_password.length", "12"],
-            ],
-        });
         const toolbarItems: IToolbarItems = {
             navigation: [], execution: [], editor: [], auxiliary: [],
         };
@@ -442,14 +448,14 @@ describe("UserAccounts module", () => {
         unmount();
     });
 
-    it("renders users before password validation probe completes", async ({ expect }) => {
+    it("renders users before loading authentication defaults completes", async ({ expect }) => {
         const rows: IMySQLUserListItem[] = [
             baseRow({ id: "1", user: "delayed@localhost" }),
         ];
 
         const backend = new ShellInterfaceSqlEditor();
         vi.spyOn(backend, "listMySQLUsers").mockResolvedValue(rows);
-        vi.spyOn(backend, "execute").mockReturnValue(new Promise<never>(() => {
+        vi.spyOn(backend, "getMySQLCreateUserDefaults").mockReturnValue(new Promise<never>(() => {
             return undefined;
         }));
         const toolbarItems: IToolbarItems = {
@@ -469,10 +475,10 @@ describe("UserAccounts module", () => {
         unmount();
     });
 
-    it("shows unavailable password validation when the policy query fails", async ({ expect }) => {
+    it("shows unavailable password validation when loading authentication defaults fails", async ({ expect }) => {
         const backend = new ShellInterfaceSqlEditor();
         vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([baseRow({ id: "1", user: "alice@localhost" })]);
-        vi.spyOn(backend, "execute").mockRejectedValue(new Error("policy unavailable"));
+        vi.spyOn(backend, "getMySQLCreateUserDefaults").mockRejectedValue(new Error("policy unavailable"));
         const toolbarItems: IToolbarItems = {
             navigation: [], execution: [], editor: [], auxiliary: [],
         };
@@ -538,7 +544,7 @@ describe("UserAccounts module", () => {
             baseRow({
                 id: "1",
                 user: "alice@%",
-                plugin: "mysql_native_password",
+                authenticationPlugins: ["mysql_native_password"],
                 roles: ["reader"],
                 globalPrivileges: ["SELECT"],
                 schemaPrivileges: {
@@ -549,7 +555,7 @@ describe("UserAccounts module", () => {
             baseRow({
                 id: "2",
                 user: "bob@localhost",
-                plugin: "caching_sha2_password",
+                authenticationPlugins: ["caching_sha2_password"],
                 roles: ["app_admin"],
                 globalPrivileges: ["CREATE USER"],
                 schemaPrivileges: {
@@ -697,6 +703,30 @@ describe("UserAccounts module", () => {
 
         expect(userNameFormatter(cell)).toBe("myuser");
         expect(hostMatcherFormatter(cell)).toBe("%");
+    });
+
+    it("shows additional authentication factors in the type column", ({ expect }) => {
+        const ref = createRef<UserAccounts>();
+        const toolbarItems: IToolbarItems = {
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        };
+        render(<UserAccounts ref={ref} toolbarItems={toolbarItems} />);
+        const formatter = getPrivate<(cell: CellComponent) => HTMLElement | string>(
+            ref.current!, "authenticationPluginFormatter");
+
+        const singleFactorRow = baseRow();
+        singleFactorRow.authenticationPlugins = ["caching_sha2_password"];
+        expect(formatter(makeCell(singleFactorRow))).toBe("caching_sha2_password");
+        const secondFactorRow = baseRow();
+        secondFactorRow.authenticationPlugins = ["mysql_native_password", "auth_socket"];
+        const secondFactor = ensureElement(formatter(makeCell(secondFactorRow)));
+        expect(secondFactor.textContent).toBe("mysql_native_password +1");
+        expect(secondFactor.firstElementChild?.getAttribute("data-tooltip"))
+            .toBe("mysql_native_password\nauth_socket");
+
+        const thirdFactorRow = baseRow();
+        thirdFactorRow.authenticationPlugins = ["mysql_native_password", "auth_socket", "authentication_pam"];
+        expect(ensureElement(formatter(makeCell(thirdFactorRow))).textContent).toBe("mysql_native_password +2");
     });
 
     it("sslFormatter handles not required, required and certificate with details", ({ expect }) => {
@@ -1317,7 +1347,7 @@ describe("UserAccounts module", () => {
         const getUserSpy = vi.spyOn(backend, "getMySQLUser").mockResolvedValue(baseUserDetails({
             user: "alice",
             host: "localhost",
-            plugin: "auth_socket",
+            authenticationFactors: [{ plugin: "auth_socket", password: null, authenticationString: null }],
             sslType: "SPECIFIED",
             sslCipher: "cipher-1",
             x509Issuer: "issuer-1",
@@ -1370,16 +1400,16 @@ describe("UserAccounts module", () => {
         expect(values.sections.get("general")?.values.comment.value).toBe("existing comment");
         expect(values.sections.get("authentication")?.values.authenticationPlugin.value).toBe("auth_socket");
         expect(values.sections.get("authentication")?.values.authenticationPlugin.choices)
-            .toEqual(["caching_sha2_password"]);
-        expect(values.sections.get("authentication")?.values.authenticationPlugin.options)
-            .toContain(CommonDialogValueOption.Disabled);
+            .toEqual(["caching_sha2_password", "auth_socket"]);
+        expect(values.sections.get("authentication")?.values.authenticationPlugin.options ?? [])
+            .not.toContain(CommonDialogValueOption.Disabled);
         expect(values.sections.get("authentication")?.values.passwordExpire.value).toBe(true);
-        expect(values.sections.get("authentication")?.values.passwordExpiration.value).toBe(60);
-        expect(values.sections.get("authentication")?.values.passwordHistory.value).toBe(2);
-        expect(values.sections.get("authentication")?.values.passwordReuseInterval.value).toBe(7);
-        expect(values.sections.get("authentication")?.values.failedPasswordAttempts.value).toBe(2);
-        expect(values.sections.get("authentication")?.values.passwordLockTime.value).toBe(4);
-        expect(values.sections.get("authentication")?.values.lockAccount.value).toBe(true);
+        expect(values.sections.get("advanced")?.values.passwordExpiration.value).toBe(60);
+        expect(values.sections.get("advanced")?.values.passwordHistory.value).toBe(2);
+        expect(values.sections.get("advanced")?.values.passwordReuseInterval.value).toBe(7);
+        expect(values.sections.get("advanced")?.values.failedPasswordAttempts.value).toBe(2);
+        expect(values.sections.get("advanced")?.values.passwordLockTime.value).toBe(4);
+        expect(values.sections.get("advanced")?.values.lockAccount.value).toBe(true);
         expect(values.sections.get("resourceLimits")?.values.maxUserConnections.value).toBe(40);
         expect(values.sections.get("tls")?.values.tlsMode.value).toEqual({ tlsMode: "Require Certificate" });
         expect(values.sections.get("tls")?.values.tlsIssuer.value).toBe("issuer-1");
@@ -1409,8 +1439,11 @@ describe("UserAccounts module", () => {
             showUserAccountSqlDialog: (row: RowComponent) => Promise<void>;
         }, "showUserAccountSqlDialog").mockResolvedValue(undefined);
         const resetPasswordSpy = vi.spyOn(instance as unknown as {
-            showResetPasswordDialog: (row: RowComponent) => void;
+            showResetPasswordDialog: (row: RowComponent, retainCurrentPassword?: boolean) => void;
         }, "showResetPasswordDialog").mockImplementation(() => { /**/ });
+        const discardOldPasswordSpy = vi.spyOn(instance as unknown as {
+            discardOldPassword: (row: RowComponent) => Promise<void>;
+        }, "discardOldPassword").mockResolvedValue(undefined);
         const deleteSpy = vi.spyOn(instance as unknown as {
             confirmDeleteUserAccount: (row: RowComponent) => Promise<void>;
         }, "confirmDeleteUserAccount").mockResolvedValue(undefined);
@@ -1461,6 +1494,12 @@ describe("UserAccounts module", () => {
 
         handleItemClick(menuItem("resetPassword"), false, unlockedRow);
         expect(resetPasswordSpy).toHaveBeenCalledWith(unlockedRow);
+
+        handleItemClick(menuItem("resetPasswordAndRetainCurrent"), false, unlockedRow);
+        expect(resetPasswordSpy).toHaveBeenCalledWith(unlockedRow, true);
+
+        handleItemClick(menuItem("discardOldPassword"), false, unlockedRow);
+        expect(discardOldPasswordSpy).toHaveBeenCalledWith(unlockedRow);
 
         handleItemClick(menuItem("deleteAccount"), false, unlockedRow);
         expect(deleteSpy).toHaveBeenCalledWith(unlockedRow);
@@ -1549,7 +1588,6 @@ describe("UserAccounts module", () => {
         const getUserSpy = vi.spyOn(backend, "getMySQLUser").mockResolvedValue(baseUserDetails({
             user: "alice",
             host: "localhost",
-            plugin: "auth_socket",
         }));
         const toolbarItems: IToolbarItems = {
             navigation: [], execution: [], editor: [], auxiliary: [],
@@ -1663,9 +1701,9 @@ describe("UserAccounts module", () => {
         const expected: IMySQLUser = {
             user: "alice",
             host: "localhost",
+            authenticationFactors: [],
             sslType: null, sslCipher: null, x509Issuer: null, x509Subject: null,
-            plugin: null, passwordExpire: null, passwordLastChanged: null, passwordLifetime: null,
-            authString: null,
+            passwordExpire: null, passwordLastChanged: null, passwordLifetime: null,
             randomPassword: false,
             maxQuestions: null, maxUpdates: null,
             maxConnections: null, maxUserConnections: null,
@@ -1720,9 +1758,17 @@ describe("UserAccounts module", () => {
         });
     });
 
-    it("opens the password-change dialog and updates only the password", async ({ expect }) => {
+    it.for([undefined, "old-secret", ""])("resets using %j", async (currentPassword, { expect }) => {
         const backend = new ShellInterfaceSqlEditor();
-        const updateSpy = vi.spyOn(backend, "updateMySQLUser").mockResolvedValue({ generatedPassword: null });
+        const executeServiceSpy = vi.spyOn(backend, "resetPassword").mockResolvedValue(undefined);
+        vi.spyOn(backend, "getPasswordResetInfo").mockResolvedValue({
+            account: { user: "alice", host: "localhost" },
+            sqlResetSupported: true,
+            retainCurrentPasswordSupported: false,
+            currentPassword: {
+                requiredByPolicy: currentPassword !== undefined, required: currentPassword !== undefined,
+            },
+        });
         const listSpy = vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([]);
         vi.spyOn(backend, "isPartialRevokesEnabled").mockResolvedValue(false);
         const toolbarItems: IToolbarItems = {
@@ -1737,7 +1783,10 @@ describe("UserAccounts module", () => {
         });
 
         const passwordChangeDialogRef = getPrivate<{ current: { show: (
-        request: { account: string; onAccept: (values: { password: string }) => Promise<string | void> },
+        request: {
+            account: string;
+            onAccept: (values: { password: string; currentPassword?: string }) => Promise<string | void>;
+        },
         ) => Promise<void> } }>(instance, "passwordChangeDialogRef");
         await waitFor(() => {
             expect(passwordChangeDialogRef.current).toBeTruthy();
@@ -1749,30 +1798,148 @@ describe("UserAccounts module", () => {
 
         expect(showSpy).toHaveBeenCalledWith(expect.objectContaining({
             requestId: "userAccountResetPassword", caption: "Reset Password", account: "alice@localhost",
+            requireCurrentPassword: currentPassword !== undefined,
         }));
         const request = showSpy.mock.calls[0][0];
-        await request.onAccept({ password: "secret" });
+        await request.onAccept({ password: "secret", currentPassword });
 
-        const expected: IMySQLUser = {
-            user: "alice",
-            host: "localhost",
-            sslType: null, sslCipher: null, x509Issuer: null, x509Subject: null,
-            plugin: null, passwordExpire: null, passwordLastChanged: null, passwordLifetime: null,
-            authString: "secret",
-            randomPassword: false,
-            maxQuestions: null, maxUpdates: null,
-            maxConnections: null, maxUserConnections: null,
-            passwordReuseHistory: null,
-            passwordReuseInterval: null, passwordRequireCurrent: null,
-            failedLoginAttempts: null, passwordLockTime: null,
-            accountLocked: null,
-            comment: null,
-        };
-        expect(updateSpy).toHaveBeenCalledWith(expected);
+        expect(executeServiceSpy).toHaveBeenCalledWith(
+            "secret", currentPassword, false, false, "alice", "localhost",
+        );
 
         await waitFor(() => {
             expect(listSpy).toHaveBeenCalledTimes(2);
         });
+    });
+
+    it("requires backend-confirmed secure transport before resetting a password", async ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        const getPasswordResetInfo = vi.spyOn(backend, "getPasswordResetInfo").mockRejectedValue(
+            new Error("Password reset requires SSL Mode Required, Verify CA, or Verify Identity."),
+        );
+        const listSpy = vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([]);
+        vi.spyOn(backend, "isPartialRevokesEnabled").mockResolvedValue(false);
+        const ref = createRef<UserAccounts>();
+        render(<UserAccounts ref={ref} backend={backend} toolbarItems={{
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        }} />);
+        const instance = ref.current!;
+        await waitFor(() => {
+            expect(listSpy).toHaveBeenCalledTimes(1);
+        });
+
+        const showResetPasswordDialog = getPrivate<(row: RowComponent) => Promise<void>>(
+            instance, "showResetPasswordDialog",
+        );
+        await showResetPasswordDialog.call(instance, makeRow(baseRow({ user: "alice@localhost" })));
+
+        expect(uiLayerMockFunctions.showErrorMessage).toHaveBeenCalledWith(
+            expect.stringContaining("Password reset requires SSL Mode Required, Verify CA, or Verify Identity."),
+            {},
+        );
+        expect(getPasswordResetInfo).toHaveBeenCalledWith("alice", "localhost");
+    });
+
+    it("allows a direct localhost password reset without SSL", async ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        const getPasswordResetInfo = vi.spyOn(backend, "getPasswordResetInfo").mockResolvedValue({
+            account: { user: "alice", host: "localhost" },
+            sqlResetSupported: false,
+            retainCurrentPasswordSupported: false,
+            currentPassword: { requiredByPolicy: false },
+        });
+        const listSpy = vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([]);
+        vi.spyOn(backend, "isPartialRevokesEnabled").mockResolvedValue(false);
+        const ref = createRef<UserAccounts>();
+        render(<UserAccounts ref={ref} backend={backend} toolbarItems={{
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        }} />);
+        const instance = ref.current!;
+        await waitFor(() => {
+            expect(listSpy).toHaveBeenCalledTimes(1);
+        });
+
+        const showResetPasswordDialog = getPrivate<(row: RowComponent) => Promise<void>>(
+            instance, "showResetPasswordDialog",
+        );
+        await showResetPasswordDialog.call(instance, makeRow(baseRow({ user: "alice@localhost" })));
+
+        expect(getPasswordResetInfo).toHaveBeenCalledWith("alice", "localhost");
+    });
+
+    it("does not report a successful password reset when the dialog is cancelled", async ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        vi.spyOn(backend, "getPasswordResetInfo").mockResolvedValue({
+            account: { user: "alice", host: "localhost" },
+            sqlResetSupported: true,
+            retainCurrentPasswordSupported: false,
+            currentPassword: { requiredByPolicy: false },
+        });
+        const listSpy = vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([]);
+        vi.spyOn(backend, "isPartialRevokesEnabled").mockResolvedValue(false);
+        const ref = createRef<UserAccounts>();
+        render(<UserAccounts ref={ref} backend={backend} toolbarItems={{
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        }} />);
+        const instance = ref.current!;
+        await waitFor(() => {
+            expect(listSpy).toHaveBeenCalledTimes(1);
+        });
+
+        const passwordChangeDialogRef = getPrivate<{ current: { show: () => Promise<void> } }>(
+            instance, "passwordChangeDialogRef",
+        );
+        await waitFor(() => {
+            expect(passwordChangeDialogRef.current).toBeTruthy();
+        });
+        vi.spyOn(passwordChangeDialogRef.current, "show").mockResolvedValue(undefined);
+        const showResetPasswordDialog = getPrivate<(row: RowComponent) => Promise<void>>(
+            instance, "showResetPasswordDialog",
+        );
+
+        await showResetPasswordDialog.call(instance, makeRow(baseRow({ user: "alice@localhost" })));
+
+        expect(uiLayerMockFunctions.showInformationMessage).not.toHaveBeenCalled();
+        expect(listSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("routes authentication menu commands to the selected account", async ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        const listSpy = vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([]);
+        vi.spyOn(backend, "isPartialRevokesEnabled").mockResolvedValue(false);
+        const ref = createRef<UserAccounts>();
+        render(<UserAccounts ref={ref} backend={backend} toolbarItems={{
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        }} />);
+        const instance = ref.current!;
+        await waitFor(() => {
+            expect(listSpy).toHaveBeenCalledTimes(1);
+        });
+
+        const showResetPasswordDialog = vi.spyOn(
+            instance as unknown as { showResetPasswordDialog: (row: RowComponent, retain?: boolean) => Promise<void> },
+            "showResetPasswordDialog",
+        ).mockResolvedValue(undefined);
+        const discardOldPassword = vi.spyOn(
+            instance as unknown as { discardOldPassword: (row: RowComponent) => Promise<void> },
+            "discardOldPassword",
+        ).mockResolvedValue(undefined);
+        const handleMenuCommand = getPrivate<UserAccountMenuCommandHandler>(
+            instance, "handleUserAccountContextMenuItemClick",
+        );
+        const row = makeRow(baseRow({ user: "alice@localhost" }));
+
+        handleMenuCommand.call(instance, { command: { command: "resetPassword" } } as IMenuItemProperties, false, row);
+        handleMenuCommand.call(instance, {
+            command: { command: "resetPasswordAndRetainCurrent" },
+        } as IMenuItemProperties, false, row);
+        handleMenuCommand.call(instance, {
+            command: { command: "discardOldPassword" },
+        } as IMenuItemProperties, false, row);
+
+        expect(showResetPasswordDialog).toHaveBeenNthCalledWith(1, row);
+        expect(showResetPasswordDialog).toHaveBeenNthCalledWith(2, row, true);
+        expect(discardOldPassword).toHaveBeenCalledWith(row);
     });
 
     it("clicking the roles cell opens the role dialog without opening the edit dialog", async ({ expect }) => {
@@ -4168,12 +4335,12 @@ describe("UserAccounts module", () => {
         setDialogValue(values, "general", "comment", " updated comment ");
         setDialogValue(values, "authentication", "password", " newpass ");
         setDialogValue(values, "authentication", "passwordExpire", true);
-        setDialogValue(values, "authentication", "passwordExpiration", 12);
-        setDialogValue(values, "authentication", "passwordHistory", 3);
-        setDialogValue(values, "authentication", "passwordReuseInterval", 9);
-        setDialogValue(values, "authentication", "failedPasswordAttempts", 2);
-        setDialogValue(values, "authentication", "passwordLockTime", 4);
-        setDialogValue(values, "authentication", "lockAccount", true);
+        setDialogValue(values, "advanced", "passwordExpiration", 12);
+        setDialogValue(values, "advanced", "passwordHistory", 3);
+        setDialogValue(values, "advanced", "passwordReuseInterval", 9);
+        setDialogValue(values, "advanced", "failedPasswordAttempts", 2);
+        setDialogValue(values, "advanced", "passwordLockTime", 4);
+        setDialogValue(values, "advanced", "lockAccount", true);
         setDialogValue(values, "tls", "tlsMode", { tlsMode: "Require Certificate" });
         setDialogValue(values, "tls", "tlsCipher", "cipher-x");
         setDialogValue(values, "tls", "tlsIssuer", "issuer-x");
@@ -4194,10 +4361,14 @@ describe("UserAccounts module", () => {
         const expected: IMySQLUser = {
             user: "alice",
             host: "localhost",
-            plugin: "caching_sha2_password", passwordExpire: true,
+            authenticationFactors: [{
+                plugin: "caching_sha2_password",
+                password: " newpass ",
+                authenticationString: null,
+            }],
+            passwordExpire: true,
             passwordLastChanged: null, passwordLifetime: 12,
-            authString: " newpass ",
-            randomPassword: false,
+            randomPassword: null,
             sslType: "SPECIFIED",
             sslCipher: "cipher-x",
             x509Issuer: "issuer-x",
@@ -4256,6 +4427,182 @@ describe("UserAccounts module", () => {
         expect(closeDialog).toBe(true);
     });
 
+    it("shows all authentication factors when editing an MFA account", async ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        const listSpy = vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([]);
+        const toolbarItems: IToolbarItems = {
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        };
+        const ref = createRef<UserAccounts>();
+        render(<UserAccounts ref={ref} backend={backend} toolbarItems={toolbarItems} />);
+        const instance = ref.current!;
+
+        await waitFor(() => {
+            expect(listSpy).toHaveBeenCalledTimes(1);
+        });
+
+        const createDialogValuesFromUser = getPrivate<(details: IMySQLUser) => IDialogValues>(
+            instance, "createDialogValuesFromUser");
+        const values = createDialogValuesFromUser(baseUserDetails({
+            authenticationFactors: [
+                { plugin: "caching_sha2_password", password: null, authenticationString: null },
+                { plugin: "authentication_pam", password: null, authenticationString: "mysql-unix" },
+                { plugin: "authentication_webauthn", password: null, authenticationString: null },
+            ],
+        }));
+        const authentication = values.sections.get("authentication")!.values;
+
+        expect(authentication.firstFactor).toBeDefined();
+        expect(authentication.authenticationPlugin.value).toBe("caching_sha2_password");
+        expect(authentication.secondAuthenticationPlugin.value).toBe("authentication_pam");
+        expect(authentication.thirdAuthenticationPlugin.value).toBe("authentication_webauthn");
+        expect(authentication.password.options).not.toContain(CommonDialogValueOption.Hidden);
+        expect(authentication.secondAuthenticationString.caption).toBe("PAM Service");
+        expect(authentication.secondAuthenticationString.value).toBe("mysql-unix");
+        expect(authentication.secondAuthenticationString.options).not.toContain(CommonDialogValueOption.Hidden);
+        expect(authentication.secondAuthenticationPlugin.options ?? [])
+            .not.toContain(CommonDialogValueOption.Disabled);
+        expect(authentication.secondAuthenticationString.options ?? [])
+            .not.toContain(CommonDialogValueOption.Disabled);
+        expect(authentication.thirdAuthenticationGuidance).toMatchObject({
+            type: "description",
+            value: "After creating this account, register a WebAuthn device with a WebAuthn-capable client.",
+        });
+        expect(authentication.thirdAuthenticationPlugin.options ?? [])
+            .not.toContain(CommonDialogValueOption.Disabled);
+    });
+
+    it("preserves first-factor parameters when enabling MFA", ({ expect }) => {
+        const values = CreateUserDialog.createDialogValues(["authentication_pam"]);
+        const authentication = values.sections.get("authentication")!.values;
+
+        authentication.authenticationPlugin.value = "authentication_pam";
+        authentication.authenticationString.value = "mysql-unix";
+        CreateUserDialog.updateFactorInputs("first", "authentication_pam", undefined, values);
+        CreateUserDialog.enableMfa(values);
+
+        const mfaAuthentication = values.sections.get("authentication")!.values;
+        expect(mfaAuthentication.authenticationString.caption).toBe("PAM Service");
+        expect(mfaAuthentication.authenticationString.value).toBe("mysql-unix");
+        expect(mfaAuthentication.authenticationString.options).not.toContain(CommonDialogValueOption.Hidden);
+    });
+
+    it("reenables password inputs when leaving random-password mode", ({ expect }) => {
+        const values = CreateUserDialog.createDialogValues(["caching_sha2_password", "authentication_pam"]);
+        const authentication = values.sections.get("authentication")!.values;
+
+        authentication.randomPassword.value = true;
+        authentication.password.options = [CommonDialogValueOption.Disabled];
+        authentication.passwordConfirmation.options = [CommonDialogValueOption.Disabled];
+        CreateUserDialog.updateFactorInputs("first", "authentication_pam", undefined, values);
+        CreateUserDialog.updateFactorInputs("first", "caching_sha2_password", undefined, values);
+
+        expect(authentication.randomPassword.value).toBe(false);
+        expect(authentication.password.options).not.toContain(CommonDialogValueOption.Disabled);
+        expect(authentication.passwordConfirmation.options).not.toContain(CommonDialogValueOption.Disabled);
+    });
+
+    it("shows PAM parameters when editing a single-factor PAM account", ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([]);
+        const toolbarItems: IToolbarItems = {
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        };
+        const ref = createRef<UserAccounts>();
+        render(<UserAccounts ref={ref} backend={backend} toolbarItems={toolbarItems} />);
+        const createDialogValuesFromUser = getPrivate<(details: IMySQLUser) => IDialogValues>(
+            ref.current!, "createDialogValuesFromUser");
+
+        const values = createDialogValuesFromUser(baseUserDetails({
+            authenticationFactors: [
+                { plugin: "authentication_pam", password: null, authenticationString: "mysql-unix" },
+            ],
+        }));
+        const authentication = values.sections.get("authentication")!.values;
+
+        expect(authentication.authenticationPlugin.value).toBe("authentication_pam");
+        expect(authentication.authenticationPlugin.choices).toContain("authentication_pam");
+        expect(authentication.authenticationPlugin.options ?? []).not.toContain(CommonDialogValueOption.Disabled);
+        expect(authentication.authenticationString.caption).toBe("PAM Service");
+        expect(authentication.authenticationString.value).toBe("mysql-unix");
+        expect(authentication.authenticationString.options).not.toContain(CommonDialogValueOption.Hidden);
+        expect(authentication.authenticationString.options ?? []).not.toContain(CommonDialogValueOption.Disabled);
+        expect(authentication.password.options).toContain(CommonDialogValueOption.Hidden);
+        expect(authentication.passwordConfirmation.options).toContain(CommonDialogValueOption.Hidden);
+    });
+
+    it("submits authentication factor changes for an existing account", async ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        const updateSpy = vi.spyOn(backend, "updateMySQLUser").mockResolvedValue({ generatedPassword: null });
+        vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([]);
+        const ref = createRef<UserAccounts>();
+        render(<UserAccounts ref={ref} backend={backend} toolbarItems={{
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        }} />);
+        const instance = ref.current!;
+        const original = baseUserDetails({
+            user: "alice",
+            host: "localhost",
+            authenticationFactors: [
+                { plugin: "caching_sha2_password", password: null, authenticationString: null },
+                { plugin: "authentication_pam", password: null, authenticationString: "mysql-unix" },
+                { plugin: "authentication_webauthn", password: null, authenticationString: null },
+            ],
+        });
+        instance.setState({ editingAccount: { user: original.user, host: original.host } });
+        await waitFor(() => {
+            expect(getPrivate<IUserAccountsState>(instance, "state").editingAccount)
+                .toEqual({ user: "alice", host: "localhost" });
+        });
+        (instance as unknown as { editingAccountDetails?: IMySQLUser }).editingAccountDetails = original;
+        const createDialogValuesFromUser = getPrivate<(details: IMySQLUser) => IDialogValues>(
+            instance, "createDialogValuesFromUser");
+        const values = createDialogValuesFromUser(original);
+        setDialogValue(values, "authentication", "secondAuthenticationPlugin", "authentication_webauthn");
+        setDialogValue(values, "authentication", "thirdAuthenticationPlugin", "None");
+        const handler = getPrivate<(closure: DialogResponseClosure, v: IDialogValues) => Promise<boolean>>(
+            instance, "handleCreateUserDialogClose");
+
+        expect(await handler(DialogResponseClosure.Accept, values)).toBe(true);
+        expect(updateSpy).toHaveBeenCalledWith(expect.objectContaining({
+            authenticationFactors: [
+                { plugin: "caching_sha2_password", password: null, authenticationString: null },
+                { plugin: "authentication_webauthn", password: null, authenticationString: null },
+            ],
+        }));
+    });
+
+    it("offers no-login authentication only while creating accounts", async ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([]);
+        const ref = createRef<UserAccounts>();
+        render(<UserAccounts ref={ref} backend={backend} toolbarItems={{
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        }} />);
+        const instance = ref.current!;
+        instance.setState({ authenticationPlugins: ["caching_sha2_password", "mysql_no_login"] });
+        await waitFor(() => {
+            expect(getPrivate<IUserAccountsState>(instance, "state").authenticationPlugins)
+                .toContain("mysql_no_login");
+        });
+        const createDialogValuesFromUser = getPrivate<
+            (details: IMySQLUser, creating?: boolean) => IDialogValues
+        >(instance, "createDialogValuesFromUser");
+        const details = baseUserDetails({
+            authenticationFactors: [
+                { plugin: "caching_sha2_password", password: null, authenticationString: null },
+            ],
+        });
+
+        const editChoices = createDialogValuesFromUser(details).sections
+            .get("authentication")!.values.authenticationPlugin.choices as string[];
+        const cloneChoices = createDialogValuesFromUser(details, true).sections
+            .get("authentication")!.values.authenticationPlugin.choices as string[];
+
+        expect(editChoices).not.toContain("mysql_no_login");
+        expect(cloneChoices).toContain("mysql_no_login");
+    });
+
     it("updates only the edited comment for a loaded account", async ({ expect }) => {
         const backend = new ShellInterfaceSqlEditor();
         const updateSpy = vi.spyOn(backend, "updateMySQLUser").mockResolvedValue({ generatedPassword: null });
@@ -4305,9 +4652,8 @@ describe("UserAccounts module", () => {
         expect(updateSpy).toHaveBeenCalledWith({
             user: "alice",
             host: "localhost",
-            plugin: null,
+            authenticationFactors: [],
             passwordLastChanged: null,
-            authString: null,
             randomPassword: null,
             sslType: null,
             sslCipher: null,
@@ -4538,10 +4884,10 @@ describe("UserAccounts module", () => {
 
         const [values, options] = showSpy.mock.calls[0] as [IDialogValues, { title: string }];
         expect(options).toEqual({ title: "Create User Account" });
-        expect(values.sections.get("authentication")?.values.passwordExpiration.value).toBe(90);
-        expect(values.sections.get("authentication")?.values.passwordHistory.value).toBe(5);
-        expect(values.sections.get("authentication")?.values.passwordReuseInterval.value).toBe(30);
-        expect(values.sections.get("authentication")?.values.lockAccount.value).toBe(true);
+        expect(values.sections.get("advanced")?.values.passwordExpiration.value).toBe(90);
+        expect(values.sections.get("advanced")?.values.passwordHistory.value).toBe(5);
+        expect(values.sections.get("advanced")?.values.passwordReuseInterval.value).toBe(30);
+        expect(values.sections.get("advanced")?.values.lockAccount.value).toBe(true);
         expect(values.sections.get("resourceLimits")?.values.maxUserConnections.value).toBe(12);
 
         unmount();
@@ -4578,7 +4924,7 @@ describe("UserAccounts module", () => {
         expect(values.sections.get("authentication")?.values.authenticationPlugin.value)
             .toBe("caching_sha2_password");
         expect(values.sections.get("authentication")?.values.authenticationPlugin.choices)
-            .toEqual(["caching_sha2_password"]);
+            .toEqual(["auth_socket", "caching_sha2_password"]);
 
         unmount();
     });
@@ -4619,9 +4965,9 @@ describe("UserAccounts module", () => {
     it("create user dialog defaults to the first discovered plugin without caching_sha2_password", ({ expect }) => {
         const values = CreateUserDialog.createDialogValues(["auth_socket", "mysql_clear_password"]);
 
-        expect(values.sections.get("authentication")?.values.authenticationPlugin.value).toBe("mysql_clear_password");
+        expect(values.sections.get("authentication")?.values.authenticationPlugin.value).toBe("auth_socket");
         expect(values.sections.get("authentication")?.values.authenticationPlugin.choices)
-            .toEqual(["mysql_clear_password"]);
+            .toEqual(["auth_socket", "mysql_clear_password"]);
     });
 
     it("accepting create user dialog calls backend and refreshes list", async ({ expect }) => {
@@ -4648,11 +4994,11 @@ describe("UserAccounts module", () => {
         setDialogValue(values, "authentication", "password", "p@ss");
         setDialogValue(values, "authentication", "passwordConfirmation", "p@ss");
         setDialogValue(values, "authentication", "passwordExpire", true);
-        setDialogValue(values, "authentication", "passwordExpiration", 10);
-        setDialogValue(values, "authentication", "passwordHistory", 5);
-        setDialogValue(values, "authentication", "passwordReuseInterval", 30);
-        setDialogValue(values, "authentication", "failedPasswordAttempts", 2);
-        setDialogValue(values, "authentication", "lockAccount", true);
+        setDialogValue(values, "advanced", "passwordExpiration", 10);
+        setDialogValue(values, "advanced", "passwordHistory", 5);
+        setDialogValue(values, "advanced", "passwordReuseInterval", 30);
+        setDialogValue(values, "advanced", "failedPasswordAttempts", 2);
+        setDialogValue(values, "advanced", "lockAccount", true);
         setDialogValue(values, "tls", "tlsMode", { tlsMode: "Require Certificate" });
         setDialogValue(values, "tls", "tlsCipher", "cipher1");
         setDialogValue(values, "tls", "tlsIssuer", "issuer1");
@@ -4673,10 +5019,15 @@ describe("UserAccounts module", () => {
         const expected: IMySQLUser = {
             user: "newUser",
             host: "%",
-            plugin: "caching_sha2_password", passwordExpire: true,
-            passwordLastChanged: null, passwordLifetime: 10,
-            authString: "p@ss",
+            passwordLastChanged: null,
             randomPassword: false,
+            passwordExpire: true,
+            passwordLifetime: 10,
+            authenticationFactors: [{
+                plugin: "caching_sha2_password",
+                password: "p@ss",
+                authenticationString: null,
+            }],
             sslType: "SPECIFIED",
             sslCipher: "cipher1",
             x509Issuer: "issuer1",
@@ -4758,6 +5109,48 @@ describe("UserAccounts module", () => {
         });
         expect(createSpy).not.toHaveBeenCalled();
         expect(closeDialog).toBe(false);
+    });
+
+    it("requests an initial password for a passwordless WebAuthn account", async ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        const createSpy = vi.spyOn(backend, "createMySQLUser").mockResolvedValue({ generatedPassword: null });
+        const passwordSpy = vi.spyOn(PasswordDialog.prototype, "show").mockResolvedValue("initial-password");
+        const toolbarItems: IToolbarItems = {
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        };
+        const ref = createRef<UserAccounts>();
+        render(<UserAccounts ref={ref} backend={backend} toolbarItems={toolbarItems} />);
+        const instance = ref.current!;
+        const values = CreateUserDialog.createDialogValues(["authentication_webauthn"]);
+        setDialogValue(values, "general", "userName", "web");
+        setDialogValue(values, "general", "hostName", "%");
+
+        const showDialogSpy = vi.spyOn(DialogHost, "showDialog");
+        const handler = getPrivate<(closure: DialogResponseClosure, v: IDialogValues) => Promise<boolean>>(
+            instance, "handleCreateUserDialogClose");
+
+        expect(await handler(DialogResponseClosure.Accept, values)).toBe(true);
+        expect(showDialogSpy).not.toHaveBeenCalled();
+        expect(passwordSpy).toHaveBeenCalledWith(expect.objectContaining({
+            caption: "Initial WebAuthn Authentication Password",
+            passwordRequired: true,
+            confirmPassword: true,
+        }));
+        expect(createSpy).toHaveBeenCalledOnce();
+        expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({
+            authenticationFactors: [{
+                plugin: "authentication_webauthn",
+                password: "initial-password",
+                authenticationString: null,
+            }],
+            passwordExpire: null,
+            passwordLifetime: null,
+            passwordReuseHistory: null,
+            passwordReuseInterval: null,
+            passwordRequireCurrent: null,
+            failedLoginAttempts: null,
+            passwordLockTime: null,
+        }));
     });
 
     it("updates a user without confirming when the password is unchanged", async ({ expect }) => {
@@ -4882,10 +5275,41 @@ describe("UserAccounts module", () => {
             userName: "The user name must not be empty",
             hostName: "The host must not be empty",
             authenticationPlugin: "Select an authentication plugin",
-            passwordConfirmation: "The password confirmation does not match",
         });
         expect(result.messages.tlsIssuer).toBeUndefined();
         expect(result.messages.tlsSubject).toBeUndefined();
+    });
+
+    it("validateCreateUserValues rejects duplicate authentication factors", async ({ expect }) => {
+        const ref = createRef<UserAccounts>();
+        const toolbarItems: IToolbarItems = {
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        };
+        render(<UserAccounts ref={ref} toolbarItems={toolbarItems} />);
+        const instance = ref.current!;
+
+        const values = CreateUserDialog.createDialogValues();
+        const authentication = values.sections.get("authentication")!.values;
+        authentication.authenticationPlugin.value = "authentication_webauthn";
+        authentication.secondAuthenticationPlugin = {
+            type: "choice",
+            caption: "Authentication Plugin",
+            value: "authentication_webauthn",
+            choices: ["None", "authentication_webauthn"],
+        };
+        authentication.thirdAuthenticationPlugin = {
+            type: "choice",
+            caption: "Authentication Plugin",
+            value: "None",
+            choices: ["None", "authentication_webauthn"],
+        };
+
+        const validate = getPrivate<(closing: boolean, v: IDialogValues) => Promise<Record<string, unknown>>>(
+            instance, "validateCreateUserValues");
+        const result = await validate(false, values) as { messages: Record<string, string> };
+
+        expect(result.messages.secondAuthenticationPlugin)
+            .toBe("Cannot use same method for more than one factor");
     });
 
     it("validateCreateUserValues accepts certificate requirements without issuer or subject", async ({ expect }) => {
@@ -4934,22 +5358,25 @@ describe("UserAccounts module", () => {
         expect(certificateOnlyResult.messages.tlsSubject).toBeUndefined();
     });
 
-    it("validateCreateUserValues allows a passwordless account", async ({ expect }) => {
-        const ref = createRef<UserAccounts>();
-        const toolbarItems: IToolbarItems = {
-            navigation: [], execution: [], editor: [], auxiliary: [],
-        };
-        render(<UserAccounts ref={ref} toolbarItems={toolbarItems} />);
-        const instance = ref.current!;
-        const values = CreateUserDialog.createDialogValues();
-        setDialogValue(values, "general", "userName", "alice");
-        setDialogValue(values, "general", "hostName", "localhost");
-        setDialogValue(values, "authentication", "authenticationPlugin", "caching_sha2_password");
+    it("validateCreateUserValues ignores password fields for a non-password authentication plugin",
+        async ({ expect }) => {
+            const ref = createRef<UserAccounts>();
+            const toolbarItems: IToolbarItems = {
+                navigation: [], execution: [], editor: [], auxiliary: [],
+            };
+            render(<UserAccounts ref={ref} toolbarItems={toolbarItems} />);
+            const instance = ref.current!;
+            const values = CreateUserDialog.createDialogValues();
+            setDialogValue(values, "general", "userName", "alice");
+            setDialogValue(values, "general", "hostName", "localhost");
+            setDialogValue(values, "authentication", "authenticationPlugin", "authentication_webauthn");
+            setDialogValue(values, "authentication", "password", "stale-password");
+            setDialogValue(values, "authentication", "passwordConfirmation", "different-password");
 
-        const validate = getPrivate<(closing: boolean, v: IDialogValues) => Promise<Record<string, unknown>>>(
-            instance, "validateCreateUserValues");
-        const result = await validate(true, values) as { messages: Record<string, string> };
+            const validate = getPrivate<(closing: boolean, v: IDialogValues) => Promise<Record<string, unknown>>>(
+                instance, "validateCreateUserValues");
+            const result = await validate(true, values) as { messages: Record<string, string> };
 
-        expect(result.messages.password).toBeUndefined();
-    });
+            expect(result.messages).toEqual({});
+        });
 });

@@ -54,6 +54,7 @@ export interface ITestConnection {
     user: string;
     password: string;
     schema: string;
+    sslMode?: string;
 }
 
 export class ElectronWorkbench {
@@ -382,6 +383,13 @@ export class ElectronWorkbench {
         await this.setInput(dialog.locator("#userName input, input#userName"), connection.user);
         await this.setInput(dialog.locator("#port input, input#port"), connection.port);
         await this.setInput(dialog.locator("#defaultSchema input, input#defaultSchema"), connection.schema);
+        if (connection.sslMode) {
+            await dialog.locator(".tabItem", { hasText: "TLS" }).click();
+            await dialog.locator("#sslMode").click();
+            await this.page.locator("#sslModePopup .dropdownItem", {
+                hasText: this.exactText(connection.sslMode),
+            }).click();
+        }
         await dialog.locator("#ok").click();
         await expect(dialog).toBeHidden({ timeout: 15000 });
         await expect(this.page.locator("#tilesHost .connectionTile", {

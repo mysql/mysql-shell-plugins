@@ -20,7 +20,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable, Optional, cast
 
 import mysqlsh  # pyright: ignore[reportMissingImports] pylint: disable=import-error
@@ -39,6 +41,11 @@ from gui_plugin.mysql.backend.model import (
     UserInfo,
 )
 from gui_plugin.core.dbms.DbSession import DbSession
+from gui_plugin.core.dbms.DbMySQLSessionCommon import is_secure_mysql_transport
+from gui_plugin.mysql.PasswordResetInfo import (
+    PasswordResetInfo,
+    discover_password_reset_info,
+)
 
 get_global_shell_session = cast(
     Callable[[], DbSession], mysqlsh.globals.shell.get_session
@@ -58,6 +65,12 @@ def list_users(session: Optional[DbSession] = None) -> list[MySQLUserListItem]:
     """
     if session is None:
         session = get_global_shell_session()
+
+    activate_all_roles = getattr(session, "activate_all_roles", None)
+    if activate_all_roles is not None:
+        activate_all_roles()
+    else:
+        session.run_sql("SET ROLE ALL")
 
     return user_management.list_mysql_users(session)
 
@@ -163,6 +176,29 @@ def list_authentication_plugins(session: Optional[DbSession] = None) -> list[str
     return user_management.list_authentication_plugins(session)
 
 
+@plugin_function("gui.mysql.getBundledAuthenticationPlugins", cli=False, web=True)
+def get_bundled_authentication_plugins() -> list[str]:
+    """Returns authentication plugins bundled with MySQL Shell."""
+
+    plugin_dir = Path(mysqlsh.globals.shell.options["mysqlPluginDir"])
+    client_plugin_suffix = (
+        "_client.dll" if sys.platform == "win32" else "_client.so"
+    )
+    try:
+        bundled_plugins = {
+            entry.name.removesuffix(client_plugin_suffix)
+            for entry in plugin_dir.iterdir()
+            if entry.is_file() and entry.name.endswith(client_plugin_suffix)
+        }
+    except OSError:
+        bundled_plugins = set()
+
+    return [
+        "password",
+        *sorted(bundled_plugins),
+    ]
+
+
 @plugin_function("gui.mysql.getCreateUserDefaults", cli=False, web=True)
 def get_create_user_defaults(
     session: Optional[DbSession] = None,
@@ -180,6 +216,36 @@ def get_create_user_defaults(
         session = get_global_shell_session()
 
     return user_management.get_create_user_defaults(session)
+
+
+@plugin_function("gui.mysql.getPasswordResetInfo", cli=False, web=True)
+def get_password_reset_info(
+    user: Optional[str] = None,
+    host: Optional[str] = None,
+    password_expired: bool = False,
+    session: Optional[DbSession] = None,
+) -> PasswordResetInfo:
+    """Returns password reset metadata for an account.
+
+    Args:
+        user (str): The account user name. If omitted, the current user is inspected.
+        host (str): The account host name. If omitted, the current user is inspected.
+        password_expired (bool): Whether the session is limited to password recovery.
+        session (object): Session object used to inspect the account.
+
+    Returns:
+        PasswordResetInfo: Password reset support and current-password requirements.
+    """
+    if session is None:
+        raise ValueError("Password reset is only supported from a GUI database session.")
+
+    if session.database_type != "MySQL":
+        raise ValueError("Password reset is only supported for MySQL connections.")
+
+    if not is_secure_mysql_transport(session.connection_options):
+        raise ValueError("Password reset requires SSL Mode Required, Verify CA, or Verify Identity.")
+
+    return discover_password_reset_info(session, user, host, password_expired)
 
 
 @plugin_function("gui.mysql.setUserGlobalPrivileges", cli=False, web=True)

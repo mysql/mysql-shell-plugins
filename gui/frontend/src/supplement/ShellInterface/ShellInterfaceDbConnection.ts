@@ -26,6 +26,7 @@
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { IShellDictionary } from "../../communication/Protocol.js";
 import { ShellAPIGui } from "../../communication/ProtocolGui.js";
+import { ui } from "../../app-logic/UILayer.js";
 import type { ILegacyConfigurationImportReport }
     from "../../app-logic/LegacyConfigurationImport/LegacyConfigurationImportTypes.js";
 import { IConnectionDetails, IFolderPath } from "./index.js";
@@ -206,6 +207,24 @@ export class ShellInterfaceDbConnection {
                         },
                     password,
                 },
+            },
+            onData: (response) => {
+                const message = response.result as unknown;
+                const { result, attributes } = (
+                    typeof message === "object" && message !== null && "attributes" in message
+                        ? message
+                        : response
+                ) as {
+                    result?: unknown;
+                    attributes?: { auth?: unknown; };
+                };
+                if (typeof result === "string" && attributes?.auth === "authentication_webauthn") {
+                    void ui.showInformationMessage(result, {});
+
+                    return Promise.resolve(true);
+                }
+
+                return Promise.resolve(false);
             },
         });
     }

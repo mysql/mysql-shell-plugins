@@ -214,11 +214,22 @@ def session(instance=0) -> mysqlsh.globals.session:
     deployment_dir = tempfile.TemporaryDirectory()
 
     if not os.getenv("REUSE_MYSQLD"):
+        plugins = ["authentication_webauthn",
+                   "mysql_no_login",
+                   "authentication_openid_connect"]
+        if sys.platform in ["linux", "darwin"]:
+            plugins.append("authentication_pam")
+        plugin_extension = ".dll" if sys.platform == "win32" else ".so"
+
         mysqlsh.globals.dba.deploy_sandbox_instance(
             connection_data["port"],
             {
                 "password": connection_data["password"],
                 "sandboxDir": deployment_dir.name,
+                "mysqldOptions": [
+                    "loose-authentication-webauthn-rp-id=mysql.com",
+                    f"plugin-load-add={';'.join(f'{plugin}{plugin_extension}' for plugin in plugins)}",
+                ],
             },
         )
 

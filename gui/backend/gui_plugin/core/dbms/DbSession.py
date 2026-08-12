@@ -54,14 +54,14 @@ class DbSessionFactory:
         return inner_wrapper
 
     @classmethod
-    def create(self, name, *args):
+    def create(self, name, *args, **kwargs):
         if len(self.registry) == 0:
             import gui_plugin.core.dbms
         if name not in self.registry:
             raise Exception(f"There is not registered session with the name: {name}")
 
         db_class = self.registry[name]
-        db_session = db_class(*args)
+        db_session = db_class(*args, **kwargs)
         return db_session
 
     @classmethod
@@ -75,12 +75,12 @@ class DbSessionFactory:
 def lock_usage(lock_mutex, timeout=-1):
     result = lock_mutex.acquire(blocking=True, timeout=timeout)
 
-    if result is None:
-        raise Exception("Could not acquire lock.")
+    if not result:
+        raise TimeoutError("Could not acquire session lock.")
 
-    yield result
-
-    if result:
+    try:
+        yield result
+    finally:
         lock_mutex.release()
 
 
@@ -236,8 +236,9 @@ class DbSession(threading.Thread):
         raise NotImplementedError()
 
     def _close_database(self, finalize):
-        for setup_task in self._setup_tasks:
-            setup_task.on_close()
+        if self._setup_tasks is not None:
+            for setup_task in self._setup_tasks:
+                setup_task.on_close()
 
         self._do_close_database(finalize)
 
@@ -248,11 +249,22 @@ class DbSession(threading.Thread):
         raise NotImplementedError()
 
     def terminate_thread(self):
-        self._close_database(True)
-        if self.thread_error is not None:
-            logger.error(f"Thread {self._id} exiting with code {self.thread_error}")
-            self._message_callback("ERROR", self.thread_error)
-        self._term_complete.set()
+        try:
+            try:
+                # Direct service operations also hold this lock while using the connection.
+                with lock_usage(self._mutex):
+                    self._close_database(True)
+            except Exception as error:
+                if self.thread_error is None:
+                    self.thread_error = error
+                else:
+                    logger.exception(error, f"Thread {self._id} cleanup failed")
+
+            if self.thread_error is not None:
+                logger.error(f"Thread {self._id} exiting with code {self.thread_error}")
+                self._message_callback("ERROR", self.thread_error, None, self._current_task_id)
+        finally:
+            self._term_complete.set()
 
     def execute_thread(self, sql, params, options=None):
         start_time = time.time()
@@ -326,11 +338,11 @@ class DbSession(threading.Thread):
         # Locks the task execution mutex for the reconnection to happen before next task is executed
         self._task_mutex.acquire(True)
 
-        # Updates the connection options for the reconnect operation if provided
-        if new_connection_options is not None:
-            self._connection_options = new_connection_options.copy()
-
         try:
+            # Direct operations may also read or update the connection options.
+            if new_connection_options is not None:
+                with lock_usage(self._mutex):
+                    self._connection_options = new_connection_options.copy()
             self._reconnect(False)
         finally:
             self._task_mutex.release()
@@ -500,7 +512,7 @@ class DbSession(threading.Thread):
             # Resets the killed flag for the next task
             self._killed = False
 
-            with lock_usage(self._mutex, 5):
+            with lock_usage(self._mutex):
                 self.notify_task_execution_state(task, "started")
                 task.execute()
                 self.notify_task_execution_state(task, "finished")

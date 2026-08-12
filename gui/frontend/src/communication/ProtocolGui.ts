@@ -26,7 +26,7 @@
 import { IConnectionDetails, IFolderPath } from "../supplement/ShellInterface/index.js";
 import { IShellDictionary } from "./Protocol.js";
 
-/* eslint-disable max-len */
+/* eslint-disable max-len, @stylistic/quotes */
 
 export enum ShellAPIGui {
     /** Indicates whether this module is a GUI backend module */
@@ -261,6 +261,8 @@ export enum ShellAPIGui {
     GuiSqlEditorCloseSession = "gui.sqlEditor.close_session",
     /** Opens the SQL Editor Session */
     GuiSqlEditorOpenConnection = "gui.sqlEditor.open_connection",
+    /** Resets a password and refreshes this editor's reconnect credentials on success. */
+    GuiSqlEditorResetPassword = "gui.sqlEditor.reset_password",
     /** Reconnects the SQL Editor Session */
     GuiSqlEditorReconnect = "gui.sqlEditor.reconnect",
     /** Starts a new transaction */
@@ -317,8 +319,12 @@ export enum ShellAPIGui {
     GuiMysqlListObjectPrivilegeSchemaTargets = "gui.mysql.list_object_privilege_schema_targets",
     /** Lists authentication plugins supported by the connected MySQL server. */
     GuiMysqlListAuthenticationPlugins = "gui.mysql.list_authentication_plugins",
+    /** Returns authentication plugins bundled with MySQL Shell. */
+    GuiMysqlGetBundledAuthenticationPlugins = "gui.mysql.get_bundled_authentication_plugins",
     /** Returns server default values used to initialize the create user dialog. */
     GuiMysqlGetCreateUserDefaults = "gui.mysql.get_create_user_defaults",
+    /** Returns password reset metadata for an account. */
+    GuiMysqlGetPasswordResetInfo = "gui.mysql.get_password_reset_info",
     /** Replaces the direct global privileges for the given MySQL user account. */
     GuiMysqlSetUserGlobalPrivileges = "gui.mysql.set_user_global_privileges",
     /** Replaces the direct object privileges for the given MySQL user account. */
@@ -433,9 +439,9 @@ export interface IMySQLUserListItemSSLOptions {
 
 export interface IMySQLUserListItem {
     accountLocked: boolean,
-    plugin: string,
     user: string,
     host: string,
+    authenticationPlugins: string[],
     temporarilyLocked: boolean,
     isRole: boolean,
     globalPrivileges: string[],
@@ -468,7 +474,39 @@ export interface IMySQLDefaultUserOptions {
     passwordReuseHistory: number,
     passwordReuseInterval: number,
     passwordRequireCurrent: boolean,
-    maxUserConnections: number
+    maxUserConnections: number,
+    authenticationPolicy: string | null,
+    defaultAuthenticationPlugin: string | null,
+    passwordValidationInstalled: boolean | null,
+    passwordValidationPolicy: string | null,
+    passwordValidationLength: number | null,
+    requireSecureTransport: boolean | null
+}
+
+export interface IPasswordResetAccount {
+    user: string | null,
+    host: string | null
+}
+
+export interface IPasswordResetFactor {
+    plugin: string,
+    kind: "internalPassword" | "externalPassword",
+    passwordless: boolean,
+    requiresRegistration: boolean | null
+}
+
+export interface IPasswordResetCurrentPassword {
+    accountSetting: "required" | "optional" | "default" | "unknown",
+    requiredByPolicy: boolean | null,
+    required: boolean
+}
+
+export interface IPasswordResetInfo {
+    account: IPasswordResetAccount,
+    factors: IPasswordResetFactor[],
+    sqlResetSupported: boolean | null,
+    retainCurrentPasswordSupported: boolean,
+    currentPassword: IPasswordResetCurrentPassword
 }
 
 export interface IObjectPrivilegeTarget {
@@ -479,9 +517,16 @@ export interface IObjectPrivilegeTarget {
     column: string | null
 }
 
+export interface IAuthenticationFactor {
+    plugin: string,
+    password: string | null,
+    authenticationString: string | null
+}
+
 export interface IMySQLUser {
     host: string,
     user: string,
+    authenticationFactors: IAuthenticationFactor[],
     sslType: string | null,
     sslCipher: string | null,
     x509Issuer: string | null,
@@ -490,7 +535,6 @@ export interface IMySQLUser {
     maxUpdates: number | null,
     maxConnections: number | null,
     maxUserConnections: number | null,
-    plugin: string | null,
     passwordExpire: boolean | null,
     passwordLastChanged: string | null,
     passwordLifetime: number | null,
@@ -501,7 +545,6 @@ export interface IMySQLUser {
     comment: string | null,
     failedLoginAttempts: number | null,
     passwordLockTime: number | null,
-    authString: string | null,
     randomPassword: boolean | null
 }
 
@@ -919,6 +962,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiSqlEditorStartSession]: {};
     [ShellAPIGui.GuiSqlEditorCloseSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorOpenConnection]: { args: { dbConnectionId: number; moduleSessionId: string; password?: string; }; };
+    [ShellAPIGui.GuiSqlEditorResetPassword]: { args: { moduleSessionId: string; password: string; currentPassword?: string; retainCurrentPassword?: boolean; passwordExpired?: boolean; user?: string; host?: string; }; };
     [ShellAPIGui.GuiSqlEditorReconnect]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorStartTransaction]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorCommitTransaction]: { args: { moduleSessionId: string; }; };
@@ -947,7 +991,9 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiMysqlListSchemaPrivilegeCatalog]: { args: { moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlListObjectPrivilegeSchemaTargets]: { args: { schema: string; moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlListAuthenticationPlugins]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlGetBundledAuthenticationPlugins]: {};
     [ShellAPIGui.GuiMysqlGetCreateUserDefaults]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlGetPasswordResetInfo]: { args: { user?: string | null; host?: string | null; passwordExpired?: boolean; moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlSetUserGlobalPrivileges]: { args: { user: string; host: string; privileges: string[]; moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlSetUserObjectPrivileges]: { args: { user: string; host: string; target: IObjectPrivilegeTarget; privileges: string[]; moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlGetUser]: { args: { user: string; host: string; moduleSessionId?: string; }; };
@@ -1458,6 +1504,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiSqlEditorStartSession]: { result: { moduleSessionId?: string; }; };
     [ShellAPIGui.GuiSqlEditorCloseSession]: {};
     [ShellAPIGui.GuiSqlEditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState; };
+    [ShellAPIGui.GuiSqlEditorResetPassword]: {};
     [ShellAPIGui.GuiSqlEditorReconnect]: {};
     [ShellAPIGui.GuiSqlEditorExecute]: { result: IDbEditorResultSetData; };
     [ShellAPIGui.GuiSqlEditorVisualExplain]: { result: IVisualExplainData; };
@@ -1546,7 +1593,9 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiMysqlListSchemaPrivilegeCatalog]: { result: IMySQLGlobalPrivilegeCatalogItem[]; };
     [ShellAPIGui.GuiMysqlListObjectPrivilegeSchemaTargets]: { result: IMySQLObjectPrivilegeSchemaTarget[]; };
     [ShellAPIGui.GuiMysqlListAuthenticationPlugins]: { result: string[]; };
+    [ShellAPIGui.GuiMysqlGetBundledAuthenticationPlugins]: { result: string[]; };
     [ShellAPIGui.GuiMysqlGetCreateUserDefaults]: { result: IMySQLDefaultUserOptions; };
+    [ShellAPIGui.GuiMysqlGetPasswordResetInfo]: { result: IPasswordResetInfo; };
     [ShellAPIGui.GuiMysqlSetUserGlobalPrivileges]: {};
     [ShellAPIGui.GuiMysqlSetUserObjectPrivileges]: {};
     [ShellAPIGui.GuiMysqlGetUser]: { result: IMySQLUser | null; };

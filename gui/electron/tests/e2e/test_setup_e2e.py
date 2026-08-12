@@ -58,3 +58,27 @@ def test_setup_records_unmodified_mysql_version(
 
     config = json.loads(config_file.read_text(encoding="utf-8"))
     assert config["MYSQL_VERSION"] == "1.2.3-commercial"
+
+
+def test_deploy_sandbox_loads_server_plugins(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    commands: list[list[str]] = []
+    monkeypatch.setattr(setup_e2e, "SANDBOX_DIR", tmp_path / "sandbox")
+    monkeypatch.setattr(setup_e2e, "mysqld_path", lambda: None)
+    monkeypatch.setattr(
+        setup_e2e,
+        "run_mysqlsh",
+        lambda args, env: commands.append(args),
+    )
+
+    setup_e2e.deploy_sandbox("2208", "password", {})
+
+    plugin_option = next(
+        option for option in commands[0] if option.startswith("--mysqldOptions:list=")
+    )
+    assert json.loads(plugin_option.split("=", 1)[1]) == [
+        "plugin-load=" + ";".join(
+            f"{plugin}{setup_e2e.SERVER_PLUGIN_EXTENSION}" for plugin in setup_e2e.SERVER_PLUGINS
+        )
+    ]

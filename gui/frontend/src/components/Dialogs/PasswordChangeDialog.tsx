@@ -239,11 +239,6 @@ export class PasswordChangeDialog extends ComponentBase<IComponentProperties, IP
 
             return;
         }
-        if (request?.requireCurrentPassword && currentPassword.length === 0) {
-            this.setState({ error: "Enter the current password." });
-
-            return;
-        }
         if (currentPassword.length > 0 && currentPassword === password) {
             this.setState({ error: "The new password must differ from the current password." });
 

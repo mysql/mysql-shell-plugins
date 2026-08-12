@@ -31,6 +31,65 @@ import { Dialog } from "../../../../components/ui/Dialog/Dialog.js";
 import { nextRunLoop } from "../../test-helpers.js";
 
 describe("Dialog component tests", (): void => {
+    it("focuses the first control when no control requests autofocus", async () => {
+        const ref = createRef<Dialog>();
+        const view = render(
+            <Dialog
+                ref={ref}
+                caption="Inputs"
+                content={
+                    <>
+                        <input id="firstControl" />
+                        <input id="secondControl" />
+                    </>
+                }
+            />,
+        );
+        ref.current?.open();
+        await nextRunLoop();
+        await nextRunLoop();
+
+        expect(document.activeElement).toBe(document.querySelector("#firstControl"));
+
+        view.unmount();
+    });
+
+    it("focuses the Close button when dialog content has no controls", async () => {
+        const ref = createRef<Dialog>();
+        const view = render(
+            <Dialog ref={ref} caption="Information" content={<p>No input is required.</p>} />,
+        );
+        ref.current?.open();
+        await nextRunLoop();
+        await nextRunLoop();
+
+        expect(document.activeElement).toBe(document.querySelector("#closeButton"));
+
+        view.unmount();
+    });
+
+    it("preserves focus requested by an autofocus control", async () => {
+        const ref = createRef<Dialog>();
+        const view = render(
+            <Dialog
+                ref={ref}
+                content={
+                    <>
+                        <input id="firstControl" />
+                        <input id="autofocusControl" autoFocus />
+                    </>
+                }
+            />,
+        );
+        ref.current?.open();
+        await nextRunLoop();
+        await nextRunLoop();
+
+        expect(document.activeElement).toBe(document.querySelector("#autofocusControl"));
+
+        view.unmount();
+    });
+
     it("allows programmatic closure while disabled", async () => {
         const ref = createRef<Dialog>();
         const onClose = vi.fn();

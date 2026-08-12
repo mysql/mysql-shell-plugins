@@ -59,6 +59,9 @@ export type DesktopCommandId =
     "database.admin.enterpriseBackup" |
     "database.admin.lakehouseNavigator" |
     "database.migrationAssistant.start" |
+    "database.resetPassword" |
+    "database.resetPasswordAndRetainCurrent" |
+    "database.discardOldPassword" |
     "database.mrs.configure" |
     "database.mrs.browseDocs" |
     "view.find" |

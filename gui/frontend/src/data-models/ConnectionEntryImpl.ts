@@ -27,6 +27,7 @@ import { ui } from "../app-logic/UILayer.js";
 import type { Mutable } from "../app-logic/general-types.js";
 import type { IMySQLConnectionOptions } from "../communication/MySQL.js";
 import type { IOpenConnectionData } from "../communication/ProtocolGui.js";
+import { ResponseError } from "../communication/ResponseError.js";
 import type { ISqliteConnectionOptions } from "../communication/Sqlite.js";
 import { ShellPromptHandler } from "../modules/common/ShellPromptHandler.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
@@ -42,10 +43,22 @@ import {
 import { createDataModelEntryState } from "./data-model-helpers.js";
 import type { AdminPageType, ICdmAccessManager, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
 
-export type ConnectionReadyCallback = (entry: ICdmConnectionEntry, progress?: ProgressCallback) => void;
-
 const isOpenConnectionData = (value: unknown): value is IOpenConnectionData => {
     return typeof value === "object" && value !== null && "info" in value;
+};
+
+const isWebauthnMessage = (value: unknown): value is {
+    result: string;
+    attributes: { auth: "authentication_webauthn"; };
+} => {
+    if (typeof value !== "object" || value === null || !("result" in value) || !("attributes" in value)) {
+        return false;
+    }
+
+    const { result, attributes } = value;
+
+    return typeof result === "string" && typeof attributes === "object" && attributes !== null
+        && "auth" in attributes && attributes.auth === "authentication_webauthn";
 };
 
 /** An implementation of the ICdmConnectionEntry. This interface has more tasks than just holding data. */
@@ -57,7 +70,6 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
     public readonly schemaEntries: ICdmSchemaEntry[] = [];
     public readonly caption: string;
     public readonly state = createDataModelEntryState();
-
     public schemaNames: string[] = [];
 
     public mrsEntry?: ICdmRestRootEntry;
@@ -191,12 +203,12 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             return this.open;
         } catch (reason) {
             // Something went wrong. Close the session but keep the connection initialized.
-            await this.backend.closeSession();
+            if (!(reason instanceof ResponseError
+                && (reason.info.requestState.code === 1820 || reason.info.requestState.code === 1862))) {
+                await this.backend.closeSession();
+            }
 
-            const message = convertErrorToString(reason);
-            const error = new Error(`The connection could not be opened: ${message}`, { cause: reason });
-
-            throw error;
+            throw reason;
         }
     }
 
@@ -285,7 +297,9 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         await this.backend.openConnection(this.details.id, requestId, credentials, ((response, requestId) => {
             const { result } = response;
 
-            if (typeof result === "string") {
+            if (isWebauthnMessage(response)) {
+                void ui.showInformationMessage(response.result, {});
+            } else if (typeof result === "string") {
                 callback?.(result);
             } else if (!isShellPromptResult(result) || !ShellPromptHandler.handleShellPrompt(
                 result, requestId, this.backend.interactive, !credentials)) {

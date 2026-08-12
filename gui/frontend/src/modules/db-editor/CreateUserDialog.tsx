@@ -26,7 +26,7 @@
 import { ComponentChild, RefObject } from "preact";
 import { CheckState } from "../../components/ui/Checkbox/Checkbox.js";
 import { Radiobutton } from "../../components/ui/Radiobutton/Radiobutton.js";
-import { Container, Orientation } from "../../components/ui/Container/Container.js";
+import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
 import {
     CommonDialogValueOption,
     IDialogSection,
@@ -91,11 +91,15 @@ export class CreateUserDialog extends ComponentBase<ICreateUserDialogProps, ICom
         this.addHandledProperties("dialogRef", "editing", "onClose", "onValidate");
     }
 
+    public static enableMfa(values: IDialogValues): void {
+        CreateUserDialog.configureMfa(values);
+    }
+
     public static createDialogValues(
         authenticationPlugins: string[] = [],
         defaults?: IMySQLDefaultUserOptions,
     ): IDialogValues {
-        const pluginChoices = this.authenticationPluginChoices(authenticationPlugins);
+        const pluginChoices = this.primaryAuthenticationPluginChoices(authenticationPlugins);
         const defaultAuthenticationPlugin = pluginChoices.includes("caching_sha2_password")
             ? "caching_sha2_password"
             : pluginChoices[0];
@@ -143,12 +147,16 @@ export class CreateUserDialog extends ComponentBase<ICreateUserDialogProps, ICom
                     value: defaultAuthenticationPlugin,
                     choices: pluginChoices,
                     horizontalSpan: 4,
+                    onChange: (plugin, dialog): void => {
+                        CreateUserDialog.updateFactorInputs("first", plugin, dialog);
+                    },
                 },
                 randomPassword: {
                     type: "boolean",
                     caption: "Random Password",
                     value: false,
                     horizontalSpan: 2,
+                    verticalAlignment: ContentAlignment.Center,
                     onChange: (enabled, dialog) => {
                         const authentication = dialog.getDialogValues().sections.get("authentication");
                         if (!authentication) {
@@ -172,6 +180,7 @@ export class CreateUserDialog extends ComponentBase<ICreateUserDialogProps, ICom
                     caption: "Require Reset",
                     value: false,
                     horizontalSpan: 2,
+                    verticalAlignment: ContentAlignment.Center,
                 },
                 password: {
                     type: "text",
@@ -189,10 +198,25 @@ export class CreateUserDialog extends ComponentBase<ICreateUserDialogProps, ICom
                     obfuscated: true,
                     horizontalSpan: 4,
                 },
+                authenticationString: {
+                    type: "text",
+                    caption: "Authentication String",
+                    value: "",
+                    horizontalSpan: 8,
+                    options: [CommonDialogValueOption.Hidden],
+                },
+            },
+        };
+
+        const advancedSection: IDialogSection = {
+            caption: "Advanced",
+            groupName: "createUser",
+            values: {
                 passwordManagement: {
                     type: "separator",
                     caption: "Password Management",
                     collapsible: true,
+                    expanded: true,
                 },
                 passwordExpiration: {
                     type: "number",
@@ -316,15 +340,19 @@ export class CreateUserDialog extends ComponentBase<ICreateUserDialogProps, ICom
             },
         };
 
-        return {
+        const dialogValues = {
             id: "createUser",
             sections: new Map<string, IDialogSection>([
                 ["general", generalSection],
                 ["authentication", authenticationSection],
                 ["tls", tlsSection],
                 ["resourceLimits", resourceLimitsSection],
+                ["advanced", advancedSection],
             ]),
         };
+        this.updateFactorInputs("first", defaultAuthenticationPlugin, undefined, dialogValues);
+
+        return dialogValues;
     }
 
     public render(): ComponentChild {
@@ -334,6 +362,13 @@ export class CreateUserDialog extends ComponentBase<ICreateUserDialogProps, ICom
             <ValueEditDialog
                 ref={dialogRef}
                 id="createUserDialog"
+                advancedActionCaption="Enable MFA"
+                advancedActionDisabled={(values) => {
+                    return Object.hasOwn(values.sections.get("authentication")?.values ?? {}, "firstFactor");
+                }}
+                advancedAction={(values) => {
+                    CreateUserDialog.enableMfa(values);
+                }}
                 confirmCaption={editing ? "Apply" : undefined}
                 onClose={onClose}
                 onValidate={onValidate}
@@ -341,13 +376,268 @@ export class CreateUserDialog extends ComponentBase<ICreateUserDialogProps, ICom
         );
     }
 
-    private static authenticationPluginChoices(authenticationPlugins: string[]): string[] {
-        const choices = [...new Set(authenticationPlugins.map((plugin) => {
-            return plugin.trim();
-        }).filter((plugin) => {
-            return plugin.endsWith("_password");
-        }))];
+    private static configureMfa(values: IDialogValues): void {
+        const authentication = values.sections.get("authentication");
+        if (!authentication || Object.hasOwn(authentication.values, "firstFactor")) {
+            return;
+        }
 
-        return choices.length > 0 ? choices : this.fallbackAuthenticationPlugins;
+        const primaryPlugin = authentication.values.authenticationPlugin;
+        if (primaryPlugin.type !== "choice") {
+            return;
+        }
+
+        const pluginChoices = primaryPlugin.choices;
+        const additionalPluginChoices = ["None", ...pluginChoices.filter((plugin) => {
+            return !plugin.endsWith("_password");
+        })];
+        primaryPlugin.onChange = (plugin, dialog): void => {
+            CreateUserDialog.updateFactorInputs("first", plugin, dialog);
+        };
+
+        authentication.values = {
+            firstFactor: {
+                type: "separator",
+                caption: "1st Factor",
+                collapsible: true,
+                expanded: true,
+            },
+            authenticationPlugin: primaryPlugin,
+            authenticationString: authentication.values.authenticationString,
+            randomPassword: authentication.values.randomPassword,
+            passwordExpire: authentication.values.passwordExpire,
+            password: authentication.values.password,
+            passwordConfirmation: authentication.values.passwordConfirmation,
+            firstFactorEnd: {
+                type: "separator",
+                endCollapsible: true,
+            },
+            ...CreateUserDialog.additionalFactorValues("second", "2nd", additionalPluginChoices),
+            ...CreateUserDialog.additionalFactorValues("third", "3rd", additionalPluginChoices),
+        };
+        CreateUserDialog.updateFactorInputs("first", primaryPlugin.value ?? "", undefined, values);
+    }
+
+    private static additionalFactorValues(
+        factor: "second" | "third", ordinal: string, pluginChoices: string[],
+    ): IDialogSection["values"] {
+        return {
+            [`${factor}Factor`]: {
+                type: "separator",
+                caption: `${ordinal} Factor`,
+                collapsible: true,
+                expanded: true,
+            },
+            [`${factor}AuthenticationPlugin`]: {
+                type: "choice",
+                caption: "Authentication Plugin",
+                value: "None",
+                choices: pluginChoices,
+                horizontalSpan: 4,
+                onChange: (plugin, dialog): void => {
+                    CreateUserDialog.updateFactorInputs(factor, plugin, dialog);
+                },
+            },
+            [`${factor}AuthenticationString`]: {
+                type: "text",
+                caption: "Authentication String",
+                value: "",
+                horizontalSpan: 8,
+                options: [CommonDialogValueOption.Hidden],
+            },
+            [`${factor}FactorEnd`]: {
+                type: "separator",
+                endCollapsible: true,
+            },
+        };
+    }
+
+    // Used while prefilling MFA factors for user editing.
+    // eslint-disable-next-line @typescript-eslint/member-ordering
+    public static updateFactorInputs(
+        factor: "first" | "second" | "third", plugin: string, dialog?: ValueEditDialog, values?: IDialogValues,
+    ): void {
+        const dialogValues = values ?? dialog?.getDialogValues();
+        const authentication = dialogValues?.sections.get("authentication");
+        if (!dialogValues || !authentication) {
+            return;
+        }
+
+        // A dialog is supplied for interactive plugin changes, but not when prefilling an account.
+        if (dialog) {
+            const credentialKey = factor === "first" ? "authenticationString" : `${factor}AuthenticationString`;
+            authentication.values[credentialKey].value = "";
+            if (factor === "first") {
+                authentication.values.password.value = "";
+                authentication.values.passwordConfirmation.value = "";
+            }
+        }
+
+        if (factor === "second" && plugin === "None") {
+            const thirdPlugin = authentication.values.thirdAuthenticationPlugin;
+            const thirdAuthenticationString = authentication.values.thirdAuthenticationString;
+            if (thirdPlugin.type === "choice" && thirdPlugin.value !== "None") {
+                authentication.values.secondAuthenticationPlugin.value = thirdPlugin.value;
+                authentication.values.secondAuthenticationString.value = thirdAuthenticationString.value;
+                thirdPlugin.value = "None";
+                thirdAuthenticationString.value = "";
+                plugin = authentication.values.secondAuthenticationPlugin.value ?? "None";
+                CreateUserDialog.updateFactorInputs("third", "None", undefined, dialogValues);
+            }
+        }
+
+        let showPasswordInputs = false;
+        let showAuthenticationString = false;
+        let authenticationStringCaption = "Authentication String";
+        let authenticationStringDescription: string | undefined;
+        let documentationUrl: string | undefined =
+            "https://dev.mysql.com/doc/refman/en/pluggable-authentication.html";
+        let pluginDescription: string | undefined;
+
+        switch (plugin) {
+            case "caching_sha2_password":
+                documentationUrl =
+                    "https://dev.mysql.com/doc/refman/en/caching-sha2-pluggable-authentication.html";
+                pluginDescription = "Authenticate using MySQL managed passwords.";
+                showPasswordInputs = true;
+                break;
+
+            case "mysql_native_password":
+                documentationUrl =
+                    "https://dev.mysql.com/doc/refman/en/native-pluggable-authentication.html";
+                pluginDescription = "Authenticate using MySQL managed passwords (deprecated)";
+                showPasswordInputs = true;
+                break;
+
+            case "sha256_password":
+                documentationUrl =
+                    "https://dev.mysql.com/doc/refman/en/sha256-pluggable-authentication.html";
+                pluginDescription = "Authenticate using MySQL managed passwords (deprecated)";
+                showPasswordInputs = true;
+                break;
+
+            case "authentication_pam":
+                documentationUrl = "https://dev.mysql.com/doc/refman/en/pam-pluggable-authentication.html";
+                pluginDescription = "Authenticates through the Linux/macOS PAM service.";
+                showAuthenticationString = true;
+                authenticationStringCaption = "PAM Service";
+                authenticationStringDescription = "Auth string for the PAM service name (eg. mysql-unix).";
+                break;
+
+            case "authentication_kerberos":
+                documentationUrl = "https://dev.mysql.com/doc/refman/en/kerberos-pluggable-authentication.html";
+                pluginDescription = "Kerberos identity and ticket-based auth service.";
+                showAuthenticationString = true;
+                authenticationStringCaption = "Kerberos Realm";
+                authenticationStringDescription = "Kerberos realm for this account (eg. MYSQL.LOCAL).";
+                break;
+
+            case "authentication_ldap_simple":
+            case "authentication_ldap_sasl":
+                documentationUrl = "https://dev.mysql.com/doc/refman/en/ldap-pluggable-authentication.html";
+                if (plugin === "authentication_ldap_simple") {
+                    pluginDescription = "Username and password through an LDAP directory.";
+                } else {
+                    pluginDescription = "LDAP directory using SASL-based mechanisms.";
+                }
+                showAuthenticationString = true;
+                authenticationStringCaption = "LDAP User DN";
+                authenticationStringDescription = "Optional LDAP distinguished name for this account.";
+                break;
+
+            case "authentication_windows":
+                documentationUrl = "https://dev.mysql.com/doc/refman/en/windows-pluggable-authentication.html";
+                pluginDescription = "MS Windows credentials through Windows native authentication.";
+                showAuthenticationString = true;
+                authenticationStringCaption = "Windows User or Group Mappings";
+                authenticationStringDescription =
+                    "Comma-separated Windows users or groups permitted to use this account.";
+                break;
+
+            case "authentication_webauthn":
+                documentationUrl = "https://dev.mysql.com/doc/refman/en/webauthn-pluggable-authentication.html";
+                pluginDescription = "Use a FIDO2/WebAuthn hardware security key or other method.";
+                break;
+
+            case "mysql_no_login":
+                documentationUrl = "https://dev.mysql.com/doc/refman/en/no-login-pluggable-authentication.html";
+                pluginDescription = "Blocks authentication and log in for the account.";
+                break;
+
+            case "None":
+                documentationUrl = undefined;
+                break;
+
+            case "auth_socket":
+                documentationUrl = "https://dev.mysql.com/doc/refman/en/socket-pluggable-authentication.html";
+                pluginDescription = "Use the OS account associated with the local socket connection.";
+                break;
+
+            default:
+                showPasswordInputs = plugin.endsWith("_password");
+                showAuthenticationString = !showPasswordInputs;
+                break;
+        }
+
+        const authenticationPluginKey = factor === "first" ? "authenticationPlugin" :
+            `${factor}AuthenticationPlugin`;
+        const authenticationPlugin = authentication.values[authenticationPluginKey];
+        if (authenticationPlugin.type === "choice" && documentationUrl) {
+            authenticationPlugin.trailingLink = {
+                url: documentationUrl,
+                caption: pluginDescription ?? plugin,
+            };
+        } else if (authenticationPlugin.type === "choice") {
+            delete authenticationPlugin.trailingLink;
+        }
+
+        if (factor === "first") {
+            ["randomPassword", "passwordExpire", "password", "passwordConfirmation"].forEach((key) => {
+                const value = authentication.values[key];
+                value.options = (value.options ?? []).filter((option) => {
+                    return option !== CommonDialogValueOption.Hidden;
+                });
+                if (!showPasswordInputs) {
+                    value.options.push(CommonDialogValueOption.Hidden);
+                }
+            });
+            if (!showPasswordInputs) {
+                authentication.values.randomPassword.value = false;
+                ["password", "passwordConfirmation"].forEach((key) => {
+                    const value = authentication.values[key];
+                    value.options = (value.options ?? []).filter((option) => {
+                        return option !== CommonDialogValueOption.Disabled;
+                    });
+                });
+            }
+        }
+        const authenticationStringKey = factor === "first" ? "authenticationString" : `${factor}AuthenticationString`;
+        const authenticationGuidanceKey = factor === "first"
+            ? "authenticationGuidance"
+            : `${factor}AuthenticationGuidance`;
+        if (plugin === "authentication_webauthn") {
+            authentication.values[authenticationGuidanceKey] = {
+                type: "description",
+                value: "After creating this account, register a WebAuthn device with a WebAuthn-capable client.",
+                horizontalSpan: 8,
+            };
+        } else {
+            delete authentication.values[authenticationGuidanceKey];
+        }
+
+        const authenticationString = authentication.values[authenticationStringKey];
+        authenticationString.caption = authenticationStringCaption;
+        authenticationString.description = authenticationStringDescription;
+        authenticationString.options = (authenticationString.options ?? []).filter((option) => {
+            return option !== CommonDialogValueOption.Hidden;
+        });
+        if (!showAuthenticationString) {
+            authenticationString.options.push(CommonDialogValueOption.Hidden);
+        }
+        dialog?.setDialogValues(dialogValues);
+    }
+
+    private static primaryAuthenticationPluginChoices(authenticationPlugins: string[]): string[] {
+        return authenticationPlugins.length > 0 ? authenticationPlugins : this.fallbackAuthenticationPlugins;
     }
 }

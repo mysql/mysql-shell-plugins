@@ -25,6 +25,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { MySQLAuthenticationPlugin, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import type { IDialogValues } from "../../../../components/Dialogs/ValueEditDialog.js";
 import { ConnectionEditor } from "../../../../modules/db-editor/ConnectionEditor.js";
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
@@ -45,14 +46,14 @@ describe("ConnectionEditor", (): void => {
         vi.restoreAllMocks();
     });
 
-    it("lets MySQL Shell resolve a saved password before prompting", async () => {
+    it("omits WebAuthn options when testing a password-only connection", async () => {
         const testConnectionSpy = vi.spyOn(ShellInterface.dbConnections, "testConnection").mockResolvedValue();
         const requestPasswordSpy = vi.spyOn(uiLayerMock, "requestPassword");
         const editor = new ConnectionEditor({ onAddConnection: vi.fn(), onUpdateConnection: vi.fn() });
         const testableEditor = editor as unknown as ITestableConnectionEditor;
         const values = {
             sections: new Map([
-                ["general", { values: { databaseType: { value: DBType.MySQL } } }],
+                ["connectionMethod", { values: { connectionMethod: { value: MySQLConnectionScheme.MySQL } } }],
                 ["information", { values: { caption: { value: "Test" }, description: { value: "" } } }],
                 ["sqliteDetails", { values: {} }],
                 ["sqliteAdvanced", { values: {} }],
@@ -64,13 +65,26 @@ describe("ConnectionEditor", (): void => {
                 ["ssh", { values: {} }],
                 ["mysqlAdvanced", { values: {
                     compressionAlgorithms: { value: [] }, compression: { value: "" }, compressionLevel: { value: 0 },
-                    timeout: { value: 10 }, disableHeatwaveCheck: { value: false }, extraOptions: { value: {} },
+                    timeout: { value: 10 }, sqlMode: { value: "" }, disableHeatwaveCheck: { value: false },
+                    extraOptions: { value: {} },
                 } }],
                 ["ssl", { values: {
                     sslMode: { value: "Disable" }, sslCaFile: { value: "" }, sslCertFile: { value: "" },
                     sslKeyFile: { value: "" }, sslCipher: { value: "" },
                     tlsKex: { value: undefined },
                     forcePqc: { value: undefined }, usePqcSign: { value: undefined },
+                } }],
+                ["authentication", { values: {
+                    factor1: { value: MySQLAuthenticationPlugin.Password },
+                    factor2: { value: "None" },
+                    factor3: { value: "None" },
+                    pluginDir: { value: "" },
+                    kerberosClientMode: { value: "" },
+                    webauthnDevice: { value: 2 },
+                    webauthnPreservePrivacy: { value: true },
+                    ociConfigFile: { value: "" },
+                    ociConfigProfile: { value: "" },
+                    openidConnectClientIdTokenFile: { value: "" },
                 } }],
             ]),
         } as unknown as IDialogValues;
@@ -82,5 +96,7 @@ describe("ConnectionEditor", (): void => {
         const [connection] = testConnectionSpy.mock.calls[0];
         expect(connection.dbType).toBe(DBType.MySQL);
         expect(connection.options).toMatchObject({ host: "localhost", user: "root" });
+        expect(connection.options).not.toHaveProperty("plugin-authentication-webauthn-device");
+        expect(connection.options).not.toHaveProperty("plugin-authentication-webauthn-client-preserve-privacy");
     });
 });

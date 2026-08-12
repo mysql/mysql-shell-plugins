@@ -119,19 +119,24 @@ export class ShellInterfaceDb {
      * @param requestId
      * @param callback
      * @param featureId
+     * @param activateAllRoles Whether to activate all roles on the service session before execution.
      */
     public async executeService(sql: string, params?: unknown[], requestId?: string,
-        callback?: DataCallback<ShellAPIGui.GuiDbExecute>, featureId?: string):
+        callback?: DataCallback<ShellAPIGui.GuiDbExecute>, featureId?: string,
+        activateAllRoles = false):
         Promise<IDbEditorResultSetData | undefined> {
         if (!this.moduleSessionId) {
             return undefined;
         }
 
-        const executeOptions: { rowPacketSize: number; featureId?: string } = {
+        const executeOptions: { rowPacketSize: number; featureId?: string; activateAllRoles?: boolean } = {
             rowPacketSize: Settings.get("sql.rowPacketSize", 1000),
         };
         if (featureId) {
             executeOptions.featureId = featureId;
+        }
+        if (activateAllRoles) {
+            executeOptions.activateAllRoles = true;
         }
 
         const response = await MessageScheduler.get.sendRequest({

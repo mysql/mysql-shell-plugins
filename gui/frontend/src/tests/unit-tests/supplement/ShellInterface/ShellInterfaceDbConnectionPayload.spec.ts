@@ -25,12 +25,37 @@
 
 import { describe, expect, it, vi } from "vitest";
 
+import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { MessageScheduler } from "../../../../communication/MessageScheduler.js";
 import { ShellAPIGui } from "../../../../communication/ProtocolGui.js";
 import { DBType, type IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { ShellInterfaceDbConnection } from "../../../../supplement/ShellInterface/ShellInterfaceDbConnection.js";
+import { ShellInteractiveInterface } from "../../../../supplement/ShellInterface/ShellInteractiveInterface.js";
+import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 
 describe("ShellInterfaceDbConnection payloads", (): void => {
+    it("shows WebAuthn messages received while testing a connection", async () => {
+        registerUiLayer(uiLayerMock);
+        const interactiveSpy = vi.spyOn(ShellInteractiveInterface.prototype, "sendInteractiveRequest")
+            .mockImplementation(async (details) => {
+                const onData = details.onData as unknown as (data: unknown, requestId: string) => Promise<boolean>;
+                await onData({
+                    result: "Please perform the gesture action on your authenticator.",
+                    attributes: { auth: "authentication_webauthn" },
+                }, "request-id");
+
+                return [] as never;
+            });
+
+        await new ShellInterfaceDbConnection().testConnection(42);
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method -- The mock is invoked by its owning UI layer.
+        expect(vi.mocked(uiLayerMock.showInformationMessage)).toHaveBeenCalledWith(
+            "Please perform the gesture action on your authenticator.", {},
+        );
+        interactiveSpy.mockRestore();
+    });
+
     it("includes assigned connection tags in update payloads", async () => {
         const sendRequestSpy = vi.spyOn(MessageScheduler.get, "sendRequest").mockResolvedValue({
             requestState: { type: "OK", msg: "" },

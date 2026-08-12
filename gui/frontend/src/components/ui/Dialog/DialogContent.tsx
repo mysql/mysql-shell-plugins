@@ -64,6 +64,38 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
         }
     }
 
+    public override componentDidMount(): void {
+        setTimeout(() => {
+            const dialog = this.innerRef.current;
+            const content = this.contentRef.current;
+            if (!dialog || dialog.contains(document.activeElement)) {
+                return;
+            }
+
+            const autofocusControl = content?.querySelector<HTMLElement>(
+                "[autofocus]:not([disabled]):not(.disabled)",
+            );
+            if (autofocusControl) {
+                autofocusControl.focus();
+
+                return;
+            }
+
+            const firstControl = content?.querySelector<HTMLElement>([
+                "input:not([type='hidden']):not([disabled])",
+                "textarea:not([disabled])",
+                "select:not([disabled])",
+                "button:not([disabled])",
+                "a[href]",
+                "[contenteditable='true']",
+                "[tabindex]:not([tabindex='-1']):not(.disabled)",
+            ].join(","));
+
+            const closeButton = dialog.querySelector<HTMLElement>("#closeButton:not([disabled]):not(.disabled)");
+            (firstControl ?? closeButton)?.focus();
+        }, 0);
+    }
+
     public override getSnapshotBeforeUpdate(): IComponentSnapshot | null {
         if (this.contentRef.current) {
             const content = this.contentRef.current;

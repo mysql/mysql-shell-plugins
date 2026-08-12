@@ -193,6 +193,28 @@ def open_connection(db_connection_id, module_session, password=None):
     module_session.open_connection(db_connection_id, password)
 
 
+@plugin_function("gui.sqlEditor.resetPassword", shell=False, web=True)
+def reset_password(module_session, password: str, current_password: Optional[str] = None,
+                   retain_current_password: bool = False, password_expired: bool = False,
+                   user: Optional[str] = None, host: Optional[str] = None) -> None:
+    """Resets a password and refreshes this editor's reconnect credentials on success.
+
+    Args:
+        module_session (object): The SQL editor module session.
+        password (str): The new password.
+        current_password (str): The current password, when verification is required.
+        retain_current_password (bool): Whether to retain the previous password.
+        password_expired (bool): Whether the connection is in password recovery mode.
+        user (str): The target account user. Omit to reset the current account.
+        host (str): The target account host.
+
+    Returns:
+        None
+    """
+    module_session.reset_password(password, current_password, retain_current_password,
+                                  password_expired, user, host)
+
+
 @plugin_function("gui.sqlEditor.reconnect", shell=False, web=True)
 def reconnect(module_session):
     """Reconnects the SQL Editor Session

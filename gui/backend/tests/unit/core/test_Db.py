@@ -35,6 +35,7 @@ import stat
 import tempfile
 import contextlib
 import difflib
+import json
 import pytest
 import re
 from gui_plugin.core.GuiBackendDbManager import InitDBFirstTime
@@ -132,6 +133,44 @@ def test_GuiBackendDb_select_rows():
     assert len(result) > 0
 
     backend_db.close()
+
+
+def test_GuiBackendDb_removes_obsolete_heatwave_option_from_connection():
+    backend_db = GuiBackendDb()
+    original_options = {
+        "host": "localhost",
+        "disable-heat-wave-check": True,
+    }
+    connection_settings = {
+        "authentication_hints": {
+            "factors": ["password", "authentication_pam"],
+        },
+    }
+    backend_db.execute(
+        """INSERT INTO db_connection(db_type, caption, description, options, settings)
+        VALUES(?, ?, ?, ?, ?)""",
+        (
+            "MySQL",
+            "Test Connection",
+            "",
+            json.dumps(original_options),
+            json.dumps(connection_settings),
+        ),
+    )
+    connection_id = backend_db.get_last_row_id()
+
+    try:
+        _, options, settings = backend_db.get_connection_details(connection_id)
+
+        assert options == {"host": "localhost"}
+        assert settings == connection_settings
+        stored_options = backend_db.execute(
+            "SELECT options FROM db_connection WHERE id=?", (connection_id,)
+        ).fetch_one()[0]
+        assert json.loads(stored_options) == {"host": "localhost"}
+    finally:
+        backend_db.execute("DELETE FROM db_connection WHERE id=?", (connection_id,))
+        backend_db.close()
 
 
 def test_GuiBackendDb_check_for_previous_version_and_upgrade():

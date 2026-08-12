@@ -135,6 +135,7 @@ class DbSqliteSession(DbSession):
         prompt_cb=None,
         pwd_prompt_cb=None,
         message_callback=None,
+        passwords_rejected_cb=None,
     ):
         super().__init__(
             id,

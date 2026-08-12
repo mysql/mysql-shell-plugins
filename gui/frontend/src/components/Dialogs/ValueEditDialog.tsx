@@ -30,7 +30,6 @@ import { Children } from "preact/compat";
 import { ColumnDefinition, RowComponent, type CellComponent } from "tabulator-tables";
 
 import { DialogResponseClosure, MessageType, type IDictionary } from "../../app-logic/general-types.js";
-import { Assets } from "../../supplement/Assets.js";
 import { type IOpenDialogFilters } from "../../supplement/RequisitionTypes.js";
 import { Button, type IButtonProperties } from "../ui/Button/Button.js";
 import { Checkbox, CheckState, type ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
@@ -45,9 +44,11 @@ import { DropdownItem } from "../ui/Dropdown/DropdownItem.js";
 import { FileSelector, type IFileSelectorProperties } from "../ui/FileSelector/FileSelector.js";
 import { Grid } from "../ui/Grid/Grid.js";
 import { GridCell } from "../ui/Grid/GridCell.js";
+import { Group } from "../ui/Group/Group.js";
 import { Icon } from "../ui/Icon/Icon.js";
 import { Input, type IInputChangeProperties, type IInputProperties } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
+import { LearnMore } from "../ui/LearnMore/LearnMore.js";
 import { Menu } from "../ui/Menu/Menu.js";
 import { MenuItem, type IMenuItemProperties } from "../ui/Menu/MenuItem.js";
 import { Message } from "../ui/Message/Message.js";
@@ -105,11 +106,20 @@ export interface IBaseDialogValue {
     /** Provides a description specific to this value, which will be rendered as part of the value. */
     description?: string;
 
+    /** Provides a tooltip for the value control. */
+    tooltip?: string;
+
+    /** Wraps this grouped value and its following grouped values in a titled frame. */
+    framed?: boolean;
+
     /** A value between 1 and 8 for the grid cells to span horizontally (default: 4). */
     horizontalSpan?: number;
 
     /** Determines how many grid rows a value should take. Must be greater than 0 and an integer (default: 1). */
     verticalSpan?: number;
+
+    /** Vertical alignment for a value without a caption. */
+    verticalAlignment?: ContentAlignment;
 }
 
 /**
@@ -215,8 +225,17 @@ export interface IChoiceDialogValue extends IBaseDialogValue {
     /** Only one of the list of choices is possible. */
     choices: string[];
 
-    /** Optional text displayed at the right side of the choice control. */
-    trailingDescription?: string;
+    /** Optional content displayed at the right side of the choice control. */
+    trailingDescription?: ComponentChild;
+
+    /** Optional class name for the trailing description. */
+    trailingDescriptionClassName?: string;
+
+    /** Optional documentation link displayed below the choice control. */
+    trailingLink?: {
+        url: string;
+        caption: string;
+    };
 
     /** If set also no choice is a viable result. */
     optional?: boolean;
@@ -345,6 +364,11 @@ export interface ISeparatorValue extends IBaseDialogValue {
 
     /** The initial expansion state for a collapsible separator. */
     expanded?: boolean;
+
+    /** Ends the preceding collapsible separator group without rendering a separator. */
+    endCollapsible?: boolean;
+    /** Forces the next dialog value onto a new grid row without rendering anything. */
+    endOfRow?: boolean;
 }
 
 type IDialogValue =
@@ -390,6 +414,7 @@ export interface IDialogSection {
 export interface IDialogValues {
     /** An identification for the dialog invocation. */
     id?: string;
+    columns?: number;
     sections: Map<string, IDialogSection>;
 }
 
@@ -448,6 +473,7 @@ interface IValueEditDialogProperties extends IComponentProperties {
     container?: HTMLElement;
 
     advancedActionCaption?: string;
+    advancedActionDisabled?: (values: IDialogValues) => boolean;
     confirmCaption?: string;
     customFooter?: ComponentChild;
 
@@ -507,7 +533,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             preventConfirm: false,
         };
 
-        this.addHandledProperties("container", "advancedAction", "advancedActionCaption", "confirmCaption",
+        this.addHandledProperties("container", "advancedAction", "advancedActionCaption", "advancedActionDisabled",
+            "confirmCaption",
             "customFooter", "onClose", "onValidate", "onToggleAdvanced");
     }
 
@@ -516,11 +543,14 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     }
 
     public render(): ComponentChild {
-        const { container, advancedActionCaption, advancedAction, confirmCaption, customFooter } = this.props;
+        const {
+            container, advancedActionCaption, advancedAction, advancedActionDisabled, confirmCaption, customFooter,
+        } = this.props;
         const {
             title, heading, actionText, description, validations, activeContexts, values, preventConfirm, autoResize,
             autoMinWidth,
         } = this.state;
+        const columns = values.columns ?? 8;
 
         // Take over any context that is now required to show up due to validation issues.
         if (validations.requiredContexts && validations.requiredContexts.length > 0) {
@@ -544,6 +574,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     <Button
                         caption={actionText ?? advancedActionCaption}
                         id="advanced-btn"
+                        disabled={advancedActionDisabled?.(values) ?? false}
                         onClick={this.advancedBtnClick}
                     />);
             } else {
@@ -623,12 +654,12 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     }}
                     content={
                         <Grid
-                            columns={8}
+                            columns={columns}
                             rowGap={16}
                             columnGap={16}
                             id="contentGrid"
                         >
-                            {descriptionContent && <GridCell columnSpan={8} className="dialogDescriptionCell">
+                            {descriptionContent && <GridCell columnSpan={columns} className="dialogDescriptionCell">
                                 {descriptionContent}</GridCell>}
                             {groups}
                         </Grid>
@@ -728,6 +759,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 default:
             }
         });
+
     };
 
     public updateInputDescription = (text: string, id: string): void => {
@@ -746,6 +778,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 default:
             }
         });
+
     };
 
     public changeAdvActionText = (actionText?: string): void => {
@@ -826,6 +859,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     private renderGroups = (): ComponentChild[] => {
         const { onSelectTab } = this.props;
         const { values, activeContexts } = this.state;
+        const columns = values.columns ?? 8;
 
         interface ISectionNodePair { caption?: string; node: ComponentChild; section: IDialogSection; }
         interface ISectionGroup { nodes: ISectionNodePair[]; active?: string; expand?: boolean; }
@@ -887,7 +921,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     caption: pair.caption ?? "No Title",
                     content:
                         <Grid
-                            columns={8}
+                            columns={columns}
                             rowGap={16}
                             columnGap={16}
                             className={this.classFromProperty(pair.section.expand, "expand")}
@@ -900,7 +934,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             return (
                 <GridCell
                     key={`group${index}`}
-                    columnSpan={8}
+                    columnSpan={columns}
                 >
                     <Tabview
                         pages={pages}
@@ -937,11 +971,12 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
      */
     private renderSection = (sectionId: string, section: IDialogSection): ComponentChild => {
         const result: ComponentChild[] = [];
+        const columns = this.state.values.columns ?? 8;
 
         // Render caption only if this section is not grouped.
         if (section.caption && (!section.groupName || section.groupName.length === 0)) {
             result.push(
-                <GridCell key={section.caption} columnSpan={8}>
+                <GridCell key={section.caption} columnSpan={columns}>
                     <Label className="sectionTitle" caption={section.caption} />
                 </GridCell>,
             );
@@ -987,6 +1022,16 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             let key = keys[i++];
             let value = section.values[key];
 
+            if (value.type === "separator" && value.endOfRow) {
+                const endOfRow = <GridCell key={key} columnSpan={columns} />;
+                if (collapsibleGroup) {
+                    collapsibleGroup.values.push(endOfRow);
+                } else {
+                    result.push(endOfRow);
+                }
+                continue;
+            }
+
             group.push({ key, value });
 
             // Collect grouped values.
@@ -1008,6 +1053,13 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             const separator = group.length === 1 && group[0].value.type === "separator"
                 ? group[0]
                 : undefined;
+            if (separator?.value.type === "separator" && separator.value.endCollapsible) {
+                if (collapsibleGroup) {
+                    result.push(this.renderCollapsibleValueGroup(collapsibleGroup));
+                    collapsibleGroup = undefined;
+                }
+                continue;
+            }
             if (separator?.value.type === "separator" && separator.value.collapsible) {
                 if (collapsibleGroup) {
                     result.push(this.renderCollapsibleValueGroup(collapsibleGroup));
@@ -1050,11 +1102,13 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         expanded: boolean;
         values: ComponentChild[];
     }): ComponentChild => {
+        const columns = this.state.values.columns ?? 8;
+
         return (
-            <GridCell columnSpan={8}>
+            <GridCell columnSpan={columns}>
                 <details className="collapsibleValueGroup" open={group.expanded}>
                     <summary>{group.caption}</summary>
-                    <Grid columns={8} rowGap={16} columnGap={16} className="collapsibleValueGroupContent">
+                    <Grid columns={columns} rowGap={16} columnGap={16} className="collapsibleValueGroupContent">
                         {group.values}
                     </Grid>
                 </details>
@@ -1103,7 +1157,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         });
 
         // Apply the default if no horizontal span value was found. The vertical span can stay undefined.
-        groupHorizontalSpan = Math.max(Math.round(groupHorizontalSpan ?? 4), 1);
+        groupHorizontalSpan = groupHorizontalSpan === 8 ? this.state.values.columns ?? 8
+            : Math.max(Math.round(groupHorizontalSpan ?? 4), 1);
 
         // If the group consists of more than one value and the first value is pure description,
         // use that as the group's caption.
@@ -1113,6 +1168,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             || (visibleGroup.length > 1 && visibleGroup[0].value.type === "description")
             ? visibleGroup[0].value.caption
             : undefined;
+        const framed = group[0].value.framed;
         if (caption && visibleGroup.length > 1) {
             visibleGroup.shift();
         }
@@ -1129,9 +1185,9 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const edits = this.renderEdits(visibleGroup, sectionId, relatedValues);
         const contentCount = Children.count(edits);
 
-        let mainAlignment = ContentAlignment.Start;
+        let mainAlignment = visibleGroup[0]?.value.verticalAlignment ?? ContentAlignment.Start;
         const labelCaption = caption?.trim();
-        if (!labelCaption) {
+        if (!labelCaption && visibleGroup[0]?.value.verticalAlignment === undefined) {
             mainAlignment = ContentAlignment.End; // Aligns to the bottom if there is no label.
         }
 
@@ -1147,35 +1203,49 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 columnSpan={groupHorizontalSpan}
                 rowSpan={groupVerticalSpan}
             >
-                {labelCaption && (captionAction ? <Container
-                    className="valueTitleRow"
-                    orientation={Orientation.LeftToRight}
-                    crossAlignment={ContentAlignment.Center}
-                >
-                    <Label className={captionClass} caption={labelCaption} />
-                    <Button
-                        id={`${group[0].key}CaptionAction`}
-                        className="captionAction"
-                        imageOnly={true}
-                        data-tooltip={captionAction.tooltip}
-                        onClick={() => {
-                            captionAction.onClick(visibleGroup[0].key, this.state.values, this);
-                        }}
+                {framed ? <Group caption={labelCaption}>
+                    {contentCount > 0 && edits}
+                    {errors.map((value: string, errorIndex: number) => {
+                        return (
+                            <Message
+                                key={`leftError${index}${errorIndex}`}
+                                type={MessageType.Error}
+                            >
+                                {value}
+                            </Message>
+                        );
+                    })}
+                </Group> : <>
+                    {labelCaption && (captionAction ? <Container
+                        className="valueTitleRow"
+                        orientation={Orientation.LeftToRight}
+                        crossAlignment={ContentAlignment.Center}
                     >
-                        <Icon src={captionAction.icon} data-tooltip="inherit" />
-                    </Button>
-                </Container> : <Label className={captionClass} caption={labelCaption} />)}
-                {contentCount > 0 && edits}
-                {errors.map((value: string, errorIndex: number) => {
-                    return (
-                        <Message
-                            key={`leftError${index}${errorIndex}`}
-                            type={MessageType.Error}
+                        <Label className={captionClass} caption={labelCaption} />
+                        <Button
+                            id={`${group[0].key}CaptionAction`}
+                            className="captionAction"
+                            imageOnly={true}
+                            data-tooltip={captionAction.tooltip}
+                            onClick={() => {
+                                captionAction.onClick(visibleGroup[0].key, this.state.values, this);
+                            }}
                         >
-                            {value}
-                        </Message>
-                    );
-                })}
+                            <Icon src={captionAction.icon} data-tooltip="inherit" />
+                        </Button>
+                    </Container> : <Label className={captionClass} caption={labelCaption} />)}
+                    {contentCount > 0 && edits}
+                    {errors.map((value: string, errorIndex: number) => {
+                        return (
+                            <Message
+                                key={`leftError${index}${errorIndex}`}
+                                type={MessageType.Error}
+                            >
+                                {value}
+                            </Message>
+                        );
+                    })}
+                </>}
             </GridCell>,
         );
 
@@ -1267,6 +1337,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             key={key}
                             caption={entry.value.label ?? entry.value.caption}
                             className="valueEditor"
+                            data-tooltip={entry.value.tooltip}
                             checkState={value ? CheckState.Checked : CheckState.Unchecked}
                             onChange={this.checkboxChange.bind(this, sectionId)}
                             disabled={options?.includes(CommonDialogValueOption.Disabled)}
@@ -1285,6 +1356,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             step={1}
                             min={entry.value.min}
                             max={entry.value.max}
+                            autoFocus={options?.includes(CommonDialogValueOption.AutoFocus) ?? false}
                             onChange={this.upDownChange.bind(this, sectionId)}
                         />);
 
@@ -1296,6 +1368,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             className="valueEditor"
                             id={key}
                             key={key}
+                            data-tooltip={entry.value.tooltip}
                             path={value as string}
                             filters={entry.value.filters}
                             multiSelection={entry.value.multiSelection ?? false}
@@ -1343,12 +1416,19 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             >
                                 {choiceEditor}
                                 <Label
-                                    className="choiceDescription"
-                                    caption={entry.value.trailingDescription}
-                                />
+                                    className={["choiceDescription", entry.value.trailingDescriptionClassName]
+                                        .filter(Boolean).join(" ")}
+                                >{entry.value.trailingDescription}</Label>
                             </Container>);
                         } else {
                             result.push(choiceEditor);
+                        }
+                        if (entry.value.trailingLink) {
+                            result.push(<LearnMore
+                                className="cellDescription"
+                                url={entry.value.trailingLink.url}
+                                caption={entry.value.trailingLink.caption}
+                            />);
                         }
 
                         break;
@@ -1556,6 +1636,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                                     id={key}
                                     key={key}
                                     className="valueEditor"
+                                    data-tooltip={entry.value.tooltip}
                                     value={value as string}
                                     aria-labelledby={entry.value.label ? `${key}Label` : undefined}
                                     onChange={this.handleInputChange.bind(this, sectionId)}
@@ -1918,6 +1999,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const { values } = this.state;
 
         advancedAction?.(values, props);
+        this.forceUpdate();
     };
 
     private upDownChange = (sectionId: string, item: number | bigint | string,
@@ -1944,7 +2026,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const id = payload as string;
         const newValue = selectedIds.size > 0 ? [...selectedIds][0] : "";
         const section = values.sections.get(sectionId);
-        if (section && id) {
+        const currentValue = section?.values[id];
+        if (section && id && currentValue?.value !== newValue) {
             const value = this.setValue(id, newValue, section) as IChoiceDialogValue | undefined;
             if (value) {
 
@@ -2070,9 +2153,20 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const { values, data } = this.state;
 
         const validations = (await onValidate?.(true, values, data)) ?? { messages: {} };
-        this.setState({ validations });
+        const invalidKeys = Object.keys(validations.messages);
+        if (invalidKeys.length > 0) {
+            for (const section of values.sections.values()) {
+                if (invalidKeys.some((key) => {
+                    return Object.hasOwn(section.values, key);
+                })) {
+                    section.active = true;
+                    break;
+                }
+            }
+        }
+        this.setState({ values, validations });
 
-        return Object.keys(validations.messages).length === 0;
+        return invalidKeys.length === 0;
     }
 
     /**

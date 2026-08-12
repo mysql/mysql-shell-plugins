@@ -89,6 +89,31 @@ const failAuthentication = (connection: ReturnType<typeof localMySQLConnection>,
     }
 };
 
+const canAuthenticate = (connection: ReturnType<typeof localMySQLConnection>, user: string,
+    password: string): boolean => {
+    const response = spawnSync(process.env.ELECTRON_E2E_MYSQLSH ?? process.env.MYSQLSH ?? "mysqlsh", [
+        "--disable-builtin-plugins",
+        "--sql",
+        "--host", connection.host,
+        "--port", connection.port,
+        "--user", user,
+        `--password=${password}`,
+        "-e", "SELECT CURRENT_USER();",
+    ], {
+        encoding: "utf8",
+        env: {
+            ...process.env,
+            MYSQLSH_USER_CONFIG_HOME: mysqlshUserConfigHome(),
+        },
+    });
+
+    if (response.error) {
+        throw response.error;
+    }
+
+    return response.status === 0;
+};
+
 const supportsTemporaryAccountLocks = (connection: ReturnType<typeof localMySQLConnection>): boolean => {
     return executeSql(connection,
         "SELECT COUNT(*) FROM information_schema.tables "
@@ -825,10 +850,7 @@ test.describe("User accounts and privilege management", () => {
         await dialog.locator("#hostName input, input#hostName").fill("%");
         await dialog.locator("#password input, input#password").fill(password);
         await dialog.locator("#passwordConfirmation input, input#passwordConfirmation").fill(password);
-        const passwordManagement = dialog.locator("details.collapsibleValueGroup", {
-            hasText: "Password Management",
-        });
-        await passwordManagement.locator("summary").click();
+        await dialog.locator(".tabItem", { hasText: "Advanced" }).click();
         await dialog.locator("#passwordExpiration input, input#passwordExpiration").fill("1");
         await dialog.locator("#ok").click();
         await expect(dialog).toBeHidden({ timeout: 15000 });
@@ -841,19 +863,25 @@ test.describe("User accounts and privilege management", () => {
         await expect(page.locator(".tooltip", { hasText: "1 day left" })).toBeVisible({ timeout: 15000 });
     });
 
-    test("resets an account password from the account list context menu", async ({ page, workbench }, testInfo) => {
+    test("retains and discards a selected account password using an active role",
+        async ({ page, workbench }, testInfo) => {
         await workbench.waitForShell();
 
-        const connection = localMySQLConnection("E2E Electron Reset Password");
+        const connection = {
+            ...localMySQLConnection("E2E Electron Retain Password"),
+            sslMode: "Require",
+        };
         const username = uniqueSchemaName(testInfo, "a_e2eu").slice(0, 32);
+        const adminUsername = uniqueSchemaName(testInfo, "a_e2ua").slice(0, 32);
+        const roleName = uniqueSchemaName(testInfo, "a_e2ur").slice(0, 32);
+        const adminPassword = "E2eRoleAdmin!1";
         const initialPassword = "E2eInitialUser!1";
-        const resetPassword = "E2eResetUser!2";
-        const replacementPassword = "E2eReplacementUser!3";
-        const userConnection = {
+        const retainedPassword = "E2eRetainedUser!2";
+        const adminConnection = {
             ...connection,
-            caption: `E2E Electron ${username}`,
-            user: username,
-            password: resetPassword,
+            caption: `E2E Electron ${adminUsername}`,
+            user: adminUsername,
+            password: adminPassword,
             schema: "",
         };
 
@@ -861,32 +889,123 @@ test.describe("User accounts and privilege management", () => {
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
         expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
+            `DROP USER IF EXISTS '${adminUsername}'@'%';`,
+            `DROP ROLE IF EXISTS '${roleName}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY '${initialPassword}';`,
+            `CREATE ROLE '${roleName}'@'%';`,
+            `GRANT SELECT ON mysql.* TO '${roleName}'@'%';`,
+            `GRANT SELECT ON performance_schema.temporary_account_locks TO '${roleName}'@'%';`,
+            `GRANT CREATE USER ON *.* TO '${roleName}'@'%';`,
+            `CREATE USER '${adminUsername}'@'%' IDENTIFIED BY '${adminPassword}';`,
+            `GRANT '${roleName}'@'%' TO '${adminUsername}'@'%';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
         ])).toContain("1");
+        await workbench.closeActiveTabDiscardingChanges();
+
+        await workbench.createMySQLConnection(adminConnection);
+        await workbench.openSqlScriptFromConnectionTile(
+            adminConnection.caption, adminConnection.password, untitledSqlScriptTab,
+        );
+        await workbench.writeInActiveEditor(
+            `SET ROLE '${roleName}'@'%';\nSELECT CURRENT_ROLE() AS active_roles;`,
+        );
+        await workbench.clickMenu(["Run", "Execute"]);
+        await workbench.expectResultGridText(roleName);
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
         await expect(page.locator("#userAccountsGrid .tabulator-row").first()).toBeVisible({ timeout: 15000 });
         const userRow = page.locator("#userAccountsGrid .tabulator-row", { hasText: username });
         await expect(userRow).toBeVisible({ timeout: 15000 });
-        await workbench.selectUserAccountRowAction(userRow, ["Reset Password..."]);
+        await workbench.selectUserAccountRowAction(userRow, [
+            "Authentication", "Reset Password and Retain Current...",
+        ]);
 
         const dialog = page.locator("#userAccountResetPasswordDialog");
         await expect(dialog).toBeVisible({ timeout: 15000 });
-        await dialog.locator("#newPassword input, input#newPassword").fill(resetPassword);
-        await dialog.locator("#passwordConfirmation input, input#passwordConfirmation").fill(resetPassword);
+        await dialog.locator("#newPassword input, input#newPassword").fill(retainedPassword);
+        await dialog.locator("#passwordConfirmation input, input#passwordConfirmation").fill(retainedPassword);
+        await dialog.locator("#ok").click();
+        await expect(dialog).toBeHidden({ timeout: 15000 });
+        await expect(page.locator(".notificationCenter .toast.info")).toContainText(
+            "Password reset successfully.",
+            { timeout: 15000 },
+        );
+
+        expect(canAuthenticate(connection, username, initialPassword)).toBe(true);
+        expect(canAuthenticate(connection, username, retainedPassword)).toBe(true);
+
+        await workbench.selectUserAccountRowAction(userRow, ["Authentication", "Discard Old Password..."]);
+        await workbench.acceptConfirmDialog();
+        await expect(page.locator(".notificationCenter .toast.info", {
+            hasText: "Old password discarded successfully.",
+        })).toBeVisible({ timeout: 15000 });
+
+        expect(canAuthenticate(connection, username, initialPassword)).toBe(false);
+        expect(canAuthenticate(connection, username, retainedPassword)).toBe(true);
+
+        executeSql(connection, [
+            `DROP USER IF EXISTS '${username}'@'%';`,
+            `DROP USER IF EXISTS '${adminUsername}'@'%';`,
+            `DROP ROLE IF EXISTS '${roleName}'@'%';`,
+        ]);
+        await workbench.closeActiveTabDiscardingChanges();
+        await workbench.closeActiveTabDiscardingChanges();
+    });
+
+    test("completes the original connection after resetting an expired password", async ({ page, workbench }, testInfo) => {
+        await workbench.waitForShell();
+
+        const adminConnection = {
+            ...localMySQLConnection("E2E Electron Expired Password Admin"),
+            sslMode: "Require",
+        };
+        const username = uniqueSchemaName(testInfo, "a_e2eu").slice(0, 32);
+        const currentPassword = "E2eExpiredCurrent!1";
+        const newPassword = "E2eExpiredReset!2";
+        const userConnection = {
+            ...adminConnection,
+            caption: `E2E Electron ${username}`,
+            user: username,
+            password: currentPassword,
+            schema: "",
+        };
+
+        await workbench.createMySQLConnection(adminConnection);
+        await workbench.openSqlScriptFromConnectionTile(
+            adminConnection.caption, adminConnection.password, untitledSqlScriptTab,
+        );
+        executeSql(adminConnection, [
+            `DROP USER IF EXISTS '${username}'@'%';`,
+            `CREATE USER '${username}'@'%' IDENTIFIED BY '${currentPassword}' `
+                + "PASSWORD EXPIRE PASSWORD REQUIRE CURRENT;",
+        ]);
+        await workbench.closeActiveTabDiscardingChanges();
+        await workbench.createMySQLConnection(userConnection);
+
+        await workbench.selectConnectionTileAction(userConnection.caption, ["Connect with New SQL Script"]);
+        expect(await workbench.submitPasswordIfRequested(currentPassword)).toBe(true);
+
+        const dialog = page.locator("#resetPasswordDialog");
+        await expect(dialog).toBeVisible({ timeout: 15000 });
+        await expect(dialog).toContainText("Your password has expired");
+        await expect(dialog.locator("#currentPassword input, input#currentPassword")).toBeVisible();
+        await dialog.locator("#currentPassword input, input#currentPassword").fill(currentPassword);
+        await dialog.locator("#newPassword input, input#newPassword").fill(newPassword);
+        await dialog.locator("#passwordConfirmation input, input#passwordConfirmation").fill(newPassword);
         await dialog.locator("#ok").click();
         await expect(dialog).toBeHidden({ timeout: 15000 });
 
+        await workbench.expectTabAfterPassword(untitledSqlScriptTab, newPassword);
+        await workbench.writeInActiveEditor("SELECT 1 AS reset_succeeded;");
+        await workbench.clickMenu(["Run", "Execute"]);
+        await workbench.expectResultGridText("reset_succeeded");
+
+        expect(canAuthenticate(adminConnection, username, currentPassword)).toBe(false);
+        expect(canAuthenticate(adminConnection, username, newPassword)).toBe(true);
+
+        executeSql(adminConnection, `DROP USER IF EXISTS '${username}'@'%';`);
         await workbench.closeActiveTabDiscardingChanges();
-        await workbench.closeActiveTabDiscardingChanges();
-        await workbench.createMySQLConnection(userConnection);
-        await workbench.openSqlScriptFromConnectionTile(userConnection.caption, userConnection.password, untitledSqlScriptTab);
-        expect(executeSql(userConnection, [
-            `ALTER USER USER() IDENTIFIED BY '${replacementPassword}' REPLACE '${resetPassword}';`,
-            "SELECT 'password changed' AS result;",
-        ])).toContain("password changed");
     });
 
 });

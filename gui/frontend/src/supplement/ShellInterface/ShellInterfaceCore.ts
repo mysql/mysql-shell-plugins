@@ -66,6 +66,20 @@ export class ShellInterfaceCore {
         })();
     }
 
+    /**
+     * Returns the authentication plugins bundled with MySQL Shell.
+     *
+     * @returns A promise resolving to the bundled authentication plugin names.
+     */
+    public async getBundledAuthenticationPlugins(): Promise<string[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiMysqlGetBundledAuthenticationPlugins,
+            parameters: {},
+        });
+
+        return response.result;
+    }
+
     public async getLogLevel(): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiCoreGetLogLevel,

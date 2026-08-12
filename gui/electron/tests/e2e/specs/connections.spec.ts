@@ -53,6 +53,75 @@ test.describe("Database connection overview", () => {
         })).toBeVisible();
     });
 
+    test("tests a password authentication factor through the backend prompt", async ({ page, workbench }) => {
+        await workbench.waitForShell();
+
+        const connection = localMySQLConnection("E2E backend password prompt");
+        await workbench.createMySQLConnection(connection);
+        await workbench.selectConnectionTileAction(connection.caption, ["Edit Connection…"]);
+
+        const dialog = page.locator(".visible.valueEditDialog");
+        await expect(dialog).toBeVisible({ timeout: 15000 });
+        await dialog.locator("#advanced-btn").click();
+
+        const visiblePasswordDialogs = page.locator(".passwordDialog:visible");
+        await expect(visiblePasswordDialogs).toHaveCount(1, { timeout: 15000 });
+        expect(await workbench.submitPasswordIfRequested(connection.password)).toBe(true);
+        await expect(page.locator(".notificationCenter .toast.info")).toContainText(
+            "Connection test succeeded.",
+            { timeout: 15000 },
+        );
+        await workbench.settlePasswordPrompts(connection.password);
+        await expect(visiblePasswordDialogs).toHaveCount(0);
+
+        await dialog.locator("#cancel").click();
+        await expect(dialog).toBeHidden({ timeout: 15000 });
+    });
+
+    test("round-trips an ordered MFA connection profile through storage", async ({ page, workbench }) => {
+        await workbench.waitForShell();
+
+        const connection = localMySQLConnection("E2E MFA connection persistence");
+        const pluginDirectory = "/tmp/e2e-mfa-client-plugins";
+        await workbench.createMySQLConnection(connection);
+        await workbench.selectConnectionTileAction(connection.caption, ["Edit Connection…"]);
+
+        let dialog = page.locator(".visible.valueEditDialog");
+        await expect(dialog).toBeVisible({ timeout: 15000 });
+        await dialog.locator(".tabItem", { hasText: "Authentication" }).click();
+
+        const selectFactor = async (factor: string, plugin: string): Promise<void> => {
+            await dialog.locator(`#${factor}`).click();
+            const popup = page.locator(`#${factor}Popup`);
+            await expect(popup).toBeVisible();
+            await popup.locator(".dropdownItem", { hasText: plugin }).click();
+            await expect(dialog.locator(`#${factor}`)).toContainText(plugin);
+        };
+
+        await selectFactor("factor2", "authentication_webauthn");
+        await selectFactor("factor3", "authentication_ldap_simple");
+        await dialog.locator("#webauthnDevice input, input#webauthnDevice").fill("2");
+        await dialog.locator("#webauthnPreservePrivacy").click();
+        await dialog.locator("#pluginDir input, input#pluginDir").fill(pluginDirectory);
+        await dialog.locator("#ok").click();
+        await expect(dialog).toBeHidden({ timeout: 15000 });
+
+        await workbench.selectConnectionTileAction(connection.caption, ["Edit Connection…"]);
+        dialog = page.locator(".visible.valueEditDialog");
+        await expect(dialog).toBeVisible({ timeout: 15000 });
+        await dialog.locator(".tabItem", { hasText: "Authentication" }).click();
+
+        await expect(dialog.locator("#factor1")).toContainText("password");
+        await expect(dialog.locator("#factor2")).toContainText("authentication_webauthn");
+        await expect(dialog.locator("#factor3")).toContainText("authentication_ldap_simple");
+        await expect(dialog.locator("#webauthnDevice input, input#webauthnDevice")).toHaveValue("2");
+        await expect(dialog.locator("#webauthnPreservePrivacy")).toHaveClass(/checked/);
+        await expect(dialog.locator("#pluginDir input, input#pluginDir")).toHaveValue(pluginDirectory);
+
+        await dialog.locator("#cancel").click();
+        await expect(dialog).toBeHidden({ timeout: 15000 });
+    });
+
     test("edits, duplicates, and deletes MySQL connections from tile actions", async ({ page, workbench }) => {
         await workbench.waitForShell();
 

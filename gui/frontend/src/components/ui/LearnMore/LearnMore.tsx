@@ -31,6 +31,7 @@ import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.
 
 export interface ILearnMoreProperties extends IComponentProperties {
     url: string;
+    caption?: string;
 }
 
 export class LearnMore extends ComponentBase<ILearnMoreProperties> {
@@ -38,11 +39,11 @@ export class LearnMore extends ComponentBase<ILearnMoreProperties> {
     public constructor(props: ILearnMoreProperties) {
         super(props);
 
-        this.addHandledProperties("url");
+        this.addHandledProperties("url", "caption");
     }
 
     public render(): ComponentChild {
-        const { url } = this.props;
+        const { url, caption } = this.props;
         const className = this.getEffectiveClassNames(["learnMore"]);
 
         return (
@@ -53,7 +54,7 @@ export class LearnMore extends ComponentBase<ILearnMoreProperties> {
                 rel="noopener noreferrer"
                 {...this.unhandledProperties}
             >
-                Read more
+                {caption ?? "Read more"}
             </a>
         );
     }

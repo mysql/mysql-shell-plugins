@@ -22,8 +22,11 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import uuid
+from types import SimpleNamespace
 from typing import cast
+from unittest.mock import Mock
 
+import pytest
 from mysqlsh.plugin_manager import registrar
 
 import gui_plugin.mysql.UserManagement as mysql_user_management
@@ -31,12 +34,13 @@ from gui_plugin.mysql.UserManagement import (
     UserInfo,
     create_user,
     delete_user,
+    get_password_reset_info,
     get_user,
     list_users,
     set_granted_roles,
     update_user,
 )
-from gui_plugin.mysql.backend.model import MySQLUser
+from gui_plugin.mysql.backend.model import AuthenticationFactor, MySQLUser
 from gui_plugin.core.dbms.DbSession import DbSession
 
 
@@ -52,6 +56,7 @@ def test_mysql_user_management_functions_are_web_only():
         "listGlobalPrivilegeCatalog",
         "listSchemaPrivilegeCatalog",
         "listAuthenticationPlugins",
+        "getBundledAuthenticationPlugins",
         "getCreateUserDefaults",
         "setUserGlobalPrivileges",
         "setUserObjectPrivileges",
@@ -65,6 +70,78 @@ def test_mysql_user_management_functions_are_web_only():
         definition = definitions[f"gui.mysql.{function_name}"]
         assert definition.cli is False
         assert definition.web is True
+
+
+def test_password_reset_info_rejects_insecure_transport():
+    assert get_password_reset_info(
+        password_expired=True,
+        session=SimpleNamespace(database_type="MySQL", connection_options={"host": "localhost"}),
+    )["factors"] == []
+
+    with pytest.raises(ValueError, match="Password reset requires SSL"):
+        get_password_reset_info(
+            password_expired=True,
+            session=SimpleNamespace(
+                database_type="MySQL", connection_options={"host": "localhost", "ssh": "ssh://host"},
+            ),
+        )
+
+
+def test_password_reset_info_requires_gui_database_session():
+    with pytest.raises(ValueError, match="GUI database session"):
+        get_password_reset_info()
+
+
+@pytest.mark.parametrize(
+    ("platform", "suffix"), [("darwin", ".so"), ("win32", ".dll")]
+)
+def test_get_bundled_authentication_plugins_filters_and_orders_client_plugins(
+    tmp_path, monkeypatch, platform, suffix
+):
+    for plugin in (
+        "authentication_kerberos",
+        "authentication_webauthn",
+        "authentication_ldap_sasl",
+        "authentication_oci",
+        "authentication_openid_connect",
+    ):
+        (tmp_path / f"{plugin}_client{suffix}").touch()
+    (tmp_path / "authentication_ldap_sasl.so").touch()
+    (tmp_path / "authentication_openid_connect_client.dylib").touch()
+    (tmp_path / "subdirectory").mkdir()
+    shell = SimpleNamespace(options={"mysqlPluginDir": str(tmp_path)})
+    monkeypatch.setattr(
+        mysql_user_management,
+        "mysqlsh",
+        SimpleNamespace(globals=SimpleNamespace(shell=shell)),
+    )
+    monkeypatch.setattr(mysql_user_management.sys, "platform", platform)
+
+    assert mysql_user_management.get_bundled_authentication_plugins() == [
+        "password",
+        "authentication_kerberos",
+        "authentication_ldap_sasl",
+        "authentication_oci",
+        "authentication_openid_connect",
+        "authentication_webauthn",
+    ]
+
+
+@pytest.mark.parametrize("failure", [FileNotFoundError, PermissionError])
+def test_get_bundled_authentication_plugins_handles_unavailable_plugin_directory(monkeypatch, failure):
+    shell = SimpleNamespace(options={"mysqlPluginDir": "/unavailable/plugins"})
+    monkeypatch.setattr(
+        mysql_user_management,
+        "mysqlsh",
+        SimpleNamespace(globals=SimpleNamespace(shell=shell)),
+    )
+    monkeypatch.setattr(
+        mysql_user_management.Path,
+        "iterdir",
+        lambda _path: (_ for _ in ()).throw(failure()),
+    )
+
+    assert mysql_user_management.get_bundled_authentication_plugins() == ["password"]
 
 
 def _drop_account_if_exists(session, user, host):
@@ -119,9 +196,14 @@ def test_create_and_update_user_return_user_info(monkeypatch):
         lambda session, options: "updated-password",
     )
 
+    create_options = MySQLUser(
+        user="alice",
+        host="localhost",
+        authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password")],
+    )
     options = MySQLUser(user="alice", host="localhost")
 
-    assert create_user(options, cast(DbSession, fake_session)) == UserInfo(
+    assert create_user(create_options, cast(DbSession, fake_session)) == UserInfo(
         generatedPassword="created-password"
     )
     assert update_user(options, cast(DbSession, fake_session)) == UserInfo(
@@ -143,7 +225,7 @@ def test_mysql_user_management_functions_use_real_session(session):
             MySQLUser(
                 user=user,
                 host=host,
-                authString="password1",
+                authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password", password="password1")],
                 maxUserConnections=3,
                 comment="GUI user management unit test",
             ),
@@ -190,3 +272,11 @@ def test_mysql_user_management_functions_use_real_session(session):
 def test_list_users_uses_current_mysql_shell_session(session):
     assert session is not None
     assert list_users()
+
+
+def test_list_users_activates_roles_on_database_sessions(monkeypatch):
+    session = Mock()
+    monkeypatch.setattr(mysql_user_management.user_management, "list_mysql_users", lambda _: [])
+
+    assert list_users(session) == []
+    session.activate_all_roles.assert_called_once_with()

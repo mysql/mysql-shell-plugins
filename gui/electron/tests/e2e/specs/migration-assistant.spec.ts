@@ -59,6 +59,7 @@ const migrationElectronLaunchEnvironment = (
         MIGRATION_TEST_OCI_MYSQL_VERSIONS:
             process.env.MIGRATION_TEST_OCI_MYSQL_VERSIONS ?? mysqlServerVersion(),
         ...overrides,
+        ELECTRON_E2E_BACKGROUND: "1",
     };
 };
 

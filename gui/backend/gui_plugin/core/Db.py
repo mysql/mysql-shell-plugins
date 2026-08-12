@@ -251,10 +251,14 @@ class GuiBackendDb:
             db_type = res["db_type"]
 
             options = json.loads(res["options"])
-            if "settings" in res:
-                settings = json.loads(res["settings"])
-            else:
-                settings = {}
+            if "disable-heat-wave-check" in options:
+                options.pop("disable-heat-wave-check")
+                self.execute(
+                    "UPDATE db_connection SET options=? WHERE id=?",
+                    (json.dumps(options), db_connection_id),
+                )
+            settings_value = res["settings"]
+            settings = json.loads(settings_value) if settings_value else {}
         except ValueError as e:
             raise Error.MSGException(
                 Error.DB_INVALID_OPTIONS,

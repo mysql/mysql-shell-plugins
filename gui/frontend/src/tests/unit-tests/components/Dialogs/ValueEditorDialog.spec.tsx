@@ -74,6 +74,7 @@ describe("Value Edit Dialog Tests", (): void => {
             file: { // A file selector.
                 type: "resource",
                 caption: "Pick File",
+                tooltip: "Select a file",
                 value: "../relative/path",
                 filters: {
                     image: ["svg", "png"],
@@ -836,6 +837,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     type: "description",
                     caption: "Helpers",
                     value: "",
+                    framed: true,
                     options: [CommonDialogValueOption.Grouped],
                 },
                 note: {
@@ -874,6 +876,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
         const portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(1);
+        expect(portals[0].querySelector("fieldset.group legend")?.textContent).toBe("Helpers");
         expect(portals[0]).toMatchSnapshot();
 
         unmount();
@@ -987,6 +990,8 @@ describe("Value Edit Dialog Tests", (): void => {
 
         const fileSelector = inputs[1] as HTMLInputElement;
         expect(fileSelector.value).toBe("../relative/path");
+        expect(fileSelector.closest(".fileSelector")?.getAttribute("data-tooltip")).toBe("Select a file");
+        expect(fileSelector.getAttribute("data-tooltip")).toBe("inherit");
         changeInputValue(fileSelector, "/absolutePath");
 
         expect(stateSpy).toHaveBeenCalledTimes(11);

@@ -25,6 +25,8 @@ from gui_plugin.core.Db import GuiBackendDb
 from gui_plugin.users import UserManagement
 import config
 import json
+from unittest.mock import Mock, patch
+
 import pytest
 
 
@@ -97,6 +99,36 @@ class FakeServiceSession:
 
     def release(self):
         self.release_count += 1
+
+
+def test_test_connection_waits_for_callback_driven_password_prompts():
+    completion_event = Mock()
+    completion_event.has_errors = False
+    session = Mock()
+    session.completion_event = completion_event
+
+    with patch.object(DbConnections, "DbModuleSession", return_value=session):
+        DbConnections.test_connection({"options": {}})
+
+    session.open_connection.assert_called_once_with({"options": {}}, None)
+    completion_event.wait.assert_called_once_with()
+    session.close.assert_called_once_with()
+
+
+def test_test_connection_raises_the_connection_error():
+    error = RuntimeError("WebAuthn registration timed out.")
+    completion_event = Mock()
+    completion_event.has_errors = True
+    completion_event.get_errors.return_value = [error]
+    session = Mock()
+    session.completion_event = completion_event
+
+    with patch.object(DbConnections, "DbModuleSession", return_value=session):
+        with pytest.raises(RuntimeError, match="WebAuthn registration timed out."):
+            DbConnections.test_connection({"options": {}})
+
+    completion_event.wait.assert_called_once_with()
+    session.close.assert_called_once_with()
 
 
 def test_connection_tags_round_trip_with_connection_data():

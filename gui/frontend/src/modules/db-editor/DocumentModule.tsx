@@ -59,8 +59,10 @@ import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import {
     IMySQLConnectionOptions,
 } from "../../communication/MySQL.js";
+import { ResponseError } from "../../communication/ResponseError.js";
 import { IMrsServiceData } from "../../communication/ProtocolMrs.js";
 import { Button } from "../../components/ui/Button/Button.js";
+import { PasswordChangeDialog } from "../../components/Dialogs/PasswordChangeDialog.js";
 import { ComponentPlacement } from "../../components/ui/Component/ComponentBase.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Dropdown, DropdownVariant } from "../../components/ui/Dropdown/Dropdown.js";
@@ -344,6 +346,7 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
     private sideBarRef = createRef<DocumentSideBar>();
     private connectionWorkspaceRefs = new Map<string, ConnectionWorkspace>();
     private createLibraryDialogRef = createRef<CreateLibraryDialog>();
+    private resetPasswordDialogRef = createRef<PasswordChangeDialog>();
     private sidebarWidth = 250;
     private desktopStatusTimer?: ReturnType<typeof setInterval>;
     private desktopWorkspaceRunStartTimes = new Map<string, number>();
@@ -1806,6 +1809,7 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
             }
             <MrsHub ref={this.mrsHubRef} />
             <CreateLibraryDialog ref={this.createLibraryDialogRef} />
+            <PasswordChangeDialog id="resetPasswordDialog" ref={this.resetPasswordDialogRef} />
             <JdvHub ref={this.jdvHubRef} />
         </>;
 
@@ -3018,6 +3022,66 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
         return this.activateConnectionWorkspace(data.connection, data.createNewWorkspace, false, data.initialEditor);
     };
 
+    private resetPasswordForConnection = async (connection: ICdmConnectionEntry,
+        passwordExpired = false, retainCurrentPassword = false): Promise<boolean> => {
+        let resetInfo;
+        try {
+            resetInfo = await connection.backend.getPasswordResetInfo(undefined, undefined, passwordExpired);
+        } catch (reason) {
+            void ui.showErrorMessage(`Unable to inspect password reset support: ${convertErrorToString(reason)}`, {});
+
+            return false;
+        }
+
+        if (!passwordExpired && !resetInfo?.sqlResetSupported) {
+            void ui.showErrorMessage(
+                "Password reset is not supported for this account. Only internal password authentication plugins " +
+                "support password reset.",
+                {},
+            );
+
+            return false;
+        }
+        if (retainCurrentPassword && !resetInfo?.retainCurrentPasswordSupported) {
+            void ui.showErrorMessage("Retaining the current password is not permitted for this account.", {});
+
+            return false;
+        }
+
+        const account = resetInfo?.account.user && resetInfo.account.host
+            ? `${resetInfo.account.user}@${resetInfo.account.host}`
+            : undefined;
+        let passwordReset = false;
+        await this.resetPasswordDialogRef.current?.show({
+            requestId: retainCurrentPassword ? "database.resetPasswordAndRetainCurrent" : "database.resetPassword",
+            caption: retainCurrentPassword ? "Reset Password and Retain Current" : "Reset Password",
+            description: [retainCurrentPassword
+                ? "Enter a new password. "
+                  + "Your current password will be retained as a secondary password until you discard it."
+                : passwordExpired
+                    ? "Your password has expired. Enter a new password to continue."
+                    : "Enter a new password for your current user account."],
+            account,
+            requireCurrentPassword: resetInfo?.currentPassword.required === true,
+            onAccept: async ({ password, currentPassword }): Promise<string | void> => {
+                try {
+                    await connection.backend.resetPassword(
+                        password, currentPassword, retainCurrentPassword, passwordExpired,
+                    );
+                    passwordReset = true;
+                } catch (reason) {
+                    return `Unable to reset password: ${convertErrorToString(reason)}`;
+                }
+            },
+        });
+
+        if (passwordReset) {
+            void ui.showInformationMessage("Password reset successfully.", {});
+        }
+
+        return passwordReset;
+    };
+
     private setCurrentSchema = async (
         data: { id: string; connectionInfo: IConnectionInfo; schema: string; }
     ): Promise<boolean> => {
@@ -3510,14 +3574,28 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
         } else {
             this.showProgress();
             this.setProgressMessage("Starting editor session...");
+            let initializationError: Error | undefined;
+            const updateProgress = (message?: string | Error): void => {
+                if (typeof message === "string") {
+                    this.setProgressMessage(message);
+                } else if (message instanceof Error) {
+                    initializationError = message;
+                }
+            };
 
             // Create a new connection entry for the workspace page. It's open by default.
+            let newEntry: ICdmConnectionEntry | undefined;
             try {
-                const newEntry = this.connectionsDataModel.createConnectionEntry(entry.details);
+                newEntry = this.connectionsDataModel.createConnectionEntry(entry.details);
+                let initialized: boolean;
                 if (serviceOnly) {
-                    await newEntry.initializeServiceOnly();
+                    initialized = await newEntry.initializeServiceOnly(updateProgress);
                 } else {
-                    await newEntry.initialize();
+                    initialized = await newEntry.initialize(updateProgress);
+                }
+                if (!initialized) {
+                    await newEntry.close();
+                    throw initializationError ?? new Error("Unable to initialize the connection.");
                 }
 
                 const pageId = uuid();
@@ -3533,7 +3611,20 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                     this.serviceOnlyConnectionPages.delete(pageId);
                 }
             } catch (error) {
-                if (!serviceOnly && this.shouldOpenOfflineAdministrationWorkspace(entry, error)) {
+                if (!serviceOnly && newEntry && error instanceof ResponseError
+                    && (error.info.requestState.code === 1820 || error.info.requestState.code === 1862)) {
+                    let passwordReset = false;
+                    try {
+                        passwordReset = await this.resetPasswordForConnection(newEntry, true);
+                    } finally {
+                        await newEntry.close();
+                    }
+                    if (passwordReset) {
+                        return await this.activateConnectionWorkspace(
+                            entry, createNewWorkspace, suppressAbout, initialEditor, serviceOnly,
+                        );
+                    }
+                } else if (!serviceOnly && this.shouldOpenOfflineAdministrationWorkspace(entry, error)) {
                     const probe = await localServerProbeFromBackend(entry.details, (kind, target, port) => {
                         return ShellInterface.core.probeLocalConnectionEndpoint(kind, target, port);
                     });
@@ -6169,6 +6260,18 @@ EXAMPLES
             label: "Start MySQL HeatWave Cloud Migration Assistant",
             enabled: canUseActiveMySQLConnection,
         }, {
+            id: "database.resetPassword",
+            label: "Reset Password...",
+            enabled: canUseActiveMySQLConnection,
+        }, {
+            id: "database.resetPasswordAndRetainCurrent",
+            label: "Reset Password and Retain Current...",
+            enabled: canUseActiveMySQLConnection,
+        }, {
+            id: "database.discardOldPassword",
+            label: "Discard Old Password...",
+            enabled: canUseActiveMySQLConnection,
+        }, {
             id: "database.mrs.configure",
             label: "Configure MySQL REST Service",
             enabled: canUseActiveMySQLConnection,
@@ -6382,6 +6485,55 @@ EXAMPLES
 
             case "run.autoCommit": {
                 return requisitions.execute("editorToggleAutoCommit", undefined);
+            }
+
+            case "database.resetPassword": {
+                const connection = this.getActiveWorkspaceConnectionEntry();
+                if (!connection) {
+                    return false;
+                }
+
+                void this.resetPasswordForConnection(connection);
+
+                return true;
+            }
+
+            case "database.resetPasswordAndRetainCurrent": {
+                const connection = this.getActiveWorkspaceConnectionEntry();
+                if (!connection) {
+                    return false;
+                }
+
+                void this.resetPasswordForConnection(connection, false, true);
+
+                return true;
+            }
+
+            case "database.discardOldPassword": {
+                const connection = this.getActiveWorkspaceConnectionEntry();
+                if (!connection) {
+                    return false;
+                }
+
+                const confirmed = (await ui.confirm(
+                    "Discard the old password? Clients using it will no longer be able to connect.",
+                    "Discard",
+                    "Cancel",
+                )) === "Discard";
+                if (!confirmed) {
+                    return true;
+                }
+
+                try {
+                    await connection.backend.executeServiceWithActiveRoles(
+                        "ALTER USER USER() DISCARD OLD PASSWORD",
+                    );
+                    void ui.showInformationMessage("Old password discarded successfully.", {});
+                } catch (reason) {
+                    void ui.showErrorMessage(`Unable to discard old password: ${convertErrorToString(reason)}`, {});
+                }
+
+                return true;
             }
 
             case "database.mrs.configure": {

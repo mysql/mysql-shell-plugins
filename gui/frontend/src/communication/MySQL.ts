@@ -41,13 +41,28 @@ export enum MySQLSslMode {
     VerifyIdentity = "VERIFY_IDENTITY",
 }
 
-export enum MySQLAuthMethod {
-    Auto = "AUTO",
-    FromCapabilities = "FROM_CAPABILITIES",
-    Fallback = "FALLBACK",
-    MySQL41 = "MYSQL41",
-    Plain = "PLAIN",
-    SHA256 = "SHA256_MEMORY",
+export enum MySQLAuthenticationPlugin {
+    Password = "password",
+    AuthenticationKerberos = "authentication_kerberos",
+    AuthenticationLdapSasl = "authentication_ldap_sasl",
+    AuthenticationLdapSimple = "authentication_ldap_simple",
+    AuthenticationOci = "authentication_oci",
+    AuthenticationOpenIdConnect = "authentication_openid_connect",
+    AuthenticationPam = "authentication_pam",
+    AuthenticationWebAuthn = "authentication_webauthn",
+    AuthenticationWindows = "authentication_windows",
+    AuthSocket = "auth_socket",
+    MySqlNoLogin = "mysql_no_login",
+}
+
+export const mysqlAuthenticationPluginChoices = Object.values(MySQLAuthenticationPlugin);
+
+export interface IAuthenticationHints {
+    /** Authentication plugins used by the account, in factor order. */
+    factors: MySQLAuthenticationPlugin[];
+
+    /** Directory containing client-side authentication plugins. */
+    pluginDir?: string;
 }
 
 export enum MySQLSqlMode {
@@ -150,8 +165,15 @@ export interface IMySQLConnectionOptions {
     /** List of TLS v1.3 ciphers to use. Same format as for field sslCipher. */
     "tls-ciphers"?: string;
 
-    /** Authentication method. */
-    "auth-method"?: MySQLAuthMethod;
+    "auth-method"?: "mysql_clear_password";
+
+    "plugin-authentication-kerberos-client-mode"?: "SSPI" | "GSSAPI";
+    "plugin-authentication-webauthn-device"?: number;
+    "plugin-authentication-webauthn-client-preserve-privacy"?: boolean;
+    "register-factor"?: "2" | "3";
+    "oci-config-file"?: string;
+    "authentication-oci-client-config-profile"?: string;
+    "authentication-openid-connect-client-id-token-file"?: string;
 
     /**
      * Request public key from the server required for RSA key pair-based password exchange. Use when connecting to
@@ -221,9 +243,6 @@ export interface IMySQLConnectionOptions {
 
     /** mds bastion id */
     "bastion-id"?: string;
-
-    /** disable HeatWave check */
-    "disable-heat-wave-check"?: boolean;
 
     /** MRS service host for this connection */
     "mrs-service-host"?: string;

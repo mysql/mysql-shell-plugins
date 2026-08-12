@@ -40,8 +40,10 @@ export interface IScriptDetails {
  * @param type The type of script being created
  * @param schemaName The name of the schema where the script will be created.
  * @param placeHolder An initial name for the script
+ * @returns The generated script details, or undefined when the prompt is cancelled.
  */
-export const resolveNewSqlScript = async (type: string, schemaName: string, placeHolder: string): Promise<IScriptDetails | undefined> => {
+export const resolveNewSqlScript = async (type: string, schemaName: string,
+    placeHolder: string): Promise<IScriptDetails | undefined> => {
     let name: string | undefined = "";
     let sql = "";
 

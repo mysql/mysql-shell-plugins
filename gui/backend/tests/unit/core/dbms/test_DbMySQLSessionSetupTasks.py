@@ -21,7 +21,6 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import pytest
 import gui_plugin.core.dbms.DbMySQLSessionSetupTasks as Tasks
 import gui_plugin.core.dbms.DbMySQLSession as DbMySQLSession
 import gui_plugin.core.dbms.DbMySQLSessionCommon as common
@@ -43,6 +42,19 @@ class MockResult:
         return self._result
 
 
+class MockShellOptions:
+    def __init__(self):
+        self.values = {}
+
+    def set(self, option, value):
+        self.values[option] = value
+
+
+class MockShell:
+    def __init__(self):
+        self.options = MockShellOptions()
+
+
 class MockDbSession(DbMySQLSession.DbMysqlSession):
     def __init__(
         self,
@@ -54,9 +66,11 @@ class MockDbSession(DbMySQLSession.DbMysqlSession):
         known_data={},
         message_callback=None,
         expected_queries=[],
+        shell=None,
     ):
         self._task_class = task_class
         self._open_connection = open_connection
+        self._shell = shell
         self._original_connection_options = connection_options.copy()
         self._original_known_data = known_data.copy()
         self._on_connect_connection_options = on_connect_connection_options.copy()
@@ -172,6 +186,23 @@ class TestSessionInfoTask:
         session.reconnect()
 
 
+class TestSqlModeTask:
+    def test_connection(self):
+        options = {"scheme": "mysql", "sql-mode": ["ANSI_QUOTES", "STRICT_TRANS_TABLES"]}
+        session = MockDbSession(
+            Tasks.SqlModeTask,
+            True,
+            options,
+            {"scheme": "mysql"},
+            {},
+            expected_queries=[
+                (("SET SESSION sql_mode = ?", ["ANSI_QUOTES,STRICT_TRANS_TABLES"]), MockResult([])),
+            ],
+        )
+
+        session.reconnect()
+
+
 class TestExplainJsonFormatVersionTask:
     def test_connection_supported_version(self):
         options = {"scheme": "mysql"}
@@ -192,36 +223,20 @@ class TestExplainJsonFormatVersionTask:
 
 
 class TestHeatWaveCheckTask:
-    def test_connection_hw_check_already_known(self):
+    def test_connection_hw_check(self):
         try:
-            # Each item is compsed of
-            # check skipped
-            # known value
-            # expected value
+            # Each item is composed of the known value and the expected value.
             test_data = [
-                (True, None, False),  # skipped, unknown
-                (True, True, True),  # skipped, known to be True
-                (True, False, False),  # skipped, known to be False
-                (False, True, True),  # not skipped, known to be True
-                (False, False, False),  # not skipped, known to be False
-                # (False, None, True),  # not skipped, should be True
-                (False, None, False),  # not skipped, should be False
-                # Backwards compatibility tests for the case where the option
-                # is missing on the connection data
-                (None, True, True),  # skipped not set, known to be True
-                (None, False, False),  # skipped not set, known to be False
-                # (None, None, True),  # skipped not set, should be True
-                (None, None, False),  # skipped not set, should be False
+                (None, False),  # unknown, detected as unavailable
+                (True, True),  # known to be available
+                (False, False),  # known to be unavailable
             ]
 
             for tuple in test_data:
-                skipped, known, expected = tuple
+                known, expected = tuple
 
                 options = {"scheme": "mysql"}
-                on_connect_options = options.copy()
-
-                if skipped is not None:
-                    options[Tasks.HeatWaveCheckTask._OPT] = skipped
+                on_connect_options = {"scheme": "mysql"}
 
                 known_data = {}
                 if known is not None:
@@ -238,7 +253,7 @@ class TestHeatWaveCheckTask:
                 }
 
                 expected_queries = []
-                if not skipped and known is None:
+                if known is None:
                     if expected:
                         result = MockResult([["rpd_nodes"]])
                     else:
@@ -251,24 +266,11 @@ class TestHeatWaveCheckTask:
                     WHERE TABLE_SCHEMA = 'performance_schema'
                         AND TABLE_NAME = 'rpd_nodes'""",
                                 None,
-                            ),
-                            result,
                         ),
-                        (("SHOW STATUS LIKE 'mle_status'", None), result),
-                        (
-                            (
-                                """
-                                  SELECT ROUTINE_NAME
-                                  FROM information_schema.routines
-                                  WHERE ROUTINE_SCHEMA="sys"
-                                    AND ROUTINE_NAME="mle_explain_error"
-                                    AND ROUTINE_TYPE="PROCEDURE"
-                                  """,
-                                None,
-                            ),
-                            result,
-                        ),
-                    ]
+                        result,
+                    ),
+                    (("SHOW STATUS LIKE 'mle_status'", None), result),
+                ]
 
                 session = MockDbSession(
                     Tasks.HeatWaveCheckTask,
@@ -282,3 +284,104 @@ class TestHeatWaveCheckTask:
                 session.reconnect()
         except Exception as e:
             assert False, f"Unexpected Error Happened: {str(e)}"
+
+    def test_connection_checks_mle_when_heatwave_is_known_unavailable(self):
+        options = {"scheme": "mysql"}
+        known_data = {
+            common.MySQLData.HEATWAVE_AVAILABLE: False,
+            common.MySQLData.IS_CLOUD_INSTANCE: False,
+        }
+        expected_data = {
+            **known_data,
+            common.MySQLData.MLE_AVAILABLE: False,
+            common.MySQLData.HAS_EXPLAIN_ERROR: False,
+        }
+
+        session = MockDbSession(
+            Tasks.HeatWaveCheckTask,
+            True,
+            options,
+            options,
+            expected_data,
+            known_data=known_data,
+            expected_queries=[(("SHOW STATUS LIKE 'mle_status'", None), MockResult([]))],
+        )
+        session.reconnect()
+
+    def test_explain_error_probe_is_compatible_with_ansi_quotes(self):
+        options = {"scheme": "mysql"}
+        known_data = {
+            common.MySQLData.HEATWAVE_AVAILABLE: True,
+            common.MySQLData.IS_CLOUD_INSTANCE: True,
+            common.MySQLData.MLE_AVAILABLE: True,
+        }
+        expected_data = {
+            **known_data,
+            common.MySQLData.HAS_EXPLAIN_ERROR: True,
+        }
+
+        session = MockDbSession(
+            Tasks.HeatWaveCheckTask,
+            True,
+            options,
+            options,
+            expected_data,
+            known_data=known_data,
+            expected_queries=[
+                (
+                    (
+                        """SELECT ROUTINE_NAME
+                        FROM information_schema.routines
+                        WHERE ROUTINE_SCHEMA='sys'
+                          AND ROUTINE_NAME='mle_explain_error'
+                          AND ROUTINE_TYPE='PROCEDURE'""",
+                        None,
+                    ),
+                    MockResult([["mle_explain_error"]]),
+                ),
+            ],
+        )
+        session.reconnect()
+
+
+class TestRemoveExternalOptionsTask:
+    def test_connection_authentication_hints(self):
+        shell = MockShell()
+        options = {
+            "scheme": "mysql",
+            "auth-method": "mysql_clear_password",
+            "authentication_hints": {
+                "factors": [
+                "authentication_ldap_simple",
+                "authentication_pam",
+                "authentication_webauthn",
+                ],
+                "plugin_dir": "/opt/mysql/plugins",
+            },
+            "plugin-authentication-kerberos-client-mode": "GSSAPI",
+            "plugin-authentication-webauthn-device": "security-key",
+            "oci-config-file": "/home/user/.oci/config",
+            "authentication-oci-client-config-profile": "database",
+            "authentication-openid-connect-client-id-token-file": "/home/user/oidc-token",
+        }
+        session = MockDbSession(
+            Tasks.RemoveExternalOptionsTask,
+            True,
+            options,
+            {
+                "scheme": "mysql",
+                "auth-method": "mysql_clear_password",
+                "plugin-authentication-kerberos-client-mode": "GSSAPI",
+                "plugin-authentication-webauthn-device": "security-key",
+                "oci-config-file": "/home/user/.oci/config",
+                "authentication-oci-client-config-profile": "database",
+                "authentication-openid-connect-client-id-token-file": "/home/user/oidc-token",
+            },
+            {},
+            shell=shell,
+        )
+
+        session.reconnect()
+        assert shell.options.values == {
+            "mysqlPluginDir": "/opt/mysql/plugins",
+        }

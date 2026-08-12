@@ -26,11 +26,17 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    binarySearch, clampValue, deepEqual, flattenObject, selectFileInBrowser, sleep, strictEval, uuid, waitFor,
+    binarySearch, clampValue, deepEqual, flattenObject, isShellPromptResult, selectFileInBrowser, sleep, strictEval,
+    uuid, waitFor,
 } from "../../../utilities/helpers.js";
 import { nextProcessTick, uuidPattern } from "../test-helpers.js";
 
 describe("Utilities Tests", (): void => {
+    it("identifies Shell prompt responses", (): void => {
+        expect(isShellPromptResult({ prompt: "Enter password" })).toBe(true);
+        expect(isShellPromptResult("Perform gesture action")).toBe(false);
+    });
+
     it("flattenObject", (): void => {
         let result = flattenObject({});
         expect(result).toEqual({});

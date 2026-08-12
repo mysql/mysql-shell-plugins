@@ -92,7 +92,7 @@ class BackendLogger:
             self.add_filter(
                 {
                     "type": "key",
-                    "keys": ["password"],
+                    "keys": ["password", "current_password", "currentPassword"],
                     "expire": Filtering.FilterExpire.Never,
                 }
             )

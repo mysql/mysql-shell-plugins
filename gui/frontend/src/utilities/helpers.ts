@@ -934,9 +934,11 @@ export const getConnectionInfoFromDetails = (details: IConnectionDetails): IConn
 };
 
 export const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {
-    const candidate = response as IShellFeedbackRequest;
+    if (typeof response !== "object" || response === null) {
+        return false;
+    }
 
-    return "prompt" in candidate;
+    return "prompt" in response;
 };
 
 export const isStandalone = (): boolean => {

@@ -53,6 +53,7 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import { Assets } from "../../supplement/Assets.js";
 import { IToolbarItems } from "./index.js";
 import {
+    IAuthenticationFactor,
     IMySQLGlobalPrivilegeCatalogItem,
     IMySQLObjectPrivilegeSchemaTarget,
     IObjectPrivilegeTarget,
@@ -60,11 +61,12 @@ import {
     IMySQLDefaultUserOptions,
     IMySQLUserListItem,
 } from "../../communication/ProtocolGui.js";
-import { convertErrorToString } from "../../utilities/helpers.js";
+import { convertErrorToString, uuid } from "../../utilities/helpers.js";
 import { ui } from "../../app-logic/UILayer.js";
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { DialogResponseClosure, DialogType, IDictionary } from "../../app-logic/general-types.js";
 import { PasswordChangeDialog } from "../../components/Dialogs/PasswordChangeDialog.js";
+import { PasswordDialog } from "../../components/Dialogs/PasswordDialog.js";
 import {
     AdministrationPageBody, AdministrationPageFrame, AdministrationPageHeading,
 } from "./AdministrationPageFrame.js";
@@ -82,11 +84,19 @@ interface IUserAccountDialogGeneralSection {
 }
 
 interface IUserAccountDialogAuthenticationSection {
-    authenticationPlugin: { value?: string; choices?: string[]; options?: CommonDialogValueOption[] };
+    authenticationPlugin: { type?: "choice"; value?: string; choices?: string[]; options?: CommonDialogValueOption[] };
+    authenticationString?: { value?: string };
+    secondAuthenticationPlugin?: { value?: string };
+    secondAuthenticationString?: { value?: string };
+    thirdAuthenticationPlugin?: { value?: string };
+    thirdAuthenticationString?: { value?: string };
     passwordExpire: { value?: boolean };
     randomPassword: { value?: boolean };
     password: { value?: string };
     passwordConfirmation: { value?: string };
+}
+
+interface IUserAccountDialogAdvancedSection {
     passwordExpiration: { value?: number };
     passwordHistory: { value?: number };
     passwordReuseInterval: { value?: number };
@@ -208,12 +218,6 @@ export interface IUserAccountsState extends IComponentState {
     editingAccount: { user: string; host: string; comment?: string | null } | null;
     searchValues: ISearchValues;
     authenticationDefaults?: IMySQLDefaultUserOptions;
-    authenticationPolicy?: string;
-    defaultAuthenticationPlugin?: string;
-    passwordValidationInstalled?: boolean;
-    passwordValidationPolicy?: string;
-    passwordValidationLength?: number;
-    requireSecureTransport?: boolean;
     expiredAccountsOnly: boolean;
     partialRevokesEnabled: boolean;
     authenticationPlugins: string[];
@@ -224,6 +228,7 @@ export interface IUserAccountsState extends IComponentState {
 interface IDialogSections {
     generalSection?: IUserAccountDialogGeneralSection;
     authenticationSection?: IUserAccountDialogAuthenticationSection;
+    advancedSection?: IUserAccountDialogAdvancedSection;
     tlsSection?: IUserAccountDialogTlsSection;
     resourceLimitsSection?: IUserAccountDialogResourceLimitsSection;
 }
@@ -241,15 +246,6 @@ type ManageRolesAndPrivilegesTab = "roles" | "globalPrivileges" | "objectPrivile
 interface IUserAccountSummary {
     total: number;
     expiredPasswords: number;
-}
-
-interface IAuthenticationServerVariables {
-    authenticationPolicy?: string;
-    defaultAuthenticationPlugin?: string;
-    passwordValidationInstalled?: boolean;
-    passwordValidationPolicy?: string;
-    passwordValidationLength?: number;
-    requireSecureTransport?: boolean;
 }
 
 type UserAccountSearchCategory = "user" | "host" | "auth" | "role" | "privilege" | "all";
@@ -1509,13 +1505,13 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     private generatedPasswordDialogRef = createRef<Dialog>();
     private manageRolesAndPrivilegesDialogRef = createRef<ValueEditDialog>();
     private passwordChangeDialogRef = createRef<PasswordChangeDialog>();
+    private initialAuthenticationPasswordDialogRef = createRef<PasswordDialog>();
     private viewAccountSqlDialogRef = createRef<ValueEditDialog>();
     private userAccountContextMenuRef = createRef<Menu>();
     private userAccountColumns?: ColumnDefinition[];
     private initialLoad?: Promise<void>;
     private ignoreEmptyPasswordConfirmationForSession = false;
     private editingAccountDetails?: IMySQLUser;
-    private editingAccountRow?: RowComponent;
 
     public constructor(props: IUserAccountsProperties) {
         super(props);
@@ -1539,10 +1535,18 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         this.initialLoad = this.loadUsers();
     }
 
-    public override componentDidUpdate(prevProps: IUserAccountsProperties): void {
+    public override componentDidUpdate(prevProps: IUserAccountsProperties, prevState: IUserAccountsState): void {
         const { backend } = this.props;
         if (backend !== prevProps.backend) {
             this.initialLoad = this.loadUsers();
+        }
+
+        if (prevState.rows !== this.state.rows
+            || prevState.searchValues !== this.state.searchValues
+            || prevState.expiredAccountsOnly !== this.state.expiredAccountsOnly) {
+            void this.userAccountsGridRef.current?.setData(
+                this.filteredUserRows(this.state.rows), SetDataAction.Replace,
+            );
         }
     }
 
@@ -1592,7 +1596,10 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             },
             {
                 title: "Type",
-                field: "plugin",
+                field: "authenticationPlugins",
+                formatter: (cell) => {
+                    return this.authenticationPluginFormatter(cell);
+                },
                 minWidth: 86,
                 widthShrink: 2,
                 cellDblClick: this.handleUserAccountsCellDoubleClick,
@@ -1655,6 +1662,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             selectOnMouseDown: true,
             index: "id",
             preserveColumnWidthsOnDataUpdate: false,
+            updateDataOnComponentUpdate: false,
         };
 
         const className = this.getEffectiveClassNames(["userAccounts"]);
@@ -1723,6 +1731,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                     onClose={this.handleManageRolesAndPrivilegesDialogClose}
                 />
                 <PasswordChangeDialog id="userAccountResetPasswordDialog" ref={this.passwordChangeDialogRef} />
+                <PasswordDialog ref={this.initialAuthenticationPasswordDialogRef} />
                 <ValueEditDialog
                     id="viewUserAccountSqlDialog"
                     ref={this.viewAccountSqlDialogRef}
@@ -1822,7 +1831,18 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                                 id="toggleAccountLock"
                                 command={{ title: "Lock Account", command: "toggleAccountLock" }}
                             />
-                            <MenuItem command={{ title: "Reset Password...", command: "resetPassword" }} />
+                            <MenuItem command={{ title: "-", command: "" }} disabled />
+                            <MenuItem command={{ title: "Authentication", command: "" }}>
+                                <MenuItem command={{ title: "Reset Password...", command: "resetPassword" }} />
+                                <MenuItem command={{
+                                    title: "Reset Password and Retain Current...",
+                                    command: "resetPasswordAndRetainCurrent",
+                                }} />
+                                <MenuItem command={{
+                                    title: "Discard Old Password...",
+                                    command: "discardOldPassword",
+                                }} />
+                            </MenuItem>
                             <MenuItem command={{ title: "-", command: "" }} disabled />
                             <MenuItem command={{ title: "View as SQL...", command: "viewAccountSql" }} />
                             <MenuItem command={{ title: "Edit Account...", command: "editAccount" }} />
@@ -1933,36 +1953,36 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     }
 
     private passwordValidationPolicyText(): string {
-        if (this.state.passwordValidationInstalled === undefined) {
+        if (this.state.authenticationDefaults?.passwordValidationInstalled == null) {
             return "Unavailable";
         }
 
-        if (!this.state.passwordValidationInstalled) {
+        if (!this.state.authenticationDefaults.passwordValidationInstalled) {
             return "Off";
         }
 
-        const policy = this.state.passwordValidationPolicy ?? "On";
-        const length = this.state.passwordValidationLength;
+        const policy = this.state.authenticationDefaults.passwordValidationPolicy ?? "On";
+        const length = this.state.authenticationDefaults.passwordValidationLength;
 
-        return length === undefined
+        return length === null
             ? policy
             : `${policy} · ${length} character${length === 1 ? "" : "s"}`;
     }
 
     private passwordValidationTooltip(): string {
-        if (this.state.passwordValidationInstalled === undefined) {
+        if (this.state.authenticationDefaults?.passwordValidationInstalled == null) {
             return "The server password-validation policy could not be read. "
                 + "(@@validate_password.policy, @@validate_password.length)";
         }
 
-        if (!this.state.passwordValidationInstalled) {
+        if (!this.state.authenticationDefaults.passwordValidationInstalled) {
             return "The server is not enforcing password-strength validation. "
                 + "(@@validate_password.policy, @@validate_password.length)";
         }
 
-        const policy = this.state.passwordValidationPolicy ?? "enabled";
-        const length = this.state.passwordValidationLength;
-        const minimumLength = length === undefined
+        const policy = this.state.authenticationDefaults.passwordValidationPolicy ?? "enabled";
+        const length = this.state.authenticationDefaults.passwordValidationLength;
+        const minimumLength = length === null
             ? ""
             : ` and be at least ${length} character${length === 1 ? "" : "s"} long`;
 
@@ -2038,7 +2058,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     }
 
     private authenticationPolicyText(): string {
-        const policy = this.state.authenticationPolicy?.trim();
+        const policy = this.state.authenticationDefaults?.authenticationPolicy?.trim();
         if (!policy) {
             const count = this.state.authenticationPlugins.length;
 
@@ -2053,7 +2073,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         }
 
         const primary = factors[0] === "*"
-            ? this.state.defaultAuthenticationPlugin ?? "Any plugin"
+            ? this.state.authenticationDefaults?.defaultAuthenticationPlugin ?? "Any plugin"
             : factors[0];
         const count = factors.length;
 
@@ -2061,7 +2081,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     }
 
     private authenticationPolicyTooltip(): string {
-        const policy = this.state.authenticationPolicy?.trim();
+        const policy = this.state.authenticationDefaults?.authenticationPolicy?.trim();
         if (!policy) {
             return "The server authentication policy could not be read. "
                 + "(@@authentication_policy, @@default_authentication_plugin)";
@@ -2076,7 +2096,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         }
 
         const primary = factors[0] === "*"
-            ? this.state.defaultAuthenticationPlugin ?? "any available plugin"
+            ? this.state.authenticationDefaults?.defaultAuthenticationPlugin ?? "any available plugin"
             : factors[0];
         if (factors.length === 1) {
             return `New accounts use ${primary} as their default authentication factor. `
@@ -2088,8 +2108,8 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     }
 
     private secureTransportPolicyText(): string {
-        const requireSecureTransport = this.state.requireSecureTransport;
-        if (requireSecureTransport === undefined) {
+        const requireSecureTransport = this.state.authenticationDefaults?.requireSecureTransport;
+        if (requireSecureTransport == null) {
             return "Unavailable";
         }
 
@@ -2097,8 +2117,8 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     }
 
     private secureTransportTooltip(): string {
-        const requireSecureTransport = this.state.requireSecureTransport;
-        if (requireSecureTransport === undefined) {
+        const requireSecureTransport = this.state.authenticationDefaults?.requireSecureTransport;
+        if (requireSecureTransport == null) {
             return "The server secure-transport requirement could not be read. (@@require_secure_transport)";
         }
 
@@ -2291,6 +2311,16 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                 break;
             }
 
+            case "resetPasswordAndRetainCurrent": {
+                void this.showResetPasswordDialog(row, true);
+                break;
+            }
+
+            case "discardOldPassword": {
+                void this.discardOldPassword(row);
+                break;
+            }
+
             case "deleteAccount": {
                 void this.confirmDeleteUserAccount(row);
                 break;
@@ -2319,7 +2349,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         return true;
     };
 
-    private showResetPasswordDialog = async (row: RowComponent): Promise<void> => {
+    private showResetPasswordDialog = async (row: RowComponent, retainCurrentPassword = false): Promise<void> => {
         const rowData = row.getData() as IUserAccountsState["rows"][number];
         const { user, host } = rowData;
 
@@ -2327,46 +2357,84 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         if (!backend) {
             return;
         }
+        let resetInfo;
+        try {
+            resetInfo = await backend.getPasswordResetInfo(user, host);
+        } catch (reason) {
+            void ui.showErrorMessage(`Unable to inspect password reset support: ${convertErrorToString(reason)}`, {});
 
+            return;
+        }
+
+        if (!resetInfo?.sqlResetSupported) {
+            void ui.showErrorMessage(
+                "Password reset is not supported for this account. Only internal password authentication plugins "
+                + "support password reset.",
+                {},
+            );
+
+            return;
+        }
+        if (retainCurrentPassword && !resetInfo.retainCurrentPasswordSupported) {
+            void ui.showErrorMessage("Retaining the current password is not permitted for this account.", {});
+
+            return;
+        }
+
+        const outcome = { passwordReset: false };
         await this.passwordChangeDialogRef.current?.show({
-            requestId: "userAccountResetPassword",
-            caption: "Reset Password",
+            requestId: retainCurrentPassword
+                ? "userAccountResetPasswordAndRetainCurrent"
+                : "userAccountResetPassword",
+            caption: retainCurrentPassword ? "Reset Password and Retain Current" : "Reset Password",
+            description: retainCurrentPassword
+                ? ["Enter a new password. Your current password will be retained as a secondary password until you "
+                    + "discard it."]
+                : undefined,
             account: this.accountIdentifier(rowData),
-            onAccept: async ({ password }): Promise<string | void> => {
-                const options: IMySQLUser = {
-                    user,
-                    host,
-                    sslType: null,
-                    sslCipher: null,
-                    x509Issuer: null,
-                    x509Subject: null,
-                    plugin: null,
-                    passwordExpire: null,
-                    passwordLastChanged: null,
-                    passwordLifetime: null,
-                    authString: password,
-                    randomPassword: false,
-                    maxQuestions: null,
-                    maxUpdates: null,
-                    maxConnections: null,
-                    maxUserConnections: null,
-                    passwordReuseHistory: null,
-                    passwordReuseInterval: null,
-                    passwordRequireCurrent: null,
-                    failedLoginAttempts: null,
-                    passwordLockTime: null,
-                    accountLocked: null,
-                    comment: null,
-                };
-
+            requireCurrentPassword: resetInfo.currentPassword.required,
+            onAccept: async ({ password, currentPassword }): Promise<string | void> => {
                 try {
-                    await backend.updateMySQLUser(options);
+                    await backend.resetPassword(password, currentPassword, retainCurrentPassword, false, user, host);
                     await this.loadUsers();
+                    outcome.passwordReset = true;
                 } catch (err) {
                     return "Cannot reset user account password: " + convertErrorToString(err);
                 }
             },
         });
+
+        if (outcome.passwordReset) {
+            void ui.showInformationMessage("Password reset successfully.", {});
+        }
+    };
+
+    private discardOldPassword = async (row: RowComponent): Promise<void> => {
+        const rowData = row.getData() as IUserAccountsState["rows"][number];
+        const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
+
+        const confirmed = (await ui.confirm(
+            `Discard the old password for ${this.accountIdentifier(rowData)}? Clients using it will no longer be able `
+            + "to connect.",
+            "Discard",
+            "Cancel",
+        )) === "Discard";
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await backend.executeServiceWithActiveRoles(
+                "ALTER USER ?@? DISCARD OLD PASSWORD", [rowData.user, rowData.host],
+            );
+            await this.loadUsers();
+            void ui.showInformationMessage("Old password discarded successfully.", {});
+        } catch (reason) {
+            void ui.showErrorMessage(`Unable to discard old password: ${convertErrorToString(reason)}`, {});
+        }
     };
 
     private createRoleDialogValues = (
@@ -3499,7 +3567,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         const values: Record<Exclude<UserAccountSearchCategory, "all">, string[]> = {
             user: [row.user],
             host: [row.host],
-            auth: [row.plugin],
+            auth: row.authenticationPlugins,
             role: row.roles,
             privilege: [
                 ...row.globalPrivileges,
@@ -3591,7 +3659,6 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         await this.initialLoad;
 
         this.editingAccountDetails = undefined;
-        this.editingAccountRow = undefined;
         this.setState({ editingAccount: null });
         const defaults = await this.loadCreateUserDefaults();
         this.createUserDialogRef.current?.show(
@@ -3632,12 +3699,38 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             return false;
         }
 
+        const { authenticationSection } = this.getValuesBySection(values);
+        const isPasswordlessWebAuthn = !account && authenticationSection?.authenticationPlugin.value ===
+            "authentication_webauthn"
+            && (authenticationSection.secondAuthenticationPlugin?.value ?? "None") === "None"
+            && (authenticationSection.thirdAuthenticationPlugin?.value ?? "None") === "None";
+        if (isPasswordlessWebAuthn) {
+            const initialPassword = await this.initialAuthenticationPasswordDialogRef.current?.show({
+                requestId: uuid(),
+                caption: "Initial WebAuthn Authentication Password",
+                description: [
+                    "This temporary password is required once to register the WebAuthn device.",
+                ],
+                passwordLabel: "Initial Password",
+                passwordRequired: true,
+                confirmPassword: true,
+                confirmPasswordLabel: "Confirm Initial Password",
+            });
+            if (initialPassword === undefined) {
+                return false;
+            }
+
+            authenticationSection.password.value = initialPassword;
+        }
+
         return account ? this.updateUser(values, account) : this.createUser(values);
     };
 
     private async confirmEmptyPassword(values: IDialogValues): Promise<boolean> {
         const { generalSection, authenticationSection } = this.getValuesBySection(values);
+        const plugin = authenticationSection?.authenticationPlugin.value?.trim();
         if (this.ignoreEmptyPasswordConfirmationForSession || !generalSection || !authenticationSection
+            || !plugin?.endsWith("_password")
             || authenticationSection.randomPassword.value
             || authenticationSection.password.value !== "") {
             return true;
@@ -3676,13 +3769,71 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             IUserAccountDialogGeneralSection | undefined;
         const authenticationSection = values.sections.get("authentication")?.values as
             IUserAccountDialogAuthenticationSection | undefined;
+        const advancedSection = values.sections.get("advanced")?.values as
+            IUserAccountDialogAdvancedSection | undefined;
         const tlsSection = values.sections.get("tls")?.values as
             IUserAccountDialogTlsSection | undefined;
         const resourceLimitsSection = values.sections.get("resourceLimits")?.values as
             IUserAccountDialogResourceLimitsSection | undefined;
 
-        return { generalSection, authenticationSection, tlsSection, resourceLimitsSection };
+        return { generalSection, authenticationSection, advancedSection, tlsSection, resourceLimitsSection };
     };
+
+    private authenticationFactorsFromValues(
+        authenticationSection: IUserAccountDialogAuthenticationSection, randomPassword: boolean, creating = false,
+    ): IAuthenticationFactor[] {
+        const plugin = (authenticationSection.authenticationPlugin.value ?? "").trim();
+        const password = authenticationSection.password.value ?? "";
+        const firstAuthenticationString = plugin === "authentication_webauthn"
+            ? undefined
+            : authenticationSection.authenticationString?.value?.trim();
+        const factors: IAuthenticationFactor[] = [{
+            plugin,
+            password: plugin === "authentication_webauthn"
+                ? creating ? password || null : null
+                : plugin.endsWith("_password") && !randomPassword ? creating ? password : password || null : null,
+            authenticationString: plugin.endsWith("_password")
+                ? null
+                : firstAuthenticationString === "" ? null : firstAuthenticationString ?? null,
+        }];
+
+        for (const [factorPlugin, factorAuthenticationString] of [
+            [authenticationSection.secondAuthenticationPlugin, authenticationSection.secondAuthenticationString],
+            [authenticationSection.thirdAuthenticationPlugin, authenticationSection.thirdAuthenticationString],
+        ]) {
+            const factorPluginName = factorPlugin?.value?.trim();
+            if (factorPluginName && factorPluginName !== "None") {
+                const authenticationString = factorPluginName === "authentication_webauthn"
+                    ? undefined
+                    : factorAuthenticationString?.value?.trim();
+                factors.push({
+                    plugin: factorPluginName,
+                    password: null,
+                    authenticationString: authenticationString === "" ? null : authenticationString ?? null,
+                });
+            }
+        }
+
+        return factors;
+    }
+
+    private authenticationFactorsChanged(
+        current: IUserAccountDialogAuthenticationSection,
+        original?: IUserAccountDialogAuthenticationSection,
+    ): boolean {
+        if (!original) {
+            return true;
+        }
+
+        return current.authenticationPlugin.value !== original.authenticationPlugin.value
+            || current.authenticationString?.value !== original.authenticationString?.value
+            || current.secondAuthenticationPlugin?.value !== original.secondAuthenticationPlugin?.value
+            || current.secondAuthenticationString?.value !== original.secondAuthenticationString?.value
+            || current.thirdAuthenticationPlugin?.value !== original.thirdAuthenticationPlugin?.value
+            || current.thirdAuthenticationString?.value !== original.thirdAuthenticationString?.value
+            || current.randomPassword.value !== original.randomPassword.value
+            || (current.password.value ?? "") !== "";
+    }
 
     private async createUser(values: IDialogValues): Promise<boolean> {
         const { backend } = this.props;
@@ -3690,18 +3841,17 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             return false;
         }
 
-        const { generalSection, authenticationSection, tlsSection, resourceLimitsSection } =
+        const { generalSection, authenticationSection, advancedSection, tlsSection, resourceLimitsSection } =
             this.getValuesBySection(values);
 
-        if (!generalSection || !authenticationSection || !tlsSection || !resourceLimitsSection) {
+        if (!generalSection || !authenticationSection || !advancedSection || !tlsSection || !resourceLimitsSection) {
             return false;
         }
 
         const user = (generalSection.userName.value ?? "").trim();
         const host = (generalSection.hostName.value ?? "").trim();
-        const plugin = (authenticationSection.authenticationPlugin.value ?? "").trim();
-        const password = authenticationSection.password.value ?? "";
         const randomPassword = authenticationSection.randomPassword.value ?? false;
+        const authenticationFactors = this.authenticationFactorsFromValues(authenticationSection, randomPassword, true);
         const lockAccount = generalSection.lockAccount.value ?? false;
         const comment = generalSection.comment.value ?? "";
         const tlsMode = tlsSection.tlsMode.value?.tlsMode ?? "None";
@@ -3717,22 +3867,34 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             maxUserConnections: resourceLimitsSection.maxUserConnections.value ?? 0,
         };
 
-        const passwordOptions = {
-            passwordExpire: authenticationSection.passwordExpire.value ?? false,
-            passwordLifetime: authenticationSection.passwordExpiration.value ?? 0,
-            passwordReuseHistory: authenticationSection.passwordHistory.value ?? 0,
-            passwordReuseInterval: authenticationSection.passwordReuseInterval.value ?? 0,
-            passwordRequireCurrent: authenticationSection.lockAccount.value ?? false,
-            failedLoginAttempts: authenticationSection.failedPasswordAttempts.value ?? 0,
-            passwordLockTime: authenticationSection.passwordLockTime.value ?? 0,
-        };
+        const hasPasswordAuthentication = authenticationFactors.some((factor) => {
+            return factor.plugin.endsWith("_password");
+        });
+        const passwordOptions = hasPasswordAuthentication
+            ? {
+                passwordExpire: authenticationSection.passwordExpire.value ?? false,
+                passwordLifetime: advancedSection.passwordExpiration.value ?? 0,
+                passwordReuseHistory: advancedSection.passwordHistory.value ?? 0,
+                passwordReuseInterval: advancedSection.passwordReuseInterval.value ?? 0,
+                passwordRequireCurrent: advancedSection.lockAccount.value ?? false,
+                failedLoginAttempts: advancedSection.failedPasswordAttempts.value ?? 0,
+                passwordLockTime: advancedSection.passwordLockTime.value ?? 0,
+            }
+            : {
+                passwordExpire: null,
+                passwordLifetime: null,
+                passwordReuseHistory: null,
+                passwordReuseInterval: null,
+                passwordRequireCurrent: null,
+                failedLoginAttempts: null,
+                passwordLockTime: null,
+            };
 
         const options: IMySQLUser = {
             user,
             host,
-            plugin,
+            authenticationFactors,
             passwordLastChanged: null,
-            authString: randomPassword ? null : password,
             randomPassword,
             ...tlsRequirements,
             ...resourceLimits,
@@ -3743,12 +3905,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
 
         try {
             const userInfo = await backend.createMySQLUser(options);
-            try {
-                await this.addUserAccountToGrid(user, host);
-            } catch (err) {
-                void ui.showErrorMessage("User account was created, but the account list could not be updated: " +
-                    convertErrorToString(err), {});
-            }
+            await this.refreshUserList();
             if (randomPassword && userInfo?.generatedPassword) {
                 this.showGeneratedPasswordDialog(userInfo.generatedPassword);
             }
@@ -3760,52 +3917,6 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
 
             return false;
         }
-    }
-
-    private async addUserAccountToGrid(user: string, host: string): Promise<void> {
-        const account = await this.loadUserAccountListItem(user, host);
-        if (!account) {
-            return;
-        }
-
-        this.state.rows.push(account);
-        await this.userAccountsGridRef.current?.setData([account], SetDataAction.Add);
-        this.setState({ rows: this.state.rows });
-    }
-
-    private async refreshEditedUserAccountRow(user: string, host: string): Promise<void> {
-        const account = await this.loadUserAccountListItem(user, host);
-        if (!account) {
-            return;
-        }
-
-        const row = this.editingAccountRow;
-        if (!row) {
-            return;
-        }
-
-        const rowData = row.getData() as IUserAccountsState["rows"][number];
-        const stateAccount = this.state.rows.find((item) => {
-            return item.user === rowData.user && item.host === rowData.host;
-        });
-        if (stateAccount) {
-            Object.assign(stateAccount, account);
-        }
-        Object.assign(rowData, account);
-        await row.update(account);
-    }
-
-    private async loadUserAccountListItem(user: string, host: string): Promise<IMySQLUserListItem | undefined> {
-        const { backend } = this.props;
-        if (!backend) {
-            return undefined;
-        }
-
-        const accounts = await backend.listMySQLUsers() ?? [];
-
-        return accounts.find((account) => {
-            return account.user === user && account.host === host;
-        });
     }
 
     private async showEditUserDialog(row: RowComponent, clone = false): Promise<void> {
@@ -3823,7 +3934,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                 return;
             }
 
-            const dialogValues = this.createDialogValuesFromUser(details);
+            const dialogValues = this.createDialogValuesFromUser(details, clone);
             if (clone) {
                 const { generalSection } = this.getValuesBySection(dialogValues);
                 if (generalSection) {
@@ -3834,12 +3945,10 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                 }
 
                 this.editingAccountDetails = undefined;
-                this.editingAccountRow = undefined;
                 this.setState({ editingAccount: null });
                 this.createUserDialogRef.current?.show(dialogValues, { title: "Clone User Account" });
             } else {
                 this.editingAccountDetails = details;
-                this.editingAccountRow = row;
                 this.setState({ editingAccount: { user, host, comment: details.comment } });
                 this.createUserDialogRef.current?.show(dialogValues, { title: "Edit User Account" });
             }
@@ -3914,15 +4023,14 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         const options: IMySQLUser = {
             user,
             host,
+            authenticationFactors: [],
             sslType: null,
             sslCipher: null,
             x509Issuer: null,
             x509Subject: null,
-            plugin: null,
             passwordExpire: null,
             passwordLastChanged: null,
             passwordLifetime: null,
-            authString: null,
             randomPassword: false,
             maxQuestions: null,
             maxUpdates: null,
@@ -4001,6 +4109,24 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         const password = authenticationSection.password.value;
         const passwordConfirmation = authenticationSection.passwordConfirmation.value;
 
+        const usedPlugins = new Set<string>();
+        for (const factorPlugin of [
+            ["authenticationPlugin", authenticationSection.authenticationPlugin],
+            ["secondAuthenticationPlugin", authenticationSection.secondAuthenticationPlugin],
+            ["thirdAuthenticationPlugin", authenticationSection.thirdAuthenticationPlugin],
+        ] as const) {
+            const [key, value] = factorPlugin;
+            const selectedPlugin = value?.value?.trim();
+            if (!selectedPlugin || selectedPlugin === "None") {
+                continue;
+            }
+
+            if (usedPlugins.has(selectedPlugin)) {
+                result.messages[key] = "Cannot use same method for more than one factor";
+            }
+            usedPlugins.add(selectedPlugin);
+        }
+
         if (closing) {
             if (!userName) {
                 result.messages.userName = "The user name must not be empty";
@@ -4014,7 +4140,8 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                 result.messages.authenticationPlugin = "Select an authentication plugin";
             }
 
-            if (!authenticationSection.randomPassword.value && password && passwordConfirmation !== undefined
+            if (plugin?.endsWith("_password") && !authenticationSection.randomPassword.value
+                && password && passwordConfirmation !== undefined
                 && password !== passwordConfirmation) {
                 result.messages.passwordConfirmation = "The password confirmation does not match";
             }
@@ -4030,10 +4157,10 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             return false;
         }
 
-        const { generalSection, authenticationSection, tlsSection, resourceLimitsSection } =
+        const { generalSection, authenticationSection, advancedSection, tlsSection, resourceLimitsSection } =
             this.getValuesBySection(values);
 
-        if (!generalSection || !authenticationSection || !tlsSection || !resourceLimitsSection) {
+        if (!generalSection || !authenticationSection || !advancedSection || !tlsSection || !resourceLimitsSection) {
             return false;
         }
 
@@ -4046,8 +4173,6 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
 
         const user = account.user;
         const host = account.host;
-        const plugin = (authenticationSection.authenticationPlugin.value ?? "").trim();
-        const password = authenticationSection.password.value;
         const randomPassword = authenticationSection.randomPassword.value ?? false;
         const lockAccount = generalSection.lockAccount.value ?? false;
         const comment = generalSection.comment.value ?? "";
@@ -4063,6 +4188,12 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             ? this.createDialogValuesFromUser(this.editingAccountDetails)
             : undefined;
         const original = originalValues ? this.getValuesBySection(originalValues) : undefined;
+        const authenticationChanged = this.authenticationFactorsChanged(
+            authenticationSection, original?.authenticationSection,
+        );
+        const authenticationFactors = authenticationChanged
+            ? this.authenticationFactorsFromValues(authenticationSection, randomPassword)
+            : [];
         const updateValue = <T,>(value: T, originalValue: T | undefined): T | null => {
             return original && value === originalValue ? null : value;
         };
@@ -4100,43 +4231,39 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         const passwordExpiryChanged = !original
             || (authenticationSection.passwordExpire.value ?? false)
                 !== original.authenticationSection?.passwordExpire.value
-            || (authenticationSection.passwordExpiration.value ?? 0)
-                !== original.authenticationSection.passwordExpiration.value;
+            || (advancedSection.passwordExpiration.value ?? 0)
+                !== original.advancedSection!.passwordExpiration.value;
         const passwordOptions = {
             passwordExpire: passwordExpiryChanged ? authenticationSection.passwordExpire.value ?? false : null,
-            passwordLifetime: passwordExpiryChanged ? authenticationSection.passwordExpiration.value ?? 0 : null,
+            passwordLifetime: passwordExpiryChanged ? advancedSection.passwordExpiration.value ?? 0 : null,
             passwordReuseHistory: updateValue(
-                authenticationSection.passwordHistory.value ?? 0,
-                original?.authenticationSection?.passwordHistory.value,
+                advancedSection.passwordHistory.value ?? 0,
+                original?.advancedSection?.passwordHistory.value,
             ),
             passwordReuseInterval: updateValue(
-                authenticationSection.passwordReuseInterval.value ?? 0,
-                original?.authenticationSection?.passwordReuseInterval.value,
+                advancedSection.passwordReuseInterval.value ?? 0,
+                original?.advancedSection?.passwordReuseInterval.value,
             ),
             passwordRequireCurrent: updateValue(
-                authenticationSection.lockAccount.value ?? false,
-                original?.authenticationSection?.lockAccount.value,
+                advancedSection.lockAccount.value ?? false,
+                original?.advancedSection?.lockAccount.value,
             ),
             failedLoginAttempts: updateValue(
-                authenticationSection.failedPasswordAttempts.value ?? 0,
-                original?.authenticationSection?.failedPasswordAttempts.value,
+                advancedSection.failedPasswordAttempts.value ?? 0,
+                original?.advancedSection?.failedPasswordAttempts.value,
             ),
             passwordLockTime: updateValue(
-                authenticationSection.passwordLockTime.value ?? 0,
-                original?.authenticationSection?.passwordLockTime.value,
+                advancedSection.passwordLockTime.value ?? 0,
+                original?.advancedSection?.passwordLockTime.value,
             ),
         };
-
-        const authString = randomPassword ? null : (password && password.length > 0 ? password : null);
-        const passwordChanged = randomPassword || authString !== null;
 
         const options: IMySQLUser = {
             user,
             host,
-            plugin: passwordChanged || !original ? plugin : null,
+            authenticationFactors,
             passwordLastChanged: null,
-            authString,
-            randomPassword: passwordChanged ? randomPassword : null,
+            randomPassword: authenticationChanged && randomPassword ? true : null,
             ...updatedTlsRequirements,
             ...resourceLimits,
             ...passwordOptions,
@@ -4150,14 +4277,8 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
 
         try {
             const userInfo = await backend.updateMySQLUser(options);
-            try {
-                await this.refreshEditedUserAccountRow(user, host);
-            } catch (err) {
-                void ui.showErrorMessage("User account was updated, but the account list could not be updated: " +
-                    convertErrorToString(err), {});
-            }
+            await this.refreshUserList();
             this.editingAccountDetails = undefined;
-            this.editingAccountRow = undefined;
             this.setState({ editingAccount: null });
             if (randomPassword && userInfo?.generatedPassword) {
                 this.showGeneratedPasswordDialog(userInfo.generatedPassword);
@@ -4177,32 +4298,31 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         const current = this.getValuesBySection(values);
         const baseline = this.getValuesBySection(originalValues);
 
-        if (!current.generalSection || !current.authenticationSection || !current.tlsSection
+        if (!current.generalSection || !current.authenticationSection || !current.advancedSection || !current.tlsSection
             || !current.resourceLimitsSection || !baseline.generalSection || !baseline.authenticationSection
-            || !baseline.tlsSection || !baseline.resourceLimitsSection) {
+            || !baseline.advancedSection || !baseline.tlsSection || !baseline.resourceLimitsSection) {
             return true;
         }
 
-        const { generalSection, authenticationSection, tlsSection, resourceLimitsSection } = current;
+        const { generalSection, authenticationSection, advancedSection, tlsSection, resourceLimitsSection } = current;
         const {
             generalSection: originalGeneral,
             authenticationSection: originalAuthentication,
+            advancedSection: originalAdvanced,
             tlsSection: originalTls,
             resourceLimitsSection: originalResourceLimits,
         } = baseline;
 
         return generalSection.lockAccount.value !== originalGeneral.lockAccount.value
             || generalSection.comment.value !== originalGeneral.comment.value
-            || authenticationSection.randomPassword.value !== originalAuthentication.randomPassword.value
-            || (authenticationSection.password.value ?? "") !== ""
+            || this.authenticationFactorsChanged(authenticationSection, originalAuthentication)
             || authenticationSection.passwordExpire.value !== originalAuthentication.passwordExpire.value
-            || authenticationSection.passwordExpiration.value !== originalAuthentication.passwordExpiration.value
-            || authenticationSection.passwordHistory.value !== originalAuthentication.passwordHistory.value
-            || authenticationSection.passwordReuseInterval.value !== originalAuthentication.passwordReuseInterval.value
-            || authenticationSection.lockAccount.value !== originalAuthentication.lockAccount.value
-            || authenticationSection.failedPasswordAttempts.value
-                !== originalAuthentication.failedPasswordAttempts.value
-            || authenticationSection.passwordLockTime.value !== originalAuthentication.passwordLockTime.value
+            || advancedSection.passwordExpiration.value !== originalAdvanced.passwordExpiration.value
+            || advancedSection.passwordHistory.value !== originalAdvanced.passwordHistory.value
+            || advancedSection.passwordReuseInterval.value !== originalAdvanced.passwordReuseInterval.value
+            || advancedSection.lockAccount.value !== originalAdvanced.lockAccount.value
+            || advancedSection.failedPasswordAttempts.value !== originalAdvanced.failedPasswordAttempts.value
+            || advancedSection.passwordLockTime.value !== originalAdvanced.passwordLockTime.value
             || tlsSection.tlsMode.value?.tlsMode !== originalTls.tlsMode.value?.tlsMode
             || tlsSection.tlsCipher.value !== originalTls.tlsCipher.value
             || tlsSection.tlsIssuer.value !== originalTls.tlsIssuer.value
@@ -4216,6 +4336,21 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
 
     private handleRefresh = (): void => {
         void this.loadUsers();
+    };
+
+    private refreshUserList = async (): Promise<void> => {
+        const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
+
+        try {
+            const rows = await backend.listMySQLUsers() ?? [];
+            this.setState({ rows: [...rows] });
+        } catch (err) {
+            this.setState({ rows: [] });
+            void ui.showErrorMessage("Cannot display user accounts: " + convertErrorToString(err), {});
+        }
     };
 
     private loadUsers = async (): Promise<void> => {
@@ -4232,11 +4367,9 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             // These requests share the SQL editor session and must not run concurrently.
             const authenticationPlugins = await this.loadAuthenticationPlugins();
             const authenticationDefaults = await this.loadCreateUserDefaults();
-            const authenticationVariables = await this.loadAuthenticationServerVariables();
             this.setState({
                 authenticationPlugins,
                 authenticationDefaults,
-                ...authenticationVariables,
             });
 
             const partialRevokesEnabled = rows.some((row) => {
@@ -4250,12 +4383,6 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             this.setState({
                 rows: [],
                 authenticationDefaults: undefined,
-                authenticationPolicy: undefined,
-                defaultAuthenticationPlugin: undefined,
-                passwordValidationInstalled: undefined,
-                passwordValidationPolicy: undefined,
-                passwordValidationLength: undefined,
-                requireSecureTransport: undefined,
                 partialRevokesEnabled: false,
                 authenticationPlugins: [],
             });
@@ -4289,72 +4416,6 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             return undefined;
         }
     };
-
-    private loadAuthenticationServerVariables = async (): Promise<IAuthenticationServerVariables> => {
-        const { backend } = this.props;
-        if (!backend) {
-            return {};
-        }
-
-        try {
-            const result = await backend.execute(`
-SHOW VARIABLES
-WHERE Variable_name IN (
-    'authentication_policy',
-    'default_authentication_plugin',
-    'require_secure_transport'
-)
-   OR Variable_name LIKE 'validate_password.%'
-   OR Variable_name LIKE 'validate_password_%'`);
-            const variables = new Map<string, string>();
-            result?.rows?.forEach((row) => {
-                if (Array.isArray(row) && row.length >= 2) {
-                    variables.set(String(row[0]), String(row[1]));
-                }
-            });
-            const passwordValidationPolicy = variables.get("validate_password.policy")
-                ?? variables.get("validate_password_policy");
-            const passwordValidationLengthValue = variables.get("validate_password.length")
-                ?? variables.get("validate_password_length");
-            const passwordValidationLength = passwordValidationLengthValue === undefined
-                ? undefined
-                : Number(passwordValidationLengthValue);
-
-            return {
-                authenticationPolicy: variables.get("authentication_policy"),
-                defaultAuthenticationPlugin: variables.get("default_authentication_plugin"),
-                passwordValidationInstalled: [...variables.keys()].some((name) => {
-                    return name.startsWith("validate_password.");
-                }) || [...variables.keys()].some((name) => {
-                    return name.startsWith("validate_password_");
-                }),
-                passwordValidationPolicy: passwordValidationPolicy?.toLocaleUpperCase(),
-                passwordValidationLength: passwordValidationLength !== undefined
-                    && Number.isFinite(passwordValidationLength)
-                    ? passwordValidationLength
-                    : undefined,
-                requireSecureTransport: this.mysqlBooleanVariable(variables.get("require_secure_transport")),
-            };
-        } catch {
-            return {};
-        }
-    };
-
-    private mysqlBooleanVariable(value: string | undefined): boolean | undefined {
-        if (value === undefined) {
-            return undefined;
-        }
-
-        const normalized = value.toLocaleUpperCase();
-        if (normalized === "ON") {
-            return true;
-        }
-        if (normalized === "OFF") {
-            return false;
-        }
-
-        return undefined;
-    }
 
     private catalogPrivilegeSets(catalogs: IObjectPrivilegeCatalogs): Record<ObjectPrivilegeTargetKind, Set<string>> {
         return {
@@ -4466,45 +4527,92 @@ WHERE Variable_name IN (
         });
     }
 
-    private createDialogValuesFromUser = (details: IMySQLUser): IDialogValues => {
-        const authenticationPlugins = details.plugin
-            ? [...this.state.authenticationPlugins, details.plugin]
-            : this.state.authenticationPlugins;
+    private createDialogValuesFromUser = (details: IMySQLUser, creating = false): IDialogValues => {
+        const factorPlugins = details.authenticationFactors.map((factor) => {
+            return factor.plugin;
+        });
+        const selectablePlugins = creating
+            ? this.state.authenticationPlugins
+            : this.state.authenticationPlugins.filter((plugin) => {
+                return plugin !== "mysql_no_login";
+            });
+        const authenticationPlugins = [...selectablePlugins, ...factorPlugins];
         const values = CreateUserDialog.createDialogValues(authenticationPlugins);
-        const { generalSection, authenticationSection, tlsSection, resourceLimitsSection } =
+        const { generalSection, authenticationSection, advancedSection, tlsSection, resourceLimitsSection } =
             this.getValuesBySection(values);
 
-        if (!generalSection || !authenticationSection || !tlsSection || !resourceLimitsSection) {
+        if (!generalSection || !authenticationSection || !advancedSection || !tlsSection || !resourceLimitsSection) {
             return values;
+        }
+
+        const existingPlugins = factorPlugins;
+        if (authenticationSection.authenticationPlugin.type === "choice") {
+            authenticationSection.authenticationPlugin.choices = [
+                ...new Set([...authenticationSection.authenticationPlugin.choices ?? [], ...existingPlugins]),
+            ];
         }
 
         generalSection.userName.value = details.user;
         generalSection.hostName.value = details.host;
-        authenticationSection.authenticationPlugin.value = details.plugin ?? "";
+        const authenticationFactors = details.authenticationFactors;
+        if (authenticationFactors[0] && authenticationSection.authenticationString) {
+            authenticationSection.authenticationPlugin.value = authenticationFactors[0].plugin;
+            authenticationSection.authenticationString.value = authenticationFactors[0]?.authenticationString ?? "";
+        }
+        CreateUserDialog.updateFactorInputs(
+            "first", authenticationSection.authenticationPlugin.value ?? "", undefined, values,
+        );
+        if (authenticationFactors.length > 1) {
+            CreateUserDialog.enableMfa(values);
+            const mfaAuthenticationSection = this.getValuesBySection(values).authenticationSection;
+            if (mfaAuthenticationSection) {
+                mfaAuthenticationSection.authenticationPlugin.value = authenticationFactors[0].plugin;
+                if (mfaAuthenticationSection.secondAuthenticationPlugin) {
+                    mfaAuthenticationSection.secondAuthenticationPlugin.value = authenticationFactors[1].plugin;
+                    if (mfaAuthenticationSection.secondAuthenticationString) {
+                        mfaAuthenticationSection.secondAuthenticationString.value =
+                            authenticationFactors[1].authenticationString ?? "";
+                    }
+                    CreateUserDialog.updateFactorInputs("second", authenticationFactors[1].plugin, undefined, values);
+                }
+                if (mfaAuthenticationSection.thirdAuthenticationPlugin) {
+                    const thirdFactorPlugin = authenticationFactors.length === 3
+                        ? authenticationFactors[2].plugin
+                        : "None";
+                    mfaAuthenticationSection.thirdAuthenticationPlugin.value = thirdFactorPlugin;
+                    if (mfaAuthenticationSection.thirdAuthenticationString) {
+                        mfaAuthenticationSection.thirdAuthenticationString.value =
+                            authenticationFactors[2]?.authenticationString ?? "";
+                    }
+                    CreateUserDialog.updateFactorInputs("third", thirdFactorPlugin, undefined, values);
+                }
+            }
+        }
         generalSection.lockAccount.value = details.accountLocked ?? false;
         generalSection.comment.value = details.comment ?? "";
 
-        const setValueOption = (key: string, option: CommonDialogValueOption): void => {
-            const value = values.sections.get("general")?.values[key];
+        const setValueOptionForSection = (valuesToUpdate: IDialogValues, section: string, key: string,
+            option: CommonDialogValueOption): void => {
+            const value = valuesToUpdate.sections.get(section)?.values[key];
             if (value) {
                 value.options = [...(value.options ?? []), option];
             }
         };
 
+        const setValueOption = (key: string, option: CommonDialogValueOption): void => {
+            setValueOptionForSection(values, "general", key, option);
+        };
+
         setValueOption("userName", CommonDialogValueOption.ReadOnly);
         setValueOption("hostName", CommonDialogValueOption.ReadOnly);
-        authenticationSection.authenticationPlugin.options = [
-            ...(authenticationSection.authenticationPlugin.options ?? []),
-            CommonDialogValueOption.Disabled,
-        ];
 
-        authenticationSection.passwordExpiration.value = details.passwordLifetime ?? 0;
+        advancedSection.passwordExpiration.value = details.passwordLifetime ?? 0;
         authenticationSection.passwordExpire.value = details.passwordExpire ?? false;
-        authenticationSection.passwordHistory.value = details.passwordReuseHistory ?? 0;
-        authenticationSection.passwordReuseInterval.value = details.passwordReuseInterval ?? 0;
-        authenticationSection.lockAccount.value = details.passwordRequireCurrent ?? false;
-        authenticationSection.failedPasswordAttempts.value = details.failedLoginAttempts ?? 0;
-        authenticationSection.passwordLockTime.value = details.passwordLockTime ?? 0;
+        advancedSection.passwordHistory.value = details.passwordReuseHistory ?? 0;
+        advancedSection.passwordReuseInterval.value = details.passwordReuseInterval ?? 0;
+        advancedSection.lockAccount.value = details.passwordRequireCurrent ?? false;
+        advancedSection.failedPasswordAttempts.value = details.failedLoginAttempts ?? 0;
+        advancedSection.passwordLockTime.value = details.passwordLockTime ?? 0;
 
         const hasCertificateRequirement = details.sslType === "X509"
             || (details.x509Issuer ?? "").trim() !== ""
@@ -4771,6 +4879,21 @@ WHERE Variable_name IN (
         const data = cell.getRow().getData() as IUserRow;
 
         return data.host;
+    };
+
+    private authenticationPluginFormatter = (cell: CellComponent): HTMLElement | string => {
+        type IUserRow = IUserAccountsState["rows"][number];
+        const data = cell.getRow().getData() as IUserRow;
+        const plugin = data.authenticationPlugins[0] ?? "";
+        const additionalFactors = data.authenticationPlugins.length - 1;
+
+        if (additionalFactors === 0) {
+            return plugin;
+        }
+
+        return this.renderIntoHost(
+            <span data-tooltip={data.authenticationPlugins.join("\n")}>{`${plugin} +${additionalFactors}`}</span>,
+        );
     };
 
     private sslFormatter = (cell: CellComponent): HTMLElement | string => {

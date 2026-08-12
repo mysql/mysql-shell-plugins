@@ -24,13 +24,14 @@
  */
 
 import { webSession, type ILoginCredentials } from "../WebSession.js";
+import { ui } from "../../app-logic/UILayer.js";
 import { Settings } from "../Settings/Settings.js";
 import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
 import {
     ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest, IStatusData,
     IShellDbConnection, ISqlEditorHistoryEntry, IVisualExplainData, IMySQLUserListItem,
     IMySQLUser, IMySQLGlobalPrivilegeCatalogItem, IMySQLDefaultUserOptions, IMySQLObjectPrivilegeSchemaTarget,
-    IObjectPrivilegeTarget, IUserInfo, IErrorLogFilePage,
+    IObjectPrivilegeTarget, IPasswordResetInfo, IUserInfo, IErrorLogFilePage,
 } from "../../communication/ProtocolGui.js";
 import { defaultVisualExplainOptions, type IVisualExplainOptions } from "../../script-execution/index.js";
 import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
@@ -523,6 +524,40 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
         return undefined;
     }
 
+    public async getPasswordResetInfo(user?: string, host?: string,
+        passwordExpired?: boolean): Promise<IPasswordResetInfo | undefined> {
+        const moduleSessionId = this.moduleSessionId;
+        if (!moduleSessionId) {
+            return undefined;
+        }
+
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiMysqlGetPasswordResetInfo,
+            parameters: { args: { moduleSessionId, user, host, passwordExpired } },
+        });
+
+        return response.result;
+    }
+
+    public async resetPassword(password: string, currentPassword?: string, retainCurrentPassword = false,
+        passwordExpired = false, user?: string, host?: string): Promise<void> {
+        if (!this.moduleSessionId) {
+            throw new Error("No SQL editor session is open.");
+        }
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiSqlEditorResetPassword,
+            parameters: { args: {
+                moduleSessionId: this.moduleSessionId, password, currentPassword, retainCurrentPassword,
+                passwordExpired, user, host,
+            } },
+        });
+    }
+
+    public executeServiceWithActiveRoles(sql: string, params?: unknown[]):
+    Promise<IDbEditorResultSetData | undefined> {
+        return super.executeService(sql, params, undefined, undefined, undefined, true);
+    }
+
     /**
      * Executes the given SQL.
      *
@@ -669,9 +704,27 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
         const moduleSessionId = this.moduleSessionId;
 
         if (moduleSessionId) {
-            await MessageScheduler.get.sendRequest({
+            await this.interactive.sendInteractiveRequest({
                 requestType: ShellAPIGui.GuiSqlEditorReconnect,
                 parameters: { args: { moduleSessionId } },
+                onData: (response) => {
+                    const message = (response as { result?: unknown; }).result;
+                    const { result, attributes } = (
+                        typeof message === "object" && message !== null && "attributes" in message
+                            ? message
+                            : response
+                    ) as {
+                        result?: unknown;
+                        attributes?: { auth?: unknown; };
+                    };
+                    if (typeof result === "string" && attributes?.auth === "authentication_webauthn") {
+                        void ui.showInformationMessage(result, {});
+
+                        return Promise.resolve(true);
+                    }
+
+                    return Promise.resolve(false);
+                },
             });
         }
     }

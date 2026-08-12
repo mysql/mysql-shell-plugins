@@ -93,6 +93,12 @@ interface IHistoryToast extends INotificationToast {
 interface ITimedToast extends INotificationToast {
     /** Used to auto hide the toast. */
     timer?: ReturnType<typeof setTimeout>;
+
+    /** The remaining time before automatically hiding the toast. */
+    remaining?: number;
+
+    /** The action to take when the timer expires. */
+    onTimeout?: () => void;
 }
 
 export interface INotificationCenterProps extends IComponentProperties {
@@ -132,9 +138,12 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
     static #nextToastId = 0;
 
     #autoHideTimeout = 15000; // 15 seconds to hide any unhandled message.
+    #idleDelay = 1000;
     #containerRef = createRef<HTMLDivElement>();
 
     #statusBarItem?: IStatusBarItem;
+    #idleTimer?: ReturnType<typeof setTimeout>;
+    #isIdle = false;
 
     public constructor(props: INotificationCenterProps) {
         super(props);
@@ -148,6 +157,13 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
 
     public override componentDidMount(): void {
         document.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("visibilitychange", this.handleVisibilityChange);
+        window.addEventListener("blur", this.handleWindowInactive);
+        window.addEventListener("focus", this.handleActivity);
+        window.addEventListener("keydown", this.handleActivity);
+        window.addEventListener("pointerdown", this.handleActivity);
+        window.addEventListener("mousemove", this.handleActivity);
+        window.addEventListener("touchstart", this.handleActivity);
         requisitions.register("showInfo", this.showInfo);
         requisitions.register("showWarning", this.showWarning);
         requisitions.register("showError", this.showError);
@@ -165,12 +181,25 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
                 this.updateStatusBarItem();
             }
         }
+
+        this.handleActivity();
     }
 
     public override componentWillUnmount(): void {
         this.#statusBarItem?.dispose();
 
         document.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("visibilitychange", this.handleVisibilityChange);
+        window.removeEventListener("blur", this.handleWindowInactive);
+        window.removeEventListener("focus", this.handleActivity);
+        window.removeEventListener("keydown", this.handleActivity);
+        window.removeEventListener("pointerdown", this.handleActivity);
+        window.removeEventListener("mousemove", this.handleActivity);
+        window.removeEventListener("touchstart", this.handleActivity);
+        clearTimeout(this.#idleTimer);
+        this.state.mainList.forEach((toast) => {
+            clearTimeout(toast.timer);
+        });
         if (!appParameters.hideStatusBar) {
             requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
         }
@@ -455,16 +484,19 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
             };
 
             // Toasts with items or warnings and errors have a longer auto hide timeout.
-            if (details.type !== NotificationType.Error && details.type !== NotificationType.Warning
-                && details.items === undefined) {
-                timedToast.timer = setTimeout(() => {
-                    this.closeToast(timedToast, undefined);
-                }, details.timeout ?? 5000);
-            } else {
-                timedToast.timer = setTimeout(() => {
-                    this.hideToast(timedToast);
-                }, this.#autoHideTimeout);
-            }
+            this.startToastTimer(
+                timedToast,
+                details.type !== NotificationType.Error && details.type !== NotificationType.Warning
+                    && details.items === undefined ? details.timeout ?? 5000 : this.#autoHideTimeout,
+                () => {
+                    if (details.type !== NotificationType.Error && details.type !== NotificationType.Warning
+                        && details.items === undefined) {
+                        this.closeToast(timedToast, undefined);
+                    } else {
+                        this.hideToast(timedToast);
+                    }
+                },
+            );
 
             mainList.unshift(timedToast);
             if (mainList.length > 3) {
@@ -531,6 +563,54 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
         });
 
         this.forceUpdate();
+    }
+
+    private handleActivity = (): void => {
+        this.#isIdle = false;
+        clearTimeout(this.#idleTimer);
+        this.startPendingToastTimers();
+        this.#idleTimer = setTimeout(() => {
+            this.#isIdle = true;
+        }, this.#idleDelay);
+    };
+
+    private handleWindowInactive = (): void => {
+        clearTimeout(this.#idleTimer);
+        this.#isIdle = true;
+    };
+
+    private handleVisibilityChange = (): void => {
+        if (document.hidden) {
+            this.handleWindowInactive();
+        } else {
+            this.handleActivity();
+        }
+    };
+
+    private startToastTimer(toast: ITimedToast, timeout: number, onTimeout: () => void): void {
+        toast.remaining = timeout;
+        toast.onTimeout = onTimeout;
+
+        if (!this.#isIdle) {
+            this.beginToastTimer(toast);
+        }
+    }
+
+    private startPendingToastTimers(): void {
+        this.state.mainList.forEach((toast) => {
+            this.beginToastTimer(toast);
+        });
+    }
+
+    private beginToastTimer(toast: ITimedToast): void {
+        if (toast.timer || toast.remaining === undefined || toast.onTimeout === undefined) {
+            return;
+        }
+
+        toast.timer = setTimeout(() => {
+            toast.timer = undefined;
+            toast.onTimeout?.();
+        }, toast.remaining);
     }
 
     /**

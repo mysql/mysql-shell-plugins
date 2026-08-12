@@ -55,6 +55,10 @@ import {
 const dataModelChanged = vi.fn();
 const openConnectionCredentials: Array<ILoginCredentials | undefined> = [];
 let promptForPassword = false;
+let sendWebauthnGestureMessage = false;
+
+const webauthnGestureMessage =
+    "Please insert FIDO device and perform gesture action for authentication to complete.";
 
 mockClassMethods(ShellInterfaceSqlEditor, {
     startSession: vi.fn(),
@@ -72,6 +76,14 @@ mockClassMethods(ShellInterfaceSqlEditor, {
                     prompt: "Please provide the password for 'root@localhost:3306'",
                     type: "password",
                 } as IShellPasswordFeedbackRequest,
+                requestState: { type: "success", msg: "" },
+            }, requestId!);
+        }
+
+        if (sendWebauthnGestureMessage) {
+            await callback?.({
+                result: webauthnGestureMessage,
+                attributes: { auth: "authentication_webauthn" },
                 requestState: { type: "success", msg: "" },
             }, requestId!);
         }
@@ -231,6 +243,7 @@ describe("ConnectionDataModel", () => {
         dataModelChanged.mockClear();
         openConnectionCredentials.length = 0;
         promptForPassword = false;
+        sendWebauthnGestureMessage = false;
     });
 
     it("Connection handling", async () => {
@@ -460,6 +473,21 @@ describe("ConnectionDataModel", () => {
         await roots[0].refresh?.();
 
         checkNoUiWarningsOrErrors();
+    });
+
+    it("shows WebAuthn authentication messages as a toast", async () => {
+        const showInformationMessage = vi.spyOn(uiLayerMock, "showInformationMessage");
+        cdmMockState.haveMockConnectionResponse = true;
+        await dataModel.reloadConnections();
+        const connection = dataModel.roots.find((entry) => {
+            return entry.type === CdmEntityType.Connection;
+        });
+
+        await connection?.close();
+        sendWebauthnGestureMessage = true;
+        await connection?.refresh?.();
+
+        expect(showInformationMessage).toHaveBeenCalledWith(webauthnGestureMessage, {});
     });
 
 });

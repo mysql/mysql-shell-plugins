@@ -61,7 +61,7 @@ export const isClientConnectionError = (error: unknown): boolean => {
         if (current instanceof ResponseError) {
             const code = current.info.requestState.code;
 
-            return code !== undefined && code >= 2000 && code < 3000;
+            return code !== undefined && code >= 2000 && code < 3000 && code !== 2059;
         }
 
         current = current instanceof Error ? current.cause : undefined;

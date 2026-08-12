@@ -23,12 +23,28 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import type { IDbEditorResultSetData } from "../../../../communication/ProtocolGui.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ShellInteractiveInterface } from "../../../../supplement/ShellInterface/ShellInteractiveInterface.js";
+import { webSession } from "../../../../supplement/WebSession.js";
+import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
+
+class TestBackend extends ShellInterfaceSqlEditor {
+    public setModuleSession(sessionId: string): void {
+        this.moduleSessionLookupId = sessionId;
+        webSession.setModuleSessionId(sessionId, sessionId);
+    }
+}
 
 describe("ShellInterfaceSqlEditor Tests", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        webSession.setModuleSessionId("reconnect-test");
+    });
+
     it("caches performance schema availability on the backend instance", async () => {
         class TestBackend extends ShellInterfaceSqlEditor {
             public calls: string[] = [];
@@ -93,5 +109,29 @@ describe("ShellInterfaceSqlEditor Tests", () => {
         expect(await testBackend.isPartialRevokesEnabled()).toBe(true);
         expect(await testBackend.isPartialRevokesEnabled()).toBe(true);
         expect(testBackend.calls).toEqual(["SELECT @@GLOBAL.partial_revokes"]);
+    });
+
+    it("shows WebAuthn messages received while reconnecting", async () => {
+        registerUiLayer(uiLayerMock);
+        const interactiveSpy = vi.spyOn(ShellInteractiveInterface.prototype, "sendInteractiveRequest")
+            .mockImplementation(async (details) => {
+                const onData = details.onData as unknown as (data: unknown, requestId: string) => Promise<boolean>;
+                await onData({
+                    result: "Please perform the gesture action on your authenticator.",
+                    attributes: { auth: "authentication_webauthn" },
+                }, "request-id");
+
+                return [] as never;
+            });
+        const editor = new TestBackend();
+        editor.setModuleSession("reconnect-test");
+
+        await editor.reconnect();
+
+        expect(interactiveSpy).toHaveBeenCalledOnce();
+        // eslint-disable-next-line @typescript-eslint/unbound-method -- The mock is invoked by its owning UI layer.
+        expect(vi.mocked(uiLayerMock.showInformationMessage)).toHaveBeenCalledWith(
+            "Please perform the gesture action on your authenticator.", {},
+        );
     });
 });

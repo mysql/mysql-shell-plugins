@@ -31,7 +31,7 @@
 
 .msg.dialog.valueEditDialog.autoMinWidth {
     min-width: auto;
-    width: auto;
+    width: fit-content;
 }
 
 .msg.dialog.valueEditDialog.autoResize {
@@ -160,11 +160,106 @@
 }
 
 .msg.dialog.valueEditDialog .choiceWithDescription > .choiceDescription {
-    margin-left: auto;
+    flex: 1 1 auto;
+    margin-left: 0;
     color: var(--descriptionForeground);
     font-family: var(--msg-monospace-font-family);
     font-size: 0.85em;
+    text-align: center;
     white-space: nowrap;
+}
+
+.msg.dialog.valueEditDialog .choiceWithDescription > .connectionMethodDiagram strong {
+    font-family: var(--msg-standard-font-family);
+    font-weight: 600;
+}
+
+.msg.dialog.valueEditDialog .connectionMethodNode {
+    display: inline-block;
+    position: relative;
+}
+
+.msg.dialog.valueEditDialog .connectionMethodNode:hover::before {
+    position: absolute;
+    bottom: calc(100% + 0.4em);
+    left: 50%;
+    content: attr(data-endpoint);
+    color: var(--descriptionForeground);
+    font-family: var(--msg-standard-font-family);
+    font-size: 0.75em;
+    font-weight: normal;
+    line-height: 1;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+.msg.dialog.valueEditDialog .connectionMethodDiagram:has(.connectionMethodNode[data-endpoint]:hover)
+    .connectionMethodProtocol {
+    visibility: hidden;
+}
+
+.msg.dialog.valueEditDialog .connectionMethodLink {
+    display: inline-block;
+    position: relative;
+    padding-top: 1em;
+}
+
+.msg.dialog.valueEditDialog .connectionMethodArrow {
+    display: inline-block;
+    position: relative;
+    width: 5em;
+    height: 1em;
+    vertical-align: middle;
+}
+
+.msg.dialog.valueEditDialog .connectionMethodArrow::before {
+    position: absolute;
+    top: 50%;
+    right: 0.55em;
+    left: 0;
+    border-top: 1px solid currentColor;
+    content: "";
+}
+
+.msg.dialog.valueEditDialog .connectionMethodArrow.network::before {
+    border-top-style: dashed;
+}
+
+.msg.dialog.valueEditDialog .connectionMethodArrow::after {
+    position: absolute;
+    top: calc(50% - 0.3em);
+    right: 0;
+    border-top: 0.3em solid transparent;
+    border-bottom: 0.3em solid transparent;
+    border-left: 0.55em solid currentColor;
+    content: "";
+}
+
+.msg.dialog.valueEditDialog .connectionMethodProtocol {
+    position: absolute;
+    top: 0.55em;
+    left: 50%;
+    font-family: var(--msg-standard-font-family);
+    font-size: 0.75em;
+    line-height: 1;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+.msg.dialog.valueEditDialog .choiceWithDescription > .authenticationFactorDescription {
+    margin-left: 0;
+    min-width: 0;
+    font-family: inherit;
+    line-height: 1.3;
+    text-align: left;
+    white-space: pre-line;
+}
+
+.msg.dialog.valueEditDialog #kerberosClientMode {
+    flex: 0 1 auto;
+    width: 260px;
+    min-width: 260px;
+    max-width: 260px;
 }
 
 .msg.valueEditDialog textarea.valueEditor {
@@ -197,6 +292,10 @@
     text-wrap: wrap;
     display: inline-block;
     color: var(--descriptionForeground);
+}
+
+.msg.dialog.valueEditDialog .gridCell .cellDescription.learnMore {
+    color: var(--textLink-foreground);
 }
 
 .msg.dialog.valueEditDialog .gridCell .message {

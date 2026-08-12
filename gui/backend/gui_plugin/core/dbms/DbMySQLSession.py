@@ -60,9 +60,7 @@ from gui_plugin.core.dbms.DbSessionTasks import DbExecuteTask, check_supported_t
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.lib.OciUtils import BastionSessionRegistry
 
-_MYSQL_INACTIVITY_TIMEOUT_ERROR = 4031
-_MYSQL_SERVER_LOST_ERROR = 2013
-
+from mysqlsh import mysql
 
 @DbSessionFactory.register_session("MySQL")
 class DbMysqlSession(DbSession):
@@ -99,6 +97,7 @@ class DbMysqlSession(DbSession):
         prompt_cb=None,
         message_callback=None,
         session=None,
+        passwords_rejected_cb=None,
     ):
         super().__init__(
             id,
@@ -114,7 +113,10 @@ class DbMysqlSession(DbSession):
         self._failed_cb = on_failed_cb
         self.session = session
         self._message_callback = message_callback
+        self._passwords_rejected_cb = passwords_rejected_cb
         self._shell_ctx = None
+        self._webauthn_error = None
+        self._allow_prompts = True
 
         # When a Bastion Session is just created in OCI, it may get into
         # ACTIVE state and even so reject connections with "Access Denied"
@@ -141,6 +143,7 @@ class DbMysqlSession(DbSession):
 
     def _initialize_setup_tasks(self):
         return [
+            SetupTasks.SqlModeTask(self),
             SetupTasks.SessionInfoTask(self),
             SetupTasks.ExplainJsonFormatVersionTask(self),
             SetupTasks.HeatWaveCheckTask(self),
@@ -163,9 +166,10 @@ class DbMysqlSession(DbSession):
 
     def is_connection_error(self, error):
         if self._auto_reconnect == ReconnectionMode.STANDARD:
-            return error == _MYSQL_SERVER_LOST_ERROR
+            return error == mysql.ErrorCode.CR_SERVER_LOST
         elif self._auto_reconnect == ReconnectionMode.EXTENDED:
-            return error in [_MYSQL_SERVER_LOST_ERROR, _MYSQL_INACTIVITY_TIMEOUT_ERROR]
+            return error in [mysql.ErrorCode.CR_SERVER_LOST,
+                             mysql.ErrorCode.ER_CLIENT_INTERACTION_TIMEOUT]
         return False
 
     def run_sql(self, sql, args=None):
@@ -177,13 +181,17 @@ class DbMysqlSession(DbSession):
         """
         return self.session.run_sql(sql, args)
 
+    def activate_all_roles(self) -> None:
+        with lock_usage(self._mutex):
+            self.execute_thread("SET ROLE ALL", None)
+
     def set_option_tracker_feature_id(self, feature_id):
         # The function to report tracking options is only available
         # in classic protocol sessions
         if hasattr(self.session, "set_option_tracker_feature_id"):
             self.session.set_option_tracker_feature_id(feature_id)
 
-    def on_shell_prompt(self, text, options):
+    def on_shell_prompt(self, text, options, attributes):
         if "type" in options:
             # On Bastion Sessions, this prompt is produced in 2 known scenarios:
             # - On a new connection through Bastion Session if the session is
@@ -208,54 +216,88 @@ class DbMysqlSession(DbSession):
                 else:
                     return False, ""
 
-        replied, value = self._prompt_cb(text, options)
+        if not getattr(self, "_allow_prompts", True):
+            return False, ""
 
-        if "type" in options and options["type"] == "password":
-            self.connection_options["password"] = value
+        replied, value = self._prompt_cb(text, options, attributes)
 
         return replied, value
 
-    def on_shell_print(self, text):
-        sys.real_stderr.write(text)
+    def on_shell_print(self, text, attributes):
+        self._handle_shell_output(text, attributes)
 
-    def on_shell_print_diag(self, text):
-        sys.real_stderr.write(text)
+    def on_shell_print_diag(self, text, attributes):
+        self._handle_shell_output(text, attributes)
 
-    def on_shell_print_error(self, text):
+    def on_shell_print_error(self, text, attributes):
+        self._handle_shell_output(text, attributes)
+        if attributes and attributes.get("auth") == "authentication_webauthn":
+            self._webauthn_error = text.strip()
+
+    def _handle_shell_output(self, text, attributes):
         sys.real_stderr.write(text)
+        if attributes and attributes.get("auth") == "authentication_webauthn":
+            self._message_callback(
+                "PENDING", "", {"result": text, "attributes": attributes}
+            )
 
     def _do_open_database(self, notify_success=True):
         shell = mysqlsh.globals.shell
 
         self._shell_ctx = shell.create_context(
             {
-                "printDelegate": lambda x: self.on_shell_print(x),
-                "diagDelegate": lambda x: self.on_shell_print_diag(x),
-                "errorDelegate": lambda x: self.on_shell_print_error(x),
-                "promptDelegate": lambda x, o: self.on_shell_prompt(x, o),
+                "printDelegate": lambda x, attributes: self.on_shell_print(
+                    x, attributes
+                ),
+                "diagDelegate": lambda x, attributes: self.on_shell_print_diag(
+                    x, attributes
+                ),
+                "errorDelegate": lambda x, attributes: self.on_shell_print_error(
+                    x, attributes
+                ),
+                "promptDelegate": lambda x, options, attributes: self.on_shell_prompt(
+                    x, options, attributes
+                ),
             }
         )
         self._shell = self._shell_ctx.get_shell()
 
         return self._do_connect(failed_cb=self._failed_cb)
 
-    def _on_connected(self, notify_success):
+    def _on_connected(self, notify_success) -> bool:
         # The connection succeeded, so the access_denied_retries get reset
         if self.bastion_session is not None:
             self._bastion_access_denied_retries = 0
             self.bastion_session.is_new = False
 
-        super()._on_connected(notify_success)
+        try:
+            super()._on_connected(notify_success)
+        except mysqlsh.DBError as error:
+            if error.code not in (
+                mysql.ErrorCode.ER_MUST_CHANGE_PASSWORD,
+                mysql.ErrorCode.ER_MUST_CHANGE_PASSWORD_LOGIN,
+            ):
+                raise
+
+            self._on_failed_connection()
+            if self._failed_cb is None:
+                raise
+
+            self._failed_cb(error)
+            return False
 
         if DbSessionData.CONNECTION_ESTABLISHED_CALLBACK in self.data:
             self.data[DbSessionData.CONNECTION_ESTABLISHED_CALLBACK](self)
 
         if self._connected_cb is not None and notify_success:
             self._connected_cb(self)
+        return True
 
     def _do_connect(self, failed_cb=None):
         attempts = 3
         exception = None
+        expired_password_error = None
+        self._webauthn_error = None
 
         # This flag is used to control handling of SSH Bastion Session expiration once
         # otherwise it will re-create the Bastion Session up to "attempts" times which
@@ -268,8 +310,46 @@ class DbMysqlSession(DbSession):
                 # Open Shell connection
                 self.session = self._shell.open_session(self._connection_options)
 
+                if expired_password_error is not None:
+                    self._on_failed_connection()
+                    if failed_cb is None:
+                        raise expired_password_error
+
+                    failed_cb(expired_password_error)
+                    return False
+
                 return True
             except Exception as e:
+                if (
+                    isinstance(e, mysqlsh.DBError)
+                    and e.code == mysql.ErrorCode.ER_MUST_CHANGE_PASSWORD_LOGIN
+                    and not self._connection_options.get("can-handle-expired-passwords")
+                ):
+                    self._connection_options["can-handle-expired-passwords"] = True
+                    expired_password_error = e
+                    continue
+
+                if (
+                    isinstance(e, mysqlsh.DBError)
+                    and e.code == mysql.ErrorCode.ER_ACCESS_DENIED_ERROR
+                    and any(
+                        self._connection_options.get(option) is not None
+                        for option in ("password", "password2", "password3")
+                    )
+                ):
+                    for option in ("password", "password2", "password3"):
+                        if option in self._connection_options:
+                            self._connection_options[option] = None
+                    for setup_task in getattr(self, "_setup_tasks", []):
+                        if isinstance(setup_task, SetupTasks.RemoveExternalOptionsTask):
+                            setup_task.clear_password_options()
+                    passwords_rejected_cb = getattr(self, "_passwords_rejected_cb", None)
+                    if passwords_rejected_cb is not None:
+                        passwords_rejected_cb()
+                    exception = e
+                    attempts -= 1
+                    continue
+
                 if (
                     self.bastion_session is not None
                     and "Tunnel connection cancelled" in str(e)
@@ -288,7 +368,13 @@ class DbMysqlSession(DbSession):
                     attempts -= 1
                 else:
                     attempts = 0
-                exception = e
+                if (
+                    self._webauthn_error
+                    and 'Failed to set "registration_challenge"' in str(e)
+                ):
+                    exception = RuntimeError(self._webauthn_error)
+                else:
+                    exception = e
 
         if exception:
             # Notifies listeners about failed connection attempt
@@ -308,6 +394,17 @@ class DbMysqlSession(DbSession):
             self._shell_ctx.finalize()
 
     def _reconnect(self, is_auto_reconnect):
+        with lock_usage(self._mutex):
+            connected = self._reconnect_session(is_auto_reconnect)
+
+        # The callback may reconnect the user session and wait for its running query.
+        # Release the service mutex first so that query can still be cancelled.
+        if connected and not is_auto_reconnect and self._connected_cb is not None:
+            self._connected_cb(self)
+        return connected
+
+    def _reconnect_session(self, is_auto_reconnect: bool) -> bool:
+        """Reconnect and run setup while the caller holds the session mutex."""
         logger.debug3(f"Reconnecting {self._id}...")
 
         # Send a notification to the FE so the user is aware about a reconnection happening
@@ -321,21 +418,26 @@ class DbMysqlSession(DbSession):
 
         self._close_database(False)
 
-        # Reconnection attempts change, if it  is automatic reconnection then
-        # uses 3 attempts, if it is user request then 1
+        # Only automatic reconnect waits between failed attempts.
         attempt_limit = 1
         if is_auto_reconnect:
             attempt_limit = 3
 
-        # Automatic reconnection loop only if enabled and required
+        # Retry both automatic and explicit reconnection up to three times.
         for attempt in range(3):
             attempt += 1
             try:
                 logger.debug3(f"Reconnecting {self._id}...")
 
-                if self._do_connect():
-                    self._on_connected(is_auto_reconnect is False)
-                    return True
+                previous_allow_prompts = getattr(self, "_allow_prompts", True)
+                self._allow_prompts = not is_auto_reconnect
+                try:
+                    connected = self._do_connect()
+                finally:
+                    self._allow_prompts = previous_allow_prompts
+
+                if connected:
+                    return self._on_connected(False)
             except Exception as e:
                 self._on_failed_connection()
 
@@ -348,6 +450,8 @@ class DbMysqlSession(DbSession):
     def do_execute(self, sql, params=None, options=None):
         while True:
             try:
+                if options and options.get("activate_all_roles", False):
+                    self.activate_all_roles()
                 if options and "feature_id" in options:
                     self.set_option_tracker_feature_id(options.pop("feature_id"))
                 self.cursor = self.session.run_sql(sql, params)

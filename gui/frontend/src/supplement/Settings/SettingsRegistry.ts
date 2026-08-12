@@ -75,6 +75,8 @@ export const settingCategories: ISettingCategory = {
     children: [],
 };
 
+let settingsRegistered = false;
+
 /**
  * Splits the given path and traverses through the settings category tree to find the one addressed by that path.
  * If something is wrong while walking the tree, an error are raised.
@@ -187,6 +189,10 @@ const registerSetting = (path: string, title: string, description: string, value
 };
 
 export const registerSettings = (): void => {
+    if (settingsRegistered) {
+        return;
+    }
+
     registerSettingCategory(
         "general",
         "General",
@@ -552,4 +558,6 @@ export const registerSettings = (): void => {
             ],
         },
     );
+
+    settingsRegistered = true;
 };

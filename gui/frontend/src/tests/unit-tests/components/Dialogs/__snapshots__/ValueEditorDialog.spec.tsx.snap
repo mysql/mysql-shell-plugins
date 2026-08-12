@@ -639,34 +639,35 @@ exports[`Value Edit Dialog Tests > Grouped Values 1`] = `
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
+          <fieldset
+            class="msg group"
           >
-            Helpers
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="note"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="debug"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
+            <legend>
+              Helpers
+            </legend>
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="note"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="debug"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
+          </fieldset>
         </div>
       </div>
     </div>
@@ -1019,10 +1020,12 @@ exports[`Value Edit Dialog Tests > Updating Dialog Values 1`] = `
           </label>
           <div
             class="msg container fixedScrollbar fileSelector valueEditor"
+            data-tooltip="Select a file"
             style="flex-direction: row;"
           >
             <input
               class="msg input"
+              data-tooltip="inherit"
               id="file"
               spellcheck="true"
               type="text"
@@ -1030,6 +1033,7 @@ exports[`Value Edit Dialog Tests > Updating Dialog Values 1`] = `
             <div
               caption="..."
               class="msg button"
+              data-tooltip="inherit"
               id="fileBtn"
               role="button"
               tabindex="0"

@@ -103,6 +103,7 @@ export class DropdownItem<T extends IDropdownItemProperties> extends ComponentBa
         return (
             <Container
                 className={className}
+                fixedScrollbars={false}
                 {...this.unhandledProperties}
             >
                 {content}

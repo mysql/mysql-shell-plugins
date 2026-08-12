@@ -124,7 +124,7 @@ class RequestHandler(Thread):
             )
             self._text_cache = None
 
-    def on_shell_prompt(self, text, options):
+    def on_shell_prompt(self, text, options, attributes):
         # Append the message into the prompt
         options["prompt"] = text
 
@@ -138,13 +138,13 @@ class RequestHandler(Thread):
 
         return [self._prompt_replied, self._prompt_reply]
 
-    def on_shell_print(self, text):
+    def on_shell_print(self, text, attributes):
         self.handle_print("info", text)
 
-    def on_shell_print_diag(self, text):
+    def on_shell_print_diag(self, text, attributes):
         self.handle_print("info", text)
 
-    def on_shell_print_error(self, text):
+    def on_shell_print_error(self, text, attributes):
         self.handle_print("error", text)
 
     def process_prompt_reply(self, reply):
@@ -169,10 +169,18 @@ class RequestHandler(Thread):
 
         self._shell_ctx = shell.create_context(
             {
-                "printDelegate": lambda x: self.on_shell_print(x),
-                "diagDelegate": lambda x: self.on_shell_print_diag(x),
-                "errorDelegate": lambda x: self.on_shell_print_error(x),
-                "promptDelegate": lambda x, y: self.on_shell_prompt(x, y),
+                "printDelegate": lambda x, attributes: self.on_shell_print(
+                    x, attributes
+                ),
+                "diagDelegate": lambda x, attributes: self.on_shell_print_diag(
+                    x, attributes
+                ),
+                "errorDelegate": lambda x, attributes: self.on_shell_print_error(
+                    x, attributes
+                ),
+                "promptDelegate": lambda x, options, attributes: self.on_shell_prompt(
+                    x, options, attributes
+                ),
             }
         )
         self._shell = self._shell_ctx.get_shell()

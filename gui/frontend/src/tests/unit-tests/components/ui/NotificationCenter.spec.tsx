@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
  */
 
 import { act, fireEvent, render, waitFor } from "@testing-library/preact";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
     NotificationCenter, NotificationType,
@@ -93,6 +93,8 @@ describe("NotificationCenter component tests", () => {
             expect(yes.innerHTML).toEqual("Yes");
             fireEvent.click(yes);
         });
+
+        centerRef.current!.clearHistory();
 
         const result = await Promise.all([promise1, promise2]);
         expect(result[0]).toBeUndefined();
@@ -194,5 +196,72 @@ describe("NotificationCenter component tests", () => {
         expect(toasts).toHaveLength(0);
 
         unmount();
+    });
+
+    it("continues an active toast timer while the window is inactive", async () => {
+        vi.useRealTimers();
+        vi.useFakeTimers();
+        const centerRef = createRef<NotificationCenter>();
+        const { unmount } = render(
+            <NotificationCenter ref={centerRef} />,
+        );
+
+        centerRef.current!.toggleHistory();
+        void centerRef.current!.showNotification({
+            text: "Information message",
+            type: NotificationType.Information,
+            timeout: 1000,
+        });
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(400);
+        });
+
+        fireEvent.blur(window);
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(599);
+        });
+        expect(centerRef.current!.state.mainList).toHaveLength(1);
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1);
+        });
+        expect(centerRef.current!.state.mainList).toHaveLength(0);
+
+        unmount();
+        vi.useRealTimers();
+    });
+
+    it("delays a toast timer until activity resumes", async () => {
+        vi.useRealTimers();
+        vi.useFakeTimers();
+        const centerRef = createRef<NotificationCenter>();
+        const { unmount } = render(
+            <NotificationCenter ref={centerRef} />,
+        );
+
+        centerRef.current!.toggleHistory();
+        fireEvent.blur(window);
+        void centerRef.current!.showNotification({
+            text: "Information message",
+            type: NotificationType.Information,
+            timeout: 1000,
+        });
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(5000);
+        });
+        expect(centerRef.current!.state.mainList).toHaveLength(1);
+
+        fireEvent.focus(window);
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(999);
+        });
+        expect(centerRef.current!.state.mainList).toHaveLength(1);
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1);
+        });
+        expect(centerRef.current!.state.mainList).toHaveLength(0);
+
+        unmount();
+        vi.useRealTimers();
     });
 });

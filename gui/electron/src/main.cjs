@@ -1927,6 +1927,16 @@ const createMenu = () => {
                 return createDesktopCommandStateMenuItem(definition.desktopCommandId, definition.label);
             }),
             { type: "separator" },
+            {
+                label: "Authentication",
+                submenu: [
+                    createDesktopCommandStateMenuItem("database.resetPassword", "Reset Password..."),
+                    createDesktopCommandStateMenuItem(
+                        "database.resetPasswordAndRetainCurrent", "Reset Password and Retain Current..."),
+                    createDesktopCommandStateMenuItem("database.discardOldPassword", "Discard Old Password"),
+                ],
+            },
+            { type: "separator" },
             createDesktopCommandStateMenuItem("database.migrationAssistant.start",
                 "Start MySQL HeatWave Cloud Migration Assistant"),
         ],

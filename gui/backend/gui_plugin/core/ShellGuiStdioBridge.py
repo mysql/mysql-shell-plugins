@@ -657,10 +657,11 @@ class ShellGuiStdioBridge:
                     "gui.sql_editor.set_auto_commit",
                 ]
                 normalized_cmd = ".".join(found_objects + [function_name])
+                password_reset_info = normalized_cmd == "gui.mysql.get_password_reset_info"
                 if isinstance(module_session, SqlEditorModuleSession) and any(
                     fnmatchcase(normalized_cmd, pattern)
                     for pattern in user_session_functions
-                ):
+                ) and not password_reset_info:
                     db_module_session = module_session._db_user_session
                 else:
                     db_module_session = module_session._db_service_session
@@ -672,7 +673,7 @@ class ShellGuiStdioBridge:
                 self.register_module_request(request_id, kwargs["module_session_id"])
                 kwargs.update({"session": db_module_session})
 
-                if found_objects[0] != "gui":
+                if found_objects[0] != "gui" and not password_reset_info:
                     lock_session = True
 
                 del kwargs["module_session_id"]

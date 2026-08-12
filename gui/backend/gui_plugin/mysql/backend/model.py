@@ -71,9 +71,9 @@ class MySQLUserListItem:
     """A simplified representation of a MySQL user, used for the listUsers endpoint."""
 
     accountLocked: bool
-    plugin: str
     user: str
     host: str
+    authenticationPlugins: list[str] = field(default_factory=list)
     temporarilyLocked: bool = False
     isRole: bool = False
     globalPrivileges: list[str] = field(default_factory=list)
@@ -107,6 +107,12 @@ class MySQLDefaultUserOptions:
     passwordReuseInterval: int = 0
     passwordRequireCurrent: bool = False
     maxUserConnections: int = 0
+    authenticationPolicy: Optional[str] = None
+    defaultAuthenticationPlugin: Optional[str] = None
+    passwordValidationInstalled: Optional[bool] = None
+    passwordValidationPolicy: Optional[str] = None
+    passwordValidationLength: Optional[int] = None
+    requireSecureTransport: Optional[bool] = None
 
 
 @dataclass
@@ -130,11 +136,24 @@ class MySQLObjectPrivilegeSchemaTarget:
 
 
 @dataclass
+class AuthenticationFactor:
+    """One authentication factor for a MySQL user."""
+
+    plugin: str
+    password: Optional[str] = None
+    authenticationString: Optional[str] = None
+
+
+@dataclass
 class MySQLUser:
     """A more detailed representation of a MySQL user."""
 
     host: str = ""
     user: str = ""
+
+    # Create and read; MFA updates use factor-specific ALTER USER operations.
+    authenticationFactors: list[AuthenticationFactor] = field(default_factory=list)
+
     sslType: Optional[str] = None
     sslCipher: Optional[str] = None
     x509Issuer: Optional[str] = None
@@ -143,9 +162,12 @@ class MySQLUser:
     maxUpdates: Optional[int] = None
     maxConnections: Optional[int] = None
     maxUserConnections: Optional[int] = None
-    plugin: Optional[str] = None
+
     passwordExpire: Optional[bool] = None
+
+    # Read-only.
     passwordLastChanged: Optional[str] = None
+
     passwordLifetime: Optional[int] = None
     accountLocked: Optional[bool] = None
     passwordReuseHistory: Optional[int] = None
@@ -154,7 +176,8 @@ class MySQLUser:
     comment: Optional[str] = None
     failedLoginAttempts: Optional[int] = None
     passwordLockTime: Optional[int] = None
-    authString: Optional[str] = None
+
+    # Create and update.
     randomPassword: Optional[bool] = False
 
 

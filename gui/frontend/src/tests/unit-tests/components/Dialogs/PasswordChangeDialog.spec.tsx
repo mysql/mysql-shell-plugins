@@ -49,7 +49,7 @@ describe("Password Change Dialog Tests", (): void => {
         unmount();
     });
 
-    it("shows and returns the current password when required", async () => {
+    it.each(["old-password", ""])("submits the current password %j for server validation", async (currentPassword) => {
         const dialogRef = createRef<PasswordChangeDialog>();
         const onAccept = vi.fn();
         const { unmount } = render(<PasswordChangeDialog ref={dialogRef} />);
@@ -63,12 +63,14 @@ describe("Password Change Dialog Tests", (): void => {
             expect(document.querySelector("#currentPassword")).toBeTruthy();
         });
 
-        await userEvent.type(document.querySelector<HTMLInputElement>("#currentPassword")!, "old-password");
+        if (currentPassword) {
+            await userEvent.type(document.querySelector<HTMLInputElement>("#currentPassword")!, currentPassword);
+        }
         await userEvent.type(document.querySelector<HTMLInputElement>("#newPassword")!, "new-password");
         await userEvent.type(document.querySelector<HTMLInputElement>("#passwordConfirmation")!, "new-password");
         await userEvent.click(document.querySelector<HTMLButtonElement>("#ok")!);
 
-        const values = { currentPassword: "old-password", password: "new-password" };
+        const values = { currentPassword, password: "new-password" };
         expect(onAccept).toHaveBeenCalledWith(values);
         expect(await result).toEqual(values);
         unmount();

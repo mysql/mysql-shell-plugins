@@ -39,6 +39,10 @@ EXECUTION_DIR = E2E_DIR / "execution"
 SANDBOX_DIR = EXECUTION_DIR / "sandbox"
 SQL_DIR = E2E_DIR / "sql"
 MYSQLSH_CONFIG_DIR = EXECUTION_DIR / "mysqlsh"
+SERVER_PLUGINS = ("authentication_webauthn", "mysql_no_login", "authentication_openid_connect")
+if sys.platform in ["linux", "darwin"]:
+    SERVER_PLUGINS += ("authentication_pam",)
+SERVER_PLUGIN_EXTENSION = ".dll" if sys.platform == "win32" else ".so"
 
 
 def default_mysql_port() -> str:
@@ -136,6 +140,7 @@ def mysql_server_info(connection: str, env: Dict[str, str]) -> Tuple[str, str]:
 def deploy_sandbox(port: str, password: str, env: Dict[str, str]) -> None:
     server_path = mysqld_path()
     SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
+    plugin_load = f"plugin-load={';'.join(f'{plugin}{SERVER_PLUGIN_EXTENSION}' for plugin in SERVER_PLUGINS)}"
     command = [
         "--",
         "dba",
@@ -143,6 +148,7 @@ def deploy_sandbox(port: str, password: str, env: Dict[str, str]) -> None:
         port,
         f"--password={password}",
         f"--sandbox-dir={SANDBOX_DIR}",
+        f"--mysqldOptions:list={json.dumps([plugin_load])}",
     ]
     if server_path:
         command.append(f"--mysqld-path={server_path}")

@@ -28,6 +28,23 @@ from gui_plugin.core.dbms.DbSessionUtils import DbSessionData
 from gui_plugin.core.lib.OciUtils import BastionSessionRegistry, BASTION_SETUP_OPTIONS
 
 
+class SqlModeTask(DbSessionSetupTask):
+    def __init__(self, session) -> None:
+        super().__init__(session)
+        self._sql_mode = None
+
+    def on_connect(self):
+        sql_mode = self.extract_option("sql-mode", None)
+        if sql_mode is not None:
+            if not isinstance(sql_mode, list) or not all(isinstance(mode, str) for mode in sql_mode):
+                raise ValueError("sql-mode must be a list of strings")
+            self._sql_mode = ",".join(sql_mode)
+
+    def on_connected(self):
+        if self._sql_mode is not None:
+            self.execute("SET SESSION sql_mode = ?", [self._sql_mode])
+
+
 class SessionInfoTask(DbSessionSetupTask):
     def __init__(self, session, progress_cb=None) -> None:
         super().__init__(session, progress_cb)
@@ -61,32 +78,11 @@ class ExplainJsonFormatVersionTask(DbSessionSetupTask):
 
 
 class HeatWaveCheckTask(DbSessionSetupTask):
-    _OPT = "disable-heat-wave-check"
-
     def __init__(self, session) -> None:
         super().__init__(session)
 
-        # The check is enabled if the value is not known
-        self._already_known = self.has_data(common.MySQLData.HEATWAVE_AVAILABLE)
-
-        self._skip_hw_check = self._already_known
-
-    def on_connect(self):
-        # No matter what, the option should be removed if exists
-        skip_hw_check = self.extract_option(self._OPT, False)
-
-        # If check is enabled, verify if it was not disabled by user settings
-        if not self._already_known and skip_hw_check:
-            self._skip_hw_check = True
-
-            # Since check was explicitly disabled, mark it as unavailable
-            self.define_data(common.MySQLData.HEATWAVE_AVAILABLE, False)
-            self.define_data(common.MySQLData.IS_CLOUD_INSTANCE, False)
-            self.define_data(common.MySQLData.MLE_AVAILABLE, False)
-            self.define_data(common.MySQLData.HAS_EXPLAIN_ERROR, False)
-
     def on_connected(self):
-        if not self._skip_hw_check:
+        if not self.has_data(common.MySQLData.HEATWAVE_AVAILABLE):
             # Check if HeatWave is available
             result = self.execute("""
                 SELECT TABLE_NAME, @@version AS version
@@ -103,19 +99,25 @@ class HeatWaveCheckTask(DbSessionSetupTask):
                 self.define_data(common.MySQLData.HEATWAVE_AVAILABLE, False)
                 self.define_data(common.MySQLData.IS_CLOUD_INSTANCE, False)
 
-            # Check if MLE is available
+        # MLE is available independently of HeatWave.
+        if not self.has_data(common.MySQLData.MLE_AVAILABLE):
             result = self.execute("SHOW STATUS LIKE 'mle_status'").fetch_all()
             self.define_data(common.MySQLData.MLE_AVAILABLE, len(result) > 0)
 
-            # Check if sys.EXPLAIN_ERROR procedure is available
+        if (self.get_data(common.MySQLData.HEATWAVE_AVAILABLE)
+                and not self.has_data(common.MySQLData.HAS_EXPLAIN_ERROR)):
+            # Check the HeatWave-specific sys.mle_explain_error procedure only
+            # after the HeatWave availability probe succeeds.
             result = self.execute("""
                                   SELECT ROUTINE_NAME
                                   FROM information_schema.routines
-                                  WHERE ROUTINE_SCHEMA="sys"
-                                    AND ROUTINE_NAME="mle_explain_error"
-                                    AND ROUTINE_TYPE="PROCEDURE"
+                                  WHERE ROUTINE_SCHEMA='sys'
+                                    AND ROUTINE_NAME='mle_explain_error'
+                                    AND ROUTINE_TYPE='PROCEDURE'
                                   """).fetch_all()
             self.define_data(common.MySQLData.HAS_EXPLAIN_ERROR, len(result) > 0)
+        elif not self.has_data(common.MySQLData.HAS_EXPLAIN_ERROR):
+            self.define_data(common.MySQLData.HAS_EXPLAIN_ERROR, False)
 
 
 class BastionHandlerTask(DbSessionSetupTask):
@@ -172,9 +174,26 @@ class RemoveExternalOptionsTask(DbSessionSetupTask):
     def on_connect(self):
         self.extract_option("mrs-service-host", False)
 
+        authentication_hints = self.extract_option("authentication_hints", None)
+
+        if isinstance(authentication_hints, dict):
+            shell = getattr(self.session, "_shell", None)
+            if shell is not None:
+                for hint, option in (("plugin_dir", "mysqlPluginDir"),):
+                    value = authentication_hints.get(hint)
+                    if isinstance(value, str) and value:
+                        shell.options.set(option, value)
+
         # The extra-options is an invalid option on the shell context, instead,
         # the contained options should be part of the main dictionary
         extra_options = self.extract_option("extra-options", None)
         if extra_options is not None:
             for option, value in extra_options.items():
                 self.define_option(option, value)
+
+    def clear_password_options(self):
+        extra_options = self.input_options.get("extra-options")
+        if isinstance(extra_options, dict):
+            for option in ("password", "password2", "password3"):
+                if option in extra_options:
+                    extra_options[option] = None

@@ -1,4 +1,4 @@
 import { IConnectionDetails, IFolderPath } from "../supplement/ShellInterface/index.js";
 import { IShellDictionary } from "./Protocol.js";
 
-/* eslint-disable max-len */
+/* eslint-disable max-len, @stylistic/quotes */

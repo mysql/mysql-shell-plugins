@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -57,6 +57,8 @@ export interface IUpDownProperties<ValueType extends string | null | number | bi
 
     nullable?: boolean;
 
+    autoFocus?: boolean;
+
     innerRef?: preact.RefObject<HTMLDivElement>;
 
     onChange: (value: ValueType, props: IUpDownProperties<ValueType>) => void;
@@ -106,6 +108,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
 
     public static override defaultProps = {
         textAlignment: TextAlignment.End,
+        autoFocus: true,
     };
 
     private containerRef: preact.RefObject<HTMLDivElement>;
@@ -116,7 +119,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
         this.containerRef = props.innerRef ?? createRef<HTMLDivElement>();
 
         this.addHandledProperties("items", "min", "max", "onChange", "initialValue", "textAlignment", "innerRef",
-            "id", "disabled");
+            "id", "disabled", "autoFocus");
     }
 
     public static override getDerivedStateFromProps(props: Readonly<IUpDownProperties<string | null | number | bigint>>,
@@ -149,7 +152,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
     }
 
     public render(): ComponentChild {
-        const { id, disabled = false, textAlignment, placeholder } = this.props;
+        const { id, disabled = false, textAlignment, placeholder, autoFocus } = this.props;
         const { currentValue } = this.state;
 
         const className = this.getEffectiveClassNames(["upDown"]);
@@ -157,7 +160,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
         const content = (
             <Input
                 id={id ?? "upDownInput"}
-                autoFocus={true}
+                autoFocus={autoFocus}
                 value={currentValue?.toString()}
                 onChange={this.handleInputChange}
                 onConfirm={this.handleInputConfirm}

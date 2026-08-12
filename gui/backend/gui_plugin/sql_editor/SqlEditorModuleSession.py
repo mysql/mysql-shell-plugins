@@ -21,6 +21,8 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+from typing import Optional
+
 import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.dbms.DbSession import ReconnectionMode
@@ -56,10 +58,9 @@ class SqlEditorModuleSession(DbModuleSession):
 
     def close_connection(self, after_fail=False):
         # do cleanup
-        if self._db_user_session is not None:
-            self._db_user_session.lock()
-            self._db_user_session.close()
-            self._db_user_session.release()
+        user_session = getattr(self, "_db_user_session", None)
+        if user_session is not None:
+            user_session.close(after_fail)
             self._db_user_session = None
 
         super().close_connection(after_fail)
@@ -80,11 +81,46 @@ class SqlEditorModuleSession(DbModuleSession):
                 self._handle_api_response,
                 self.on_user_session_connected,
                 lambda x: self.on_fail_connecting(x),
-                lambda x, o: self.on_shell_prompt(x, o),
+                lambda x, o, a: self.on_shell_prompt(x, o, a),
                 self.on_session_message,
+                passwords_rejected_cb=self._reset_password_prompt_factors,
             )
         else:
-            self._db_user_session.reconnect(db_session.connection_options)
+            self._db_user_session.reconnect(self._connection_options)
+
+    @check_service_database_session
+    def reset_password(self, password: str, current_password: Optional[str] = None,
+                       retain_current_password: bool = False, password_expired: bool = False,
+                       user: Optional[str] = None, host: Optional[str] = None) -> None:
+        from gui_plugin.core.dbms.DbMySQLSessionCommon import is_secure_mysql_transport
+
+        if (user is None) != (host is None):
+            raise ValueError("Both user and host must be specified together.")
+        service = self._db_service_session
+        if service.database_type != "MySQL" or not is_secure_mysql_transport(service.connection_options):
+            raise ValueError("Password reset requires a secure MySQL connection.")
+
+        service.lock()
+        try:
+            if not password_expired:
+                service.activate_all_roles()
+
+            sql = "ALTER USER USER()" if user is None else "ALTER USER ?@?"
+            params = [] if user is None else [user, host]
+            sql += " IDENTIFIED BY /*((*/ ? /*))*/"
+            params.append(password)
+            if current_password is not None:
+                sql += (" /*((*/ /*!80013 REPLACE ? */ /*))*/" if password_expired
+                        else " REPLACE /*((*/ ? /*))*/")
+                params.append(current_password)
+            if retain_current_password:
+                sql += " RETAIN CURRENT PASSWORD"
+            service.execute_thread(sql, params)
+
+            # Intentionally leave cached credentials unchanged: explicit reconnect
+            # prompts again if they are rejected, avoiding a lock on the user session.
+        finally:
+            service.release()
 
     def on_user_session_connected(self, db_session):
         info = db_session.info()

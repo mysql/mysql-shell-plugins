@@ -28,7 +28,8 @@ import { describe, expect, it, vi } from "vitest";
 import { MySQLConnectionScheme, type IMySQLConnectionOptions } from "../../../../communication/MySQL.js";
 import { ResponseError } from "../../../../communication/ResponseError.js";
 import {
-    isLocalOfflineConnectionCandidate, localServerEndpointFingerprint, localServerProbeFromBackend,
+    isClientConnectionError, isLocalOfflineConnectionCandidate, localServerEndpointFingerprint,
+    localServerProbeFromBackend,
     localServerProbeRequestFromConnection, offlineProbeStatusText, unknownOfflineProbeResult,
 } from "../../../../modules/db-editor/OfflineAdministration.js";
 import { DBType, type IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
@@ -162,5 +163,14 @@ describe("Offline administration helpers", () => {
         const error = new Error("Wrapped", { cause: responseError });
 
         expect(error.cause).toBe(responseError);
+        expect(isClientConnectionError(error)).toBe(true);
+    });
+
+    it("does not enter offline mode for authentication plugin errors", () => {
+        const responseError = new ResponseError({
+            requestState: { msg: "Authentication plugin could not be loaded", code: 2059 },
+        });
+
+        expect(isClientConnectionError(responseError)).toBe(false);
     });
 });

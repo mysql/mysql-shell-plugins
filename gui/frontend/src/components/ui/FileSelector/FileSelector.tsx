@@ -114,8 +114,9 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
     public constructor(props: IFileSelectorProperties) {
         super(props);
 
-        this.addHandledProperties("value", "placeholder", "title", "openLabel", "filters", "canSelectFiles",
-            "canSelectFolder", "canCreateNew", "multiSelection", "content",
+        this.addHandledProperties("id", "path", "value", "placeholder", "title", "openLabel", "filters",
+            "canSelectFiles",
+            "canSelectFolder", "canCreateNew", "multiSelection", "content", "doRead",
             "onChange", "onConfirm", "onSelect", "readOnly", "disabled");
     }
 
@@ -137,9 +138,11 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
             <Container
                 className={className}
                 orientation={Orientation.LeftToRight}
+                {...this.unhandledProperties}
             >
                 <Input
                     id={id}
+                    data-tooltip="inherit"
                     value={path}
                     placeholder={placeholder}
                     onChange={this.handleInputChange}
@@ -152,6 +155,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
                 {(!canSelectFolders || appParameters.embedded) && <Button
                     id={id && `${id}Btn`}
                     caption="..."
+                    data-tooltip="inherit"
                     onClick={this.handleButtonClick}
                     disabled={disabled}
                 />}

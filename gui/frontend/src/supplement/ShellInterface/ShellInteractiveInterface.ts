@@ -43,9 +43,12 @@ export class ShellInteractiveInterface implements IPromptReplyBackend, IShellInt
 
         const callerOnData = details.onData;
 
-        details.onData = async (response: any, requestId: string) => {
-            if ("result" in response && isShellPromptResult(response.result)) {
-                return ShellPromptHandler.handleShellPrompt(response.result, requestId, this);
+        details.onData = async (response, requestId: string) => {
+            const result = typeof response === "object" && "result" in response
+                ? (response as { result?: unknown; }).result
+                : undefined;
+            if (isShellPromptResult(result)) {
+                return ShellPromptHandler.handleShellPrompt(result, requestId, this);
             } else {
                 if (callerOnData) {
                     return await callerOnData(response, requestId);

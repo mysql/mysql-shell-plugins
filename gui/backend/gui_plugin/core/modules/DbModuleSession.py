@@ -26,6 +26,7 @@ import threading
 from time import sleep
 
 import mysqlsh
+from mysqlsh import mysql
 from gui_plugin.core.Files import get_plugin_data_path
 
 import gui_plugin.core.Context as ctx
@@ -39,6 +40,14 @@ from gui_plugin.core.dbms.DbSqliteSession import find_schema_name
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.ModuleSession import ModuleSession
 from gui_plugin.core.Protocols import Response
+
+
+_PASSWORD_AUTHENTICATION_PLUGINS = {
+    "password",
+    "authentication_ldap_simple",
+    "authentication_ldap_sasl",
+    "authentication_pam",
+}
 
 
 def check_service_database_session(func):
@@ -67,6 +76,8 @@ class DbModuleSession(ModuleSession):
         self._offline_profile_id = None
         self._reconnection_mode = reconnection_mode
         self.completion_event = None
+        self._connection_passwords = {}
+        self._password_prompt_factors = []
 
     def __del__(self):
         self.close()
@@ -85,11 +96,16 @@ class DbModuleSession(ModuleSession):
         self._profile_id = None
         self._offline = False
         self._offline_profile_id = None
+        connection_passwords = getattr(self, "_connection_passwords", None)
+        if connection_passwords is not None:
+            connection_passwords.clear()
+        password_prompt_factors = getattr(self, "_password_prompt_factors", None)
+        if password_prompt_factors is not None:
+            password_prompt_factors.clear()
 
-        if self._db_service_session is not None:
-            self._db_service_session.lock()
-            self._db_service_session.close(after_fail)
-            self._db_service_session.release()
+        service_session = getattr(self, "_db_service_session", None)
+        if service_session is not None:
+            service_session.close(after_fail)
             self._db_service_session = None
 
     def _bind_connection_profile(self, connection_id):
@@ -261,18 +277,31 @@ class DbModuleSession(ModuleSession):
         if isinstance(connection, int):
             self._bind_connection_profile(connection)
             self._db_connection_id = connection
-            self._db_type, options, _ = self._web_session.db.get_connection_details(
+            self._db_type, options, settings = self._web_session.db.get_connection_details(
                 connection
             )
             options = options.copy()
+            authentication_hints = (
+                settings.get("authentication_hints")
+                if isinstance(settings, dict)
+                else None
+            )
+            if isinstance(authentication_hints, dict):
+                options["authentication_hints"] = authentication_hints
         elif isinstance(connection, dict):
             self._db_connection_id = None
             self._db_type = connection["db_type"]
             options = connection["options"].copy()
+            settings = connection.get("settings")
+            authentication_hints = (
+                settings.get("authentication_hints")
+                if isinstance(settings, dict)
+                else None
+            )
+            if isinstance(authentication_hints, dict):
+                options["authentication_hints"] = authentication_hints
 
-        if password is not None:
-            # Override the password
-            options["password"] = password
+        self._configure_authentication_passwords(options, authentication_hints, password)
 
         # In SQLIte connections we validate the configuration is valid
         if self._db_type == "Sqlite":
@@ -287,13 +316,65 @@ class DbModuleSession(ModuleSession):
 
         sleep(1)
 
+    def _configure_authentication_passwords(self, options, authentication_hints, password=None):
+        factors = []
+        if isinstance(authentication_hints, dict):
+            factors = authentication_hints.get("factors", [])
+
+        if not isinstance(factors, list) or not factors:
+            factors = ["password"]
+
+        self._password_prompt_factors = []
+        webauthn_registration = (
+            "register-factor" in options
+            and factors[0] == "authentication_webauthn"
+        )
+        if webauthn_registration:
+            options.pop("no-password", None)
+
+        password_factor = next(
+            (index for index, plugin in enumerate(factors[:3])
+             if plugin in _PASSWORD_AUTHENTICATION_PLUGINS),
+            None,
+        )
+        if webauthn_registration:
+            password_factor = 0
+
+        for index, plugin in enumerate(factors[:3]):
+            option = "password" if index == 0 else f"password{index + 1}"
+            if (
+                plugin not in _PASSWORD_AUTHENTICATION_PLUGINS
+                and not (webauthn_registration and index == 0)
+            ):
+                if index == 0:
+                    options["no-password"] = True
+                options.pop(option, None)
+                continue
+
+            if index == password_factor and password is not None:
+                options[option] = password
+
+            if options.get(option) is not None:
+                self._connection_passwords[index] = options[option]
+            elif index in self._connection_passwords:
+                options[option] = self._connection_passwords[index]
+            else:
+                options[option] = None
+                self._password_prompt_factors.append(index)
+
+    def _reset_password_prompt_factors(self):
+        self._password_prompt_factors = sorted(self._connection_passwords)
+
     def connect(self):
         session_id = "ServiceSession-" + self.web_session.session_uuid
+        service_connection_options = self._connection_options.copy()
+        service_connection_options.pop("sql-mode", None)
+
         self._db_service_session = DbSessionFactory.create(
             self._db_type,
             session_id,
             True,
-            self._connection_options,
+            service_connection_options,
             {
                 DbSessionData.CONNECTION_ESTABLISHED_CALLBACK:
                     self._refresh_server_status_cache
@@ -302,8 +383,9 @@ class DbModuleSession(ModuleSession):
             self._handle_api_response,
             self.on_connected,
             lambda x: self.on_fail_connecting(x),
-            lambda x, o: self.on_shell_prompt(x, o),
+            lambda x, o, a: self.on_shell_prompt(x, o, a),
             self.on_session_message,
+            passwords_rejected_cb=self._reset_password_prompt_factors,
         )
 
     # Temporary hack, right thing would be that the shell unparse_uri
@@ -322,7 +404,7 @@ class DbModuleSession(ModuleSession):
 
         return mysqlsh.globals.shell.unparse_uri(uri_data)
 
-    def on_shell_prompt(self, caption, options):
+    def on_shell_prompt(self, caption, options, attributes):
         prompt_event = threading.Event()
         options["prompt"] = caption
 
@@ -336,14 +418,25 @@ class DbModuleSession(ModuleSession):
 
         prompt_event.wait()
 
-        # If password is prompted, stores it on the connection data
-        # TODO: avoid keeping the password
+        # Stored credentials can skip any factor's prompt. Use Shell's explicit
+        # password label rather than the order in which replies arrive.
+        factor = next((index for index in range(3) if caption.startswith(
+            f"Please provide the password{index + 1 if index else ''} for '"
+        )), None)
         if (
             self._prompt_replied
             and options["type"] == "password"
+            and not attributes.get("auth")
             and "ssh://" not in caption
+            and factor is not None
         ):
-            self._connection_options["password"] = self._prompt_reply
+            if factor in self._password_prompt_factors:
+                self._password_prompt_factors.remove(factor)
+            option = "password" if factor == 0 else f"password{factor + 1}"
+            self._connection_passwords[factor] = self._prompt_reply
+            self._connection_options[option] = self._prompt_reply
+            if self._db_service_session is not None:
+                self._db_service_session.connection_options[option] = self._prompt_reply
 
         return self._prompt_replied, self._prompt_reply
 
@@ -375,9 +468,17 @@ class DbModuleSession(ModuleSession):
             logger.exception(exc)
 
     def on_fail_connecting(self, exc):
-        logger.exception(exc)
-
-        self.close_connection(True)
+        if (
+            isinstance(exc, mysqlsh.DBError)
+            and exc.code in (
+                mysql.ErrorCode.ER_MUST_CHANGE_PASSWORD,
+                mysql.ErrorCode.ER_MUST_CHANGE_PASSWORD_LOGIN,
+            )
+        ):
+            logger.info("Connection opened for expired-password reset.")
+        else:
+            logger.exception(exc)
+            self.close_connection(True)
 
         self.completion_event.add_error(exc)
         self.completion_event.set()

@@ -36,7 +36,7 @@ import config
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
-from gui_plugin.core.dbms.DbSession import ReconnectionMode
+from gui_plugin.core.dbms.DbSession import DbSession, ReconnectionMode, lock_usage
 from gui_plugin.core.dbms.DbSessionUtils import DbSessionData
 from gui_plugin.core.dbms.DbSqliteSession import DbSqliteSession
 from gui_plugin.db_connections import DbConnections
@@ -47,6 +47,14 @@ def create_sqlite3_db(db_path):
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     conn = sqlite3.connect(db_path)
     conn.close()
+
+
+class FailingDbSession(DbSession):
+    def _do_open_database(self, notify_success=True):
+        raise RuntimeError("connection failed")
+
+    def _do_close_database(self, finalize):
+        raise RuntimeError("cleanup failed")
 
 
 @pytest.fixture
@@ -157,7 +165,74 @@ def mysql_sessions(mysql_connections_exists):  # pragma: no cover
         session._term_complete.wait()
 
 
+def test_session_lock_timeout():
+    mutex = threading.Lock()
+    mutex.acquire()
+    try:
+        with pytest.raises(TimeoutError, match="Could not acquire session lock"):
+            with lock_usage(mutex, 0):
+                pytest.fail("The protected operation requires ownership of the lock")
+    finally:
+        mutex.release()
+
+
+@pytest.mark.parametrize("operation_fails", [False, True])
+def test_session_lock_release(operation_fails):
+    mutex = threading.Lock()
+    try:
+        with lock_usage(mutex) as acquired:
+            assert acquired is True
+            if operation_fails:
+                raise ValueError("operation failed")
+    except ValueError:
+        pass
+    assert mutex.acquire(blocking=False)
+    mutex.release()
+
+
 class TestDbSessionSqlite:
+
+    def test_queued_query_waits_for_session_lock(self, sqlite_session):
+        ready = threading.Event()
+        finished = threading.Event()
+        started_at = []
+        ready_request_id = str(uuid.uuid4())
+        request_id = str(uuid.uuid4())
+
+        def on_state(task, state):
+            if task.task_id == ready_request_id and state == "finished":
+                ready.set()
+            if task.task_id == request_id:
+                if state == "started":
+                    started_at.append(time.monotonic())
+                elif state == "finished":
+                    finished.set()
+
+        sqlite_session.add_task_execution_callback(on_state)
+        sqlite_session.execute("SELECT 1", request_id=ready_request_id)
+        assert ready.wait(5)
+        sqlite_session.lock()
+        try:
+            sqlite_session.execute("SELECT 1", request_id=request_id)
+            time.sleep(5.2)
+            released_at = time.monotonic()
+        finally:
+            sqlite_session.release()
+
+        assert finished.wait(5)
+        assert len(started_at) == 1
+        assert started_at[0] >= released_at
+
+    def test_failed_initialization_preserves_error_and_signals_termination(self):
+        session = FailingDbSession(uuid.uuid1(), True, {})
+        session._message_callback = lambda *args: None
+
+        with pytest.raises(RuntimeError, match="connection failed"):
+            session.open()
+
+        session.wait_terminated(1)
+        assert session._term_complete.is_set()
+        assert str(session.thread_error) == "connection failed"
 
     def test_instance(self):
         with pytest.raises(Exception) as exp:
@@ -201,7 +276,12 @@ class TestDbSessionSqlite:
         # assert db_session is not None
         # db_session.close()
 
-        db_session = DbSqliteSession(uuid.uuid1(), False, {"db_file": "tests.sqlite3"})
+        db_session = DbSqliteSession(
+            uuid.uuid1(),
+            False,
+            {"db_file": "tests.sqlite3"},
+            passwords_rejected_cb=lambda: None,
+        )
         assert db_session is not None
         db_session.close()
 
@@ -408,6 +488,27 @@ class TestDbMysqlSession:
 
         def is_killed(self):
             return self._killed
+
+    def test_webauthn_gesture_message_is_forwarded_to_gui(self):
+        session = object.__new__(DbMysqlSession)
+        messages = []
+        session._message_callback = lambda *args: messages.append(args)
+
+        session.on_shell_print_diag(
+            "Please insert FIDO device and perform gesture action for authentication to complete.\n",
+            {"auth": "authentication_webauthn"},
+        )
+
+        assert messages == [
+            (
+                "PENDING",
+                "",
+                {
+                    "result": "Please insert FIDO device and perform gesture action for authentication to complete.\n",
+                    "attributes": {"auth": "authentication_webauthn"},
+                },
+            )
+        ]
 
     def test_instance(self, mysql_connections_exists):
         connection_config = mysql_connections_exists[0]["connection"]

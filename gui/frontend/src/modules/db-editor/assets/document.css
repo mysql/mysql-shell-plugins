@@ -142,7 +142,7 @@ body.electronDesktopMacHost .msg #desktopSidebarHeader {
 
 .msg #desktopWorkspaceTitlebar {
     position: relative;
-    z-index: 2;
+    z-index: 12;
     box-sizing: border-box;
     flex: 0 0 auto;
     padding: 8px 16px 6px;
@@ -4866,6 +4866,10 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
 
 .msg#connectionEditor .checkList {
     max-height: 120px;
+}
+
+.msg.dialog.connectionEditorDialog {
+    width: 800px;
 }
 
 .msg .connectionBrowser .breadcrumb .breadcrumbItem {

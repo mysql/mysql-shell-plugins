@@ -152,11 +152,13 @@ exports[`MRS Content Set dialog tests > Show MRS Content Set Dialog (snapshot) a
           Folder to upload
         </label>
         <div
+          canselectfolders="true"
           class="msg container fixedScrollbar fileSelector valueEditor"
           style="flex-direction: row;"
         >
           <input
             class="msg input"
+            data-tooltip="inherit"
             id="directory"
             spellcheck="true"
             type="text"
@@ -474,11 +476,13 @@ exports[`MRS Content Set dialog tests > Show MRS Content Set Dialog and cancel 1
           Folder to upload
         </label>
         <div
+          canselectfolders="true"
           class="msg container fixedScrollbar fileSelector valueEditor"
           style="flex-direction: row;"
         >
           <input
             class="msg input"
+            data-tooltip="inherit"
             id="directory"
             spellcheck="true"
             type="text"

@@ -211,3 +211,12 @@ def test_filter_sensitivity_data():
 
     output = Logger.BackendLogger.get_instance()._filter(message)
     assert output == message
+
+
+def test_password_reset_request_credentials_are_redacted():
+    message = {"args": {"password": "new-secret", "current_password": "old-secret",
+                        "currentPassword": "old-secret"}}
+    output = Logger.BackendLogger.get_instance()._filter(json.dumps(message))
+    assert json.loads(output) == {"args": {
+        key: Filtering.SENSITIVE_DATA_REPLACEMENT for key in message["args"]
+    }}

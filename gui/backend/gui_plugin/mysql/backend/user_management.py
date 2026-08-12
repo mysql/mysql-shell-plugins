@@ -30,6 +30,7 @@ from mysqlsh.mysql import (  # pyright: ignore[reportMissingImports] pylint: dis
     split_account,
 )
 from gui_plugin.mysql.backend.model import (
+    AuthenticationFactor,
     MySQLUserListItem,
     MySQLGlobalPrivilegeCatalogItem,
     MySQLDefaultUserOptions,
@@ -37,6 +38,7 @@ from gui_plugin.mysql.backend.model import (
     MySQLObjectPrivilegeSchemaTarget,
     ObjectPrivilegeTarget,
 )
+from gui_plugin.mysql.PasswordResetInfo import INTERNAL_PASSWORD_PLUGINS
 from gui_plugin.core.dbms.DbSession import DbSession
 
 
@@ -130,6 +132,7 @@ def _append_password_options(
     params: list,
     options: MySQLUser,
     include_password_require_current_optional: bool = False,
+    include_password_expire: bool = True,
 ) -> None:
     if all(
         value is None
@@ -146,7 +149,8 @@ def _append_password_options(
         return
 
     if options.passwordExpire:
-        query_parts.append("PASSWORD EXPIRE")
+        if include_password_expire:
+            query_parts.append("PASSWORD EXPIRE")
     elif options.passwordLifetime:
         _append_parameter_clause(
             query_parts, params, "PASSWORD EXPIRE INTERVAL", options.passwordLifetime
@@ -383,7 +387,10 @@ SELECT
     /*!90600 tal.`LOCKED` = 'YES', */
     FALSE
   ) AS temporarilyLocked,
-  u.`plugin`,
+  JSON_MERGE_PRESERVE(
+    JSON_ARRAY(u.`plugin`),
+    COALESCE(JSON_EXTRACT(u.`User_attributes`, '$.multi_factor_authentication[*].plugin'), JSON_ARRAY())
+  ) AS authenticationPlugins,
   u.`Host` = '%' AND u.`account_locked` = 'Y' AND COALESCE(u.`authentication_string`, '') = '' AS isRole,
   u.`password_expired` as passwordExpired,
   /* Password expiration timestamp (NULL if it never expires) */
@@ -447,6 +454,19 @@ SELECT
     max_connections as maxConnections,
     max_user_connections as maxUserConnections,
     plugin,
+    authentication_string AS firstAuthenticationString,
+    JSON_UNQUOTE(
+        JSON_EXTRACT(User_attributes, '$.multi_factor_authentication[0].plugin')
+    ) AS secondAuthenticationPlugin,
+    JSON_UNQUOTE(
+        JSON_EXTRACT(User_attributes, '$.multi_factor_authentication[0].authentication_string')
+    ) AS secondAuthenticationString,
+    JSON_UNQUOTE(
+        JSON_EXTRACT(User_attributes, '$.multi_factor_authentication[1].plugin')
+    ) AS thirdAuthenticationPlugin,
+    JSON_UNQUOTE(
+        JSON_EXTRACT(User_attributes, '$.multi_factor_authentication[1].authentication_string')
+    ) AS thirdAuthenticationString,
     password_expired as passwordExpire,
     password_last_changed as passwordLastChanged,
     password_lifetime as passwordLifetime,
@@ -614,26 +634,47 @@ def get_create_user_defaults(session: DbSession) -> MySQLDefaultUserOptions:
 
     res = session.run_sql(
         """
-SELECT
-  @@GLOBAL.default_password_lifetime AS passwordLifetime,
-  @@GLOBAL.password_history AS passwordReuseHistory,
-  @@GLOBAL.password_reuse_interval AS passwordReuseInterval,
-  @@GLOBAL.password_require_current AS passwordRequireCurrent,
-  @@GLOBAL.max_user_connections AS maxUserConnections
-""",
-        [],
-    )
-    row = res.fetch_one_object()
-    if row is None:
-        return MySQLDefaultUserOptions()
+SHOW GLOBAL VARIABLES
+WHERE Variable_name IN (
+    'default_password_lifetime',
+    'password_history',
+    'password_reuse_interval',
+    'password_require_current',
+    'max_user_connections',
+    'authentication_policy',
+    'default_authentication_plugin',
+    'require_secure_transport'
+)
+   OR Variable_name LIKE 'validate_password.%'
+   OR Variable_name LIKE 'validate_password_%'
+""", [])
 
-    return MySQLDefaultUserOptions(
-        passwordLifetime=row.get("passwordLifetime"),
-        passwordReuseHistory=row.get("passwordReuseHistory"),
-        passwordReuseInterval=row.get("passwordReuseInterval"),
-        passwordRequireCurrent=bool(row.get("passwordRequireCurrent")),
-        maxUserConnections=row.get("maxUserConnections"),
+    variables = {
+        str(variable.get("Variable_name")): str(variable.get("Value"))
+        for variable in iter(res.fetch_one_object, None)
+    }
+    defaults = MySQLDefaultUserOptions()
+    password_validation_length = variables.get("validate_password.length") \
+        or variables.get("validate_password_length")
+    defaults.passwordLifetime = int(variables.get("default_password_lifetime", 0))
+    defaults.passwordReuseHistory = int(variables.get("password_history", 0))
+    defaults.passwordReuseInterval = int(variables.get("password_reuse_interval", 0))
+    defaults.passwordRequireCurrent = _is_backend_true(variables.get("password_require_current"))
+    defaults.maxUserConnections = int(variables.get("max_user_connections", 0))
+    defaults.authenticationPolicy = variables.get("authentication_policy")
+    defaults.defaultAuthenticationPlugin = variables.get("default_authentication_plugin")
+    defaults.passwordValidationInstalled = any(
+        name.startswith(("validate_password.", "validate_password_")) for name in variables
     )
+    defaults.passwordValidationPolicy = (
+        variables.get("validate_password.policy") or variables.get("validate_password_policy")
+    )
+    defaults.passwordValidationLength = int(password_validation_length) \
+        if password_validation_length and password_validation_length.isdigit() else None
+    defaults.requireSecureTransport = _is_backend_true(variables.get("require_secure_transport")) \
+        if "require_secure_transport" in variables else None
+
+    return defaults
 
 
 def _require_non_empty_value(value: object, label: str) -> str:
@@ -1393,7 +1434,27 @@ def get_mysql_user(session: DbSession, user: str, host: str) -> Optional[MySQLUs
     if row is None:
         return None
 
-    return MySQLUser(**_convert_row_values(row, res.get_columns()))
+    values = _convert_row_values(row, res.get_columns())
+    authentication_factors = []
+    missing_factor = False
+    for plugin_field, authentication_string_field in (
+        ("plugin", "firstAuthenticationString"),
+        ("secondAuthenticationPlugin", "secondAuthenticationString"),
+        ("thirdAuthenticationPlugin", "thirdAuthenticationString"),
+    ):
+        plugin = values.pop(plugin_field, None)
+        authentication_string = values.pop(authentication_string_field, None)
+        if not plugin:
+            missing_factor = True
+            continue
+
+        assert not missing_factor
+        authentication_factors.append(AuthenticationFactor(
+            plugin=plugin,
+            authenticationString=None if plugin.endswith("_password") else authentication_string,
+        ))
+
+    return MySQLUser(authenticationFactors=authentication_factors, **values)
 
 
 def create_mysql_user(session: DbSession, options: MySQLUser) -> Optional[str]:
@@ -1401,25 +1462,61 @@ def create_mysql_user(session: DbSession, options: MySQLUser) -> Optional[str]:
     query_parts = ["CREATE USER ?@?"]
 
     params = [options.user, options.host]
-    auth_option_clause = None
-    if (
-        options.plugin is not None
-        or options.authString is not None
-        or options.randomPassword
-    ):
-        auth_option_clause = "IDENTIFIED"
+    if not 1 <= len(options.authenticationFactors) <= 3:
+        raise ValueError("A user must have between one and three authentication factors")
 
-        if options.plugin:
-            plugin = _require_authentication_plugin(options.plugin)
-            auth_option_clause = f"{auth_option_clause} WITH {plugin}"
+    used_plugins = set()
+    for index, factor in enumerate(options.authenticationFactors):
+        if not isinstance(factor, AuthenticationFactor):
+            raise ValueError("Invalid authentication factor")
+        plugin = _require_authentication_plugin(factor.plugin)
+        if plugin in used_plugins:
+            raise ValueError("Cannot use same method for more than one factor")
+        used_plugins.add(plugin)
 
-        if options.authString is not None:
-            auth_option_clause = f"{auth_option_clause} BY /*((*/ ? /*))*/"
-            params.append(options.authString)
-        else:
-            auth_option_clause = f"{auth_option_clause} BY RANDOM PASSWORD"
+        if index > 0:
+            if factor.password is not None:
+                raise ValueError("Only the first authentication factor can use a password")
+            if plugin in INTERNAL_PASSWORD_PLUGINS:
+                raise ValueError("Only the first authentication factor can use a password plugin")
+        has_random_password = index == 0 and options.randomPassword
+        is_passwordless_webauthn = (
+            index == 0
+            and len(options.authenticationFactors) == 1
+            and plugin == "authentication_webauthn"
+        )
+        if (
+            index == 0
+            and (factor.password is not None or has_random_password)
+            and plugin not in INTERNAL_PASSWORD_PLUGINS
+            and not is_passwordless_webauthn
+        ):
+            raise ValueError(
+                f"Authentication plugin {plugin} does not support password credentials"
+            )
+        if sum((factor.password is not None, factor.authenticationString is not None, has_random_password)) > 1:
+            raise ValueError("An authentication factor can have only one credential")
 
-    query_parts.append(auth_option_clause) if auth_option_clause is not None else None
+        clause = f"{'AND ' if index else ''}IDENTIFIED WITH {plugin}"
+        if is_passwordless_webauthn:
+            if factor.password:
+                clause = f"{clause} INITIAL AUTHENTICATION IDENTIFIED BY /*((*/ ? /*))*/"
+                params.append(factor.password)
+            elif has_random_password:
+                clause = f"{clause} INITIAL AUTHENTICATION IDENTIFIED BY RANDOM PASSWORD"
+            else:
+                raise ValueError(
+                    "Passwordless WebAuthn requires an initial authentication password"
+                )
+        elif factor.password is not None:
+            clause = f"{clause} BY /*((*/ ? /*))*/"
+            params.append(factor.password)
+        elif factor.authenticationString is not None:
+            clause = f"{clause} AS ?"
+            params.append(factor.authenticationString)
+        elif has_random_password:
+            clause = f"{clause} BY RANDOM PASSWORD"
+        query_parts.append(clause)
 
     _append_tls_options(query_parts, params, options)
     _append_resource_options(query_parts, params, options)
@@ -1451,38 +1548,179 @@ def delete_mysql_user(session: DbSession, user: str, host: str) -> None:
 
 def update_mysql_user(session: DbSession, options: MySQLUser) -> Optional[str]:
     """Update user details"""
+    if options.randomPassword and not options.authenticationFactors:
+        raise ValueError("Random password generation requires authentication factors")
+
     query_parts = ["ALTER USER ?@?"]
 
     params = [options.user, options.host]
+    modified_factors = []
+    added_factors = []
+    dropped_factors = []
+    current_factors = []
+    shifted_factor_removal = False
+    random_password_clause = None
+    deferred_password_clause = None
+    pre_first_factor_modifications = []
+    if options.authenticationFactors:
+        if len(options.authenticationFactors) > 3:
+            raise ValueError("A user cannot have more than three authentication factors")
 
-    if options.randomPassword or options.authString is not None:
-        auth_option_clause = ""
+        used_plugins = set()
+        for index, factor in enumerate(options.authenticationFactors):
+            if not isinstance(factor, AuthenticationFactor):
+                raise ValueError("Invalid authentication factor")
+            plugin = _require_authentication_plugin(factor.plugin)
+            if plugin in used_plugins:
+                raise ValueError("Cannot use same method for more than one factor")
+            used_plugins.add(plugin)
+            if index > 0:
+                if factor.password is not None:
+                    raise ValueError("Only the first authentication factor can use a password")
+                if plugin in INTERNAL_PASSWORD_PLUGINS:
+                    raise ValueError("Only the first authentication factor can use a password plugin")
+            has_random_password = index == 0 and bool(options.randomPassword)
+            if (
+                index == 0
+                and (factor.password is not None or has_random_password)
+                and plugin not in INTERNAL_PASSWORD_PLUGINS
+            ):
+                raise ValueError(
+                    f"Authentication plugin {plugin} does not support password credentials"
+                )
+            if sum((factor.password is not None, factor.authenticationString is not None, has_random_password)) > 1:
+                raise ValueError("An authentication factor can have only one credential")
 
-        if options.randomPassword:
-            auth_option_clause = "IDENTIFIED"
-            if options.plugin:
-                auth_option_clause = f"{auth_option_clause} WITH ?"
-                params.append(options.plugin)
-            auth_option_clause = f"{auth_option_clause} BY RANDOM PASSWORD"
-        # the auth plugin can only be changed if the password is provided
-        elif options.plugin and options.authString:
-            auth_option_clause = "IDENTIFIED WITH ?"
-            params.append(options.plugin)
-            auth_string_place_holder = "/*((*/ ? /*))*/"
-            if options.authString is not None:
-                # password exists
-                params.append(options.authString)
+        if (
+            len(options.authenticationFactors) == 1
+            and options.authenticationFactors[0].plugin == "authentication_webauthn"
+        ):
+            raise ValueError("A passwordless WebAuthn account can only be created")
 
-            auth_option_clause = f"{auth_option_clause} BY {auth_string_place_holder}"
+        current_user = get_mysql_user(session, options.user, options.host)
+        if current_user is None:
+            raise ValueError("The user account does not exist")
+        current_factors = current_user.authenticationFactors
+        current_factor_plugins = [factor.plugin for factor in current_factors]
 
-        else:
-            # if no authString is specified, we assume the password is not supposed to change
-            if options.authString is not None:
-                auth_option_clause = "IDENTIFIED BY /*((*/ ? /*))*/"
-                params.append(options.authString)
+        for index, factor in enumerate(options.authenticationFactors):
+            if factor.plugin == "mysql_no_login" and (
+                index >= len(current_factors)
+                or current_factors[index].plugin != "mysql_no_login"
+            ):
+                raise ValueError("mysql_no_login can only be selected when creating an account")
 
-        if auth_option_clause:
-            query_parts.append(auth_option_clause)
+        first_factor = options.authenticationFactors[0]
+        current_first_factor = current_factors[0] if current_factors else None
+        first_factor_changed = (
+            current_first_factor is None
+            or first_factor.plugin != current_first_factor.plugin
+            or first_factor.password is not None
+            or options.randomPassword
+            or (
+                not first_factor.plugin.endswith("_password")
+                and not (
+                    first_factor.plugin == "authentication_webauthn"
+                    and first_factor.authenticationString is None
+                )
+                and first_factor.authenticationString != current_first_factor.authenticationString
+            )
+        )
+        if (
+            current_first_factor is not None
+            and first_factor.plugin != current_first_factor.plugin
+            and first_factor.plugin in INTERNAL_PASSWORD_PLUGINS
+            and not first_factor.password
+            and not options.randomPassword
+        ):
+            raise ValueError(
+                "Changing to a password authentication plugin requires a password or random password"
+            )
+        shifted_factor_removal = (
+            len(current_factors) == 3
+            and len(options.authenticationFactors) == 2
+            and options.authenticationFactors[1].plugin == current_factors[2].plugin
+        )
+        comparison_factors = current_factors
+        comparison_factor_indexes = list(range(len(current_factors)))
+        if shifted_factor_removal:
+            comparison_factors = [current_factors[0], current_factors[2]]
+            comparison_factor_indexes = [0, 2]
+
+        common_factor_count = min(len(comparison_factors), len(options.authenticationFactors))
+        for index in range(1, common_factor_count):
+            current_factor = comparison_factors[index]
+            desired_factor = options.authenticationFactors[index]
+            if (
+                desired_factor.plugin != current_factor.plugin
+                or (
+                    not desired_factor.plugin.endswith("_password")
+                    and not (
+                        desired_factor.plugin == "authentication_webauthn"
+                        and desired_factor.authenticationString is None
+                    )
+                    and desired_factor.authenticationString != current_factor.authenticationString
+                )
+            ):
+                modified_factors.append((comparison_factor_indexes[index], desired_factor))
+
+        added_factors = list(range(max(len(comparison_factors), 1), len(options.authenticationFactors)))
+        dropped_factors = list(range(len(options.authenticationFactors), len(comparison_factors)))
+
+        # These changes require separate ALTER USER statements. A rejected password
+        # must not leave the account with fewer authentication factors.
+        if (dropped_factors or shifted_factor_removal) and (
+            first_factor.password is not None or options.randomPassword
+        ):
+            raise ValueError(
+                "Change and apply the password before removing authentication factors."
+            )
+
+        if first_factor_changed:
+            occupied_factor = next(
+                (
+                    index
+                    for index, plugin in enumerate(current_factor_plugins[1:], 1)
+                    if plugin == first_factor.plugin
+                ),
+                None,
+            )
+            if occupied_factor is not None:
+                modified_factor = next(
+                    (
+                        factor
+                        for factor in modified_factors
+                        if factor[0] == occupied_factor
+                    ),
+                    None,
+                )
+                if modified_factor is None:
+                    raise ValueError(
+                        "Cannot promote an authentication factor that is being removed. "
+                        "Change the later factor first."
+                    )
+                modified_factors.remove(modified_factor)
+                pre_first_factor_modifications.append(
+                    (*modified_factor, current_factors[occupied_factor])
+                )
+
+        if first_factor_changed:
+            auth_option_clause = f"IDENTIFIED WITH {_require_authentication_plugin(first_factor.plugin)}"
+            if first_factor.password is not None:
+                auth_option_clause += " BY /*((*/ ? /*))*/"
+                if modified_factors or added_factors or dropped_factors or shifted_factor_removal:
+                    deferred_password_clause = auth_option_clause
+                else:
+                    query_parts.append(auth_option_clause)
+                    params.append(first_factor.password)
+            elif options.randomPassword:
+                auth_option_clause += " BY RANDOM PASSWORD"
+                random_password_clause = auth_option_clause
+            else:
+                if first_factor.authenticationString is not None:
+                    auth_option_clause += " AS ?"
+                    params.append(first_factor.authenticationString)
+                query_parts.append(auth_option_clause)
 
     _append_tls_options(query_parts, params, options)
     _append_resource_options(query_parts, params, options)
@@ -1491,6 +1729,9 @@ def update_mysql_user(session: DbSession, options: MySQLUser) -> Optional[str]:
         params,
         options,
         include_password_require_current_optional=True,
+        include_password_expire=(
+            random_password_clause is None and deferred_password_clause is None
+        ),
     )
 
     if options.accountLocked is not None:
@@ -1504,7 +1745,78 @@ def update_mysql_user(session: DbSession, options: MySQLUser) -> Optional[str]:
 
     full_sql = "\n    ".join(query_parts)
 
-    result = session.run_sql(full_sql, params)
+    if pre_first_factor_modifications:
+        clause = "ALTER USER ?@?"
+        factor_params = [options.user, options.host]
+        for index, factor, _ in pre_first_factor_modifications:
+            clause += f" MODIFY {index + 1} FACTOR IDENTIFIED WITH {_require_authentication_plugin(factor.plugin)}"
+            if factor.authenticationString is not None:
+                clause += " AS ?"
+                factor_params.append(factor.authenticationString)
+        session.run_sql(clause, factor_params)
+
+    try:
+        result = session.run_sql(full_sql, params)
+    except Exception:
+        if pre_first_factor_modifications:
+            clause = "ALTER USER ?@?"
+            factor_params = [options.user, options.host]
+            for index, _, previous_factor in pre_first_factor_modifications:
+                clause += (
+                    f" MODIFY {index + 1} FACTOR IDENTIFIED WITH "
+                    f"{_require_authentication_plugin(previous_factor.plugin)}"
+                )
+                if previous_factor.authenticationString is not None:
+                    clause += " AS ?"
+                    factor_params.append(previous_factor.authenticationString)
+            session.run_sql(clause, factor_params)
+        raise
+
+    if modified_factors:
+        clause = "ALTER USER ?@?"
+        factor_params = [options.user, options.host]
+        for index, factor in modified_factors:
+            clause += f" MODIFY {index + 1} FACTOR IDENTIFIED WITH {_require_authentication_plugin(factor.plugin)}"
+            if factor.authenticationString is not None:
+                clause += " AS ?"
+                factor_params.append(factor.authenticationString)
+        session.run_sql(clause, factor_params)
+
+    if shifted_factor_removal:
+        session.run_sql("ALTER USER ?@? DROP 2 FACTOR", [options.user, options.host])
+
+    if added_factors:
+        clause = "ALTER USER ?@?"
+        factor_params = [options.user, options.host]
+        for index in added_factors:
+            factor = options.authenticationFactors[index]
+            clause += f" ADD {index + 1} FACTOR IDENTIFIED WITH {_require_authentication_plugin(factor.plugin)}"
+            if factor.authenticationString is not None:
+                clause += " AS ?"
+                factor_params.append(factor.authenticationString)
+        session.run_sql(clause, factor_params)
+
+    if dropped_factors:
+        clause = "ALTER USER ?@?" + "".join(
+            f" DROP {index + 1} FACTOR" for index in dropped_factors
+        )
+        session.run_sql(clause, [options.user, options.host])
+
+    if deferred_password_clause is not None:
+        if options.passwordExpire:
+            deferred_password_clause += " PASSWORD EXPIRE"
+        session.run_sql(
+            f"ALTER USER ?@? {deferred_password_clause}",
+            [options.user, options.host, first_factor.password],
+        )
+    elif random_password_clause is not None:
+        if options.passwordExpire:
+            random_password_clause += " PASSWORD EXPIRE"
+        result = session.run_sql(
+            f"ALTER USER ?@? {random_password_clause}",
+            [options.user, options.host],
+        )
+
     if result is None:
         return None
 

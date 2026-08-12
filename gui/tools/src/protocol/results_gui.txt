@@ -473,6 +473,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiSqlEditorStartSession]: { result: { moduleSessionId?: string; }; };
     [ShellAPIGui.GuiSqlEditorCloseSession]: {};
     [ShellAPIGui.GuiSqlEditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState; };
+    [ShellAPIGui.GuiSqlEditorResetPassword]: {};
     [ShellAPIGui.GuiSqlEditorReconnect]: {};
     [ShellAPIGui.GuiSqlEditorExecute]: { result: IDbEditorResultSetData; };
     [ShellAPIGui.GuiSqlEditorVisualExplain]: { result: IVisualExplainData; };

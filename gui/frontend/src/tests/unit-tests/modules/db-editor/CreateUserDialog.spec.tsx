@@ -27,13 +27,77 @@ import { fireEvent, render } from "@testing-library/preact";
 import { createRef } from "preact";
 import { describe, expect, it, vi } from "vitest";
 
-import { ValueEditDialog } from "../../../../components/Dialogs/ValueEditDialog.js";
+import { CommonDialogValueOption, ValueEditDialog } from "../../../../components/Dialogs/ValueEditDialog.js";
 import { DialogResponseClosure } from "../../../../app-logic/general-types.js";
 import { CreateUserDialog } from "../../../../modules/db-editor/CreateUserDialog.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
 import { nextProcessTick, nextRunLoop, sendKeyPress } from "../../test-helpers.js";
 
 describe("CreateUserDialog", () => {
+    it.each(["first", "second", "third"] as const)(
+        "preserves credentials when reselecting the %s plugin", async (factor) => {
+            const values = CreateUserDialog.createDialogValues(["authentication_pam"]);
+            CreateUserDialog.enableMfa(values);
+            const authentication = values.sections.get("authentication")!.values;
+            const pluginKey = factor === "first" ? "authenticationPlugin" : `${factor}AuthenticationPlugin`;
+            const credentialKey = factor === "first" ? "authenticationString" : `${factor}AuthenticationString`;
+            authentication[pluginKey].value = "authentication_pam";
+            authentication[credentialKey].value = "mysql-unix";
+            authentication.password.value = "secret";
+            authentication.passwordConfirmation.value = "secret";
+            const dialogRef = createRef<ValueEditDialog>();
+            const { unmount } = render(<CreateUserDialog dialogRef={dialogRef} />);
+            dialogRef.current!.show(values);
+            await nextProcessTick();
+            const dialog = dialogRef.current! as unknown as {
+                handleChoiceChange: (section: string, accept: boolean, selected: Set<string>, key: string) => void;
+            };
+
+            dialog.handleChoiceChange("authentication", true, new Set(["authentication_pam"]), pluginKey);
+
+            expect(authentication[credentialKey].value).toBe("mysql-unix");
+            expect(authentication.password.value).toBe("secret");
+            expect(authentication.passwordConfirmation.value).toBe("secret");
+            unmount();
+        },
+    );
+
+    it.each(["first", "second", "third"] as const)(
+        "clears credentials when changing the %s authentication plugin", (factor) => {
+            const values = CreateUserDialog.createDialogValues(["authentication_pam", "auth_socket"]);
+            CreateUserDialog.enableMfa(values);
+            const authentication = values.sections.get("authentication")!.values;
+            const credentialKey = factor === "first" ? "authenticationString" : `${factor}AuthenticationString`;
+            authentication[credentialKey].value = "mysql-unix";
+            authentication.password.value = "secret";
+            authentication.passwordConfirmation.value = "secret";
+            const dialog = {
+                getDialogValues: () => {
+                    return values;
+                },
+                setDialogValues: vi.fn(),
+            } as unknown as ValueEditDialog;
+
+            CreateUserDialog.updateFactorInputs(factor, "auth_socket", dialog);
+
+            expect(authentication[credentialKey].value).toBe("");
+            if (factor === "first") {
+                expect(authentication.password.value).toBe("");
+                expect(authentication.passwordConfirmation.value).toBe("");
+            }
+        },
+    );
+
+    it("preserves saved authentication strings while prefilling an account", () => {
+        const values = CreateUserDialog.createDialogValues(["authentication_pam"]);
+        const authentication = values.sections.get("authentication")!.values;
+        authentication.authenticationString.value = "mysql-unix";
+
+        CreateUserDialog.updateFactorInputs("first", "authentication_pam", undefined, values);
+
+        expect(authentication.authenticationString.value).toBe("mysql-unix");
+    });
+
     it("renders default dialog shell (snapshot)", () => {
         const dialogRef = createRef<ValueEditDialog>();
         const { container, unmount } = render(
@@ -64,18 +128,15 @@ describe("CreateUserDialog", () => {
         expect(portals).toHaveLength(1);
         expect(portals[0]).toMatchSnapshot();
 
+        fireEvent.click(portals[0].querySelector("#page3")!);
+
         const passwordManagement = portals[0].querySelector<HTMLDetailsElement>("details.collapsibleValueGroup");
-        expect(passwordManagement?.open).toBe(false);
-        expect(portals[0].querySelector("#password")?.closest("details")).toBeNull();
-        expect(portals[0].querySelector("#passwordConfirmation")?.closest("details")).toBeNull();
+        expect(passwordManagement?.open).toBe(true);
         expect(passwordManagement?.querySelector("#passwordExpiration")).not.toBeNull();
         expect(passwordManagement?.querySelector("#passwordHistory")).not.toBeNull();
         expect(passwordManagement?.querySelector("#passwordReuseInterval")).not.toBeNull();
         expect(passwordManagement?.querySelector("#failedPasswordAttempts")).not.toBeNull();
         expect(passwordManagement?.querySelector("#lockAccount")).not.toBeNull();
-
-        fireEvent.click(passwordManagement!.querySelector("summary")!);
-        expect(passwordManagement?.open).toBe(true);
 
         sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
@@ -98,6 +159,93 @@ describe("CreateUserDialog", () => {
         sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
         unmount();
+    });
+
+    it("enables three-factor authentication", async () => {
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(<CreateUserDialog dialogRef={dialogRef} />);
+
+        await nextRunLoop();
+        dialogRef.current!.show(CreateUserDialog.createDialogValues([
+            "caching_sha2_password", "authentication_webauthn", "auth_socket",
+        ]), { title: "Create User Account" });
+        await nextProcessTick();
+
+        const portal = document.getElementsByClassName("portal")[0];
+        fireEvent.click(portal.querySelector("#advanced-btn")!);
+
+        const values = dialogRef.current!.getDialogValues().sections.get("authentication")!.values;
+        expect(portal.querySelectorAll("summary")).toHaveLength(3);
+        expect(portal.querySelectorAll("summary")[0].textContent).toBe("1st Factor");
+        expect(portal.querySelectorAll("summary")[1].textContent).toBe("2nd Factor");
+        expect(portal.querySelectorAll("summary")[2].textContent).toBe("3rd Factor");
+        expect(values.secondAuthenticationPlugin.choices)
+            .toEqual(["None", "authentication_webauthn", "auth_socket"]);
+        expect(values.thirdAuthenticationPlugin.choices)
+            .toEqual(["None", "authentication_webauthn", "auth_socket"]);
+        expect(values.secondAuthenticationString.options).toContain(CommonDialogValueOption.Hidden);
+        expect(portal.querySelector("#advanced-btn")?.classList.contains("disabled")).toBe(true);
+
+        sendKeyPress(KeyboardKeys.Escape);
+        await nextProcessTick();
+        unmount();
+    });
+
+    it("keeps additional authentication factors contiguous", () => {
+        const values = CreateUserDialog.createDialogValues([
+            "caching_sha2_password", "authentication_pam", "authentication_kerberos",
+        ]);
+        CreateUserDialog.enableMfa(values);
+        const authentication = values.sections.get("authentication")!.values;
+        authentication.secondAuthenticationPlugin.value = "None";
+        authentication.secondAuthenticationString.value = "";
+        authentication.thirdAuthenticationPlugin.value = "authentication_pam";
+        authentication.thirdAuthenticationString.value = "mysql-unix";
+
+        CreateUserDialog.updateFactorInputs("second", "None", undefined, values);
+
+        expect(authentication.secondAuthenticationPlugin.value).toBe("authentication_pam");
+        expect(authentication.secondAuthenticationString.value).toBe("mysql-unix");
+        expect(authentication.thirdAuthenticationPlugin.value).toBe("None");
+        expect(authentication.thirdAuthenticationString.value).toBe("");
+    });
+
+    it("preserves the primary authentication string when enabling MFA", () => {
+        const values = CreateUserDialog.createDialogValues(["authentication_pam"]);
+        const authentication = values.sections.get("authentication")!.values;
+        authentication.authenticationString.value = "mysql-unix";
+
+        CreateUserDialog.enableMfa(values);
+
+        expect(authentication.authenticationString.value).toBe("mysql-unix");
+    });
+
+    it("clears random password when switching to external authentication", () => {
+        const values = CreateUserDialog.createDialogValues(["caching_sha2_password", "authentication_pam"]);
+        const authentication = values.sections.get("authentication")!.values;
+        authentication.randomPassword.value = true;
+
+        CreateUserDialog.updateFactorInputs("first", "authentication_pam", undefined, values);
+
+        expect(authentication.randomPassword.value).toBe(false);
+        expect(authentication.randomPassword.options).toContain(CommonDialogValueOption.Hidden);
+    });
+
+    it("shows plugin documentation and WebAuthn registration guidance", () => {
+        const values = CreateUserDialog.createDialogValues(["authentication_webauthn"]);
+        CreateUserDialog.updateFactorInputs("first", "authentication_webauthn", undefined, values);
+
+        const authentication = values.sections.get("authentication")!.values;
+        expect(authentication.authenticationPlugin).toMatchObject({
+            trailingLink: {
+                url: "https://dev.mysql.com/doc/refman/en/webauthn-pluggable-authentication.html",
+                caption: "Use a FIDO2/WebAuthn hardware security key or other method.",
+            },
+        });
+        expect(authentication.authenticationGuidance).toMatchObject({
+            type: "description",
+            value: "After creating this account, register a WebAuthn device with a WebAuthn-capable client.",
+        });
     });
 
     it("keeps entered values open when acceptance reports a backend error", async () => {
@@ -157,10 +305,11 @@ describe("CreateUserDialog", () => {
     it("createDialogValues exposes expected defaults", () => {
         const values = CreateUserDialog.createDialogValues();
         expect(values.id).toBe("createUser");
-        expect(values.sections.size).toBe(4);
+        expect(values.sections.size).toBe(5);
 
         const general = values.sections.get("general");
         const authentication = values.sections.get("authentication");
+        const advanced = values.sections.get("advanced");
         const tls = values.sections.get("tls");
         const resourceLimits = values.sections.get("resourceLimits");
 
@@ -173,16 +322,17 @@ describe("CreateUserDialog", () => {
         expect(authentication?.values.randomPassword.value).toBe(false);
         expect(authentication?.values.password.value).toBe("");
         expect(authentication?.values.passwordConfirmation.value).toBe("");
-        expect(authentication?.values.passwordManagement).toMatchObject({
+        expect(advanced?.values.passwordManagement).toMatchObject({
             type: "separator",
             caption: "Password Management",
             collapsible: true,
+            expanded: true,
         });
-        expect(authentication?.values.passwordExpiration.value).toBe(0);
-        expect(authentication?.values.passwordHistory.value).toBe(0);
-        expect(authentication?.values.passwordReuseInterval.value).toBe(0);
-        expect(authentication?.values.failedPasswordAttempts.value).toBe(0);
-        expect(authentication?.values.lockAccount.value).toBe(false);
+        expect(advanced?.values.passwordExpiration.value).toBe(0);
+        expect(advanced?.values.passwordHistory.value).toBe(0);
+        expect(advanced?.values.passwordReuseInterval.value).toBe(0);
+        expect(advanced?.values.failedPasswordAttempts.value).toBe(0);
+        expect(advanced?.values.lockAccount.value).toBe(false);
 
         expect(tls?.values.tlsMode.value).toMatchObject({ tlsMode: "None" });
         expect(tls?.values.tlsCipher.value).toBe("");

@@ -813,12 +813,18 @@ def test_stdio_transport_routes_mysql_commands_to_service_session(monkeypatch):
     def mysql_list_users(session):
         return []
 
+    def mysql_get_password_reset_info(password_expired=False, session=None):
+        return {}
+
     monkeypatch.setattr(StdioBridgeModule, "RequestHandler", FakeRequestHandler)
     monkeypatch.setattr(logger, "debug2", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(
         StdioBridgeModule.gui,
         "mysql",
-        SimpleNamespace(list_users=mysql_list_users),
+        SimpleNamespace(
+            list_users=mysql_list_users,
+            get_password_reset_info=mysql_get_password_reset_info,
+        ),
         raising=False,
     )
 
@@ -843,6 +849,37 @@ def test_stdio_transport_routes_mysql_commands_to_service_session(monkeypatch):
 
     assert len(started_requests) == 1
     assert started_requests[0].kwargs["session"] is service_session
+
+    bridge.process_message(
+        {
+            "request": "execute",
+            "request_id": "mysql-password-reset-info",
+            "command": "gui.mysql.get_password_reset_info",
+            "args": {
+                "module_session_id": "module",
+            },
+        }
+    )
+
+    assert len(started_requests) == 2
+    assert started_requests[1].kwargs["session"] is service_session
+    assert started_requests[1].lock_session is False
+
+    bridge.process_message(
+        {
+            "request": "execute",
+            "request_id": "expired-password-reset-info",
+            "command": "gui.mysql.get_password_reset_info",
+            "args": {
+                "module_session_id": "module",
+                "password_expired": True,
+            },
+        }
+    )
+
+    assert len(started_requests) == 3
+    assert started_requests[2].kwargs["session"] is service_session
+    assert started_requests[2].lock_session is False
 
 
 def test_stdio_transport_injects_module_session_for_error_log_export(monkeypatch):

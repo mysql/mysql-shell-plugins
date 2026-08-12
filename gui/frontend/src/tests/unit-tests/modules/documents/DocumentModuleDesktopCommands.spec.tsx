@@ -70,8 +70,8 @@ vi.mock("../../../../components/CommunicationDebugger/CommunicationDebugger.js",
 });
 
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
-import { CdmEntityType } from "../../../../data-models/ConnectionDataModel.js";
-import type { AdminPageType } from "../../../../data-models/data-model-types.js";
+import { CdmEntityType, type ICdmConnectionEntry } from "../../../../data-models/ConnectionDataModel.js";
+import type { AdminPageType, ProgressCallback } from "../../../../data-models/data-model-types.js";
 import { OdmEntityType } from "../../../../data-models/OpenDocumentDataModel.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import { ConnectionWorkspace } from "../../../../modules/db-editor/ConnectionWorkspace.js";
@@ -3600,6 +3600,21 @@ describe("Document module desktop commands", () => {
                 enabled: true,
             }),
             expect.objectContaining({
+                id: "database.resetPassword",
+                label: "Reset Password...",
+                enabled: true,
+            }),
+            expect.objectContaining({
+                id: "database.resetPasswordAndRetainCurrent",
+                label: "Reset Password and Retain Current...",
+                enabled: true,
+            }),
+            expect.objectContaining({
+                id: "database.discardOldPassword",
+                label: "Discard Old Password...",
+                enabled: true,
+            }),
+            expect.objectContaining({
                 id: "database.mrs.configure",
                 label: "Configure MySQL REST Service",
                 enabled: true,
@@ -3664,6 +3679,20 @@ describe("Document module desktop commands", () => {
             title: "Browse MRS Docs",
             command: "msg.mrs.docs",
         });
+
+        const resetPasswordSpy = vi.spyOn(moduleRef.current as any, "resetPasswordForConnection")
+            .mockResolvedValue(undefined);
+        expect(await desktopCommandRegistry.execute("database.resetPassword")).toBe(true);
+        expect(resetPasswordSpy).toHaveBeenLastCalledWith(sharedConnection.connection);
+
+        expect(await desktopCommandRegistry.execute("database.resetPasswordAndRetainCurrent")).toBe(true);
+        expect(resetPasswordSpy).toHaveBeenLastCalledWith(sharedConnection.connection, false, true);
+
+        const discardOldPassword = vi.fn().mockResolvedValue(undefined);
+        (sharedConnection.connection as any).backend = { executeServiceWithActiveRoles: discardOldPassword };
+        vi.mocked(uiLayerMock.confirm).mockResolvedValue("Discard");
+        expect(await desktopCommandRegistry.execute("database.discardOldPassword")).toBe(true);
+        expect(discardOldPassword).toHaveBeenCalledWith("ALTER USER USER() DISCARD OLD PASSWORD");
 
         expect(await desktopCommandRegistry.execute("view.schemas.showSystemSchemas")).toBe(true);
         expect((sharedConnection.connection.state as { payload?: { showSystemSchemas?: boolean; }; })
@@ -4335,6 +4364,59 @@ describe("Document module desktop commands", () => {
         expect(openOfflineWorkspace).toHaveBeenCalledWith(entry, false, probeResult);
     });
 
+    it("closes an entry when opening its workspace fails", async () => {
+        const module = new TestDocumentModule({});
+        const sharedConnection = createElectronWorkspaceConnection();
+        const openedConnection = {
+            initialize: vi.fn().mockResolvedValue(false),
+            close: vi.fn().mockResolvedValue(undefined),
+        };
+        const testModule = module as unknown as {
+            connectionsDataModel: {
+                createConnectionEntry: (details: IConnectionDetails) => typeof openedConnection;
+            };
+            activateConnectionWorkspace: (
+                entry: ICdmConnectionEntry, createNewWorkspace: boolean, suppressAbout: boolean,
+                initialEditor: "script", serviceOnly: boolean,
+            ) => Promise<boolean>;
+        };
+        vi.spyOn(testModule.connectionsDataModel, "createConnectionEntry").mockReturnValue(openedConnection);
+
+        await testModule.activateConnectionWorkspace(sharedConnection.connection, true, false, "script", false);
+
+        expect(openedConnection.close).toHaveBeenCalledOnce();
+    });
+
+    it("shows the error reported while opening a SQLite workspace", async () => {
+        const module = new TestDocumentModule({});
+        const sharedConnection = createElectronWorkspaceConnection();
+        sharedConnection.connection.details = { ...connectionDetails, dbType: DBType.Sqlite };
+        const initializationError = new Error("SQLite initialization failed");
+        const openedConnection = {
+            initialize: vi.fn().mockImplementation((callback: ProgressCallback) => {
+                callback(initializationError);
+
+                return Promise.resolve(false);
+            }),
+            close: vi.fn().mockResolvedValue(undefined),
+        };
+        const testModule = module as unknown as {
+            connectionsDataModel: {
+                createConnectionEntry: (details: IConnectionDetails) => typeof openedConnection;
+            };
+            activateConnectionWorkspace: (
+                entry: ICdmConnectionEntry, createNewWorkspace: boolean, suppressAbout: boolean,
+                initialEditor: "script", serviceOnly: boolean,
+            ) => Promise<boolean>;
+        };
+        vi.spyOn(testModule.connectionsDataModel, "createConnectionEntry").mockReturnValue(openedConnection);
+
+        await testModule.activateConnectionWorkspace(sharedConnection.connection, true, false, "script", false);
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(vi.mocked(uiLayerMock).showErrorMessage).toHaveBeenCalledWith("SQLite initialization failed", {});
+    });
+
     it("opens a new script workspace from Home instead of reselecting an existing notebook", async () => {
         const module = new TestDocumentModule({});
         const sharedConnection = createElectronWorkspaceConnection();
@@ -4533,5 +4615,41 @@ describe("Document module desktop commands", () => {
             pageId: servicePage.id,
             document: openedDocument,
         });
+    });
+
+    it("requires backend-confirmed secure transport for a current-account password reset", async () => {
+        const module = new TestDocumentModule({});
+        const getPasswordResetInfo = vi.fn().mockRejectedValue(new Error("Password reset requires SSL"));
+        const connection = {
+            details: connectionDetails,
+            backend: { getPasswordResetInfo },
+        } as unknown as ICdmConnectionEntry;
+        const passwordResetModule = module as unknown as {
+            resetPasswordForConnection: (connection: ICdmConnectionEntry) => Promise<boolean>;
+        };
+
+        expect(await passwordResetModule.resetPasswordForConnection(connection)).toBe(false);
+        expect(vi.mocked(uiLayerMock).showErrorMessage).toHaveBeenCalledWith(
+            expect.stringContaining("Password reset requires SSL"), {},
+        );
+        expect(getPasswordResetInfo).toHaveBeenCalledWith(undefined, undefined, false);
+    });
+
+    it("requires backend-confirmed secure transport for expired-password recovery", async () => {
+        const module = new TestDocumentModule({});
+        const getPasswordResetInfo = vi.fn().mockRejectedValue(new Error("Password reset requires SSL"));
+        const connection = {
+            details: connectionDetails,
+            backend: { getPasswordResetInfo },
+        } as unknown as ICdmConnectionEntry;
+        const passwordResetModule = module as unknown as {
+            resetPasswordForConnection: (connection: ICdmConnectionEntry, passwordExpired: boolean) => Promise<boolean>;
+        };
+
+        expect(await passwordResetModule.resetPasswordForConnection(connection, true)).toBe(false);
+        expect(vi.mocked(uiLayerMock).showErrorMessage).toHaveBeenCalledWith(
+            expect.stringContaining("Password reset requires SSL"), {},
+        );
+        expect(getPasswordResetInfo).toHaveBeenCalledWith(undefined, undefined, true);
     });
 });

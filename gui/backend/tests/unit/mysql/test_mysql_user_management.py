@@ -134,9 +134,9 @@ def test_list_mysql_users(session):
 def test_list_mysql_users_includes_object_privilege_scopes():
     user = MySQLUserListItem(
         accountLocked=False,
-        plugin="mysql_native_password",
         user="u",
         host="localhost",
+        authenticationPlugins=["mysql_native_password"],
         schemaPrivileges={"db1": ["SELECT"]},
         tablePrivileges=[
             MySQLTablePrivilege(schema="db1", table="t1", privileges=["INSERT"])
@@ -256,7 +256,7 @@ def test_list_mysql_users_parses_partial_revoke_restrictions_as_stored():
         MockResultSet(
             {
                 "accountLocked": False,
-                "plugin": "caching_sha2_password",
+                "authenticationPlugins": ["caching_sha2_password", "authentication_pam", "auth_socket"],
                 "user": "alice",
                 "host": "localhost",
                 "globalPrivileges": ["SELECT", "INSERT"],
@@ -283,7 +283,9 @@ def test_list_mysql_users_parses_partial_revoke_restrictions_as_stored():
     }
     assert users[0].user == "alice"
     assert users[0].host == "localhost"
+    assert users[0].authenticationPlugins == ["caching_sha2_password", "authentication_pam", "auth_socket"]
     assert "JSON_EXTRACT(u.`User_attributes`, '$.Restrictions')" in LIST_USERS_QUERY
+    assert "AS authenticationPlugins" in LIST_USERS_QUERY
 
 
 def test_partial_revokes_query_is_version_gated():
@@ -354,6 +356,8 @@ def test_get_mysql_user(session):
             "maxConnections": None,
             "maxUserConnections": None,
             "plugin": None,
+            "secondAuthenticationPlugin": None,
+            "thirdAuthenticationPlugin": None,
             "passwordExpire": None,
             "passwordLastChanged": None,
             "passwordLifetime": None,
@@ -389,6 +393,8 @@ def test_get_mysql_user(session):
         "JSON_EXTRACT(User_attributes, '$.Password_locking.password_lock_time_days')"
         in mock_session.sql
     )
+    assert "JSON_EXTRACT(User_attributes, '$.multi_factor_authentication[0].plugin')" in mock_session.sql
+    assert "JSON_EXTRACT(User_attributes, '$.multi_factor_authentication[1].plugin')" in mock_session.sql
 
 
 def test_get_mysql_user_returns_comment_and_password_locking_fields():
@@ -410,6 +416,57 @@ def test_get_mysql_user_returns_comment_and_password_locking_fields():
     assert user.comment == "Managed account"
     assert user.failedLoginAttempts == 3
     assert user.passwordLockTime == 7
+
+
+def test_get_mysql_user_returns_authentication_factor_plugins():
+    mock_session = MockSession(
+        MockResultSet(
+            {
+                "host": "%",
+                "user": "user1",
+                "plugin": "authentication_pam",
+                "firstAuthenticationString": "mysql-unix",
+                "secondAuthenticationPlugin": "authentication_pam",
+                "secondAuthenticationString": "mysql-unix-second",
+                "thirdAuthenticationPlugin": "authentication_webauthn",
+                "thirdAuthenticationString": "",
+            }
+        )
+    )
+
+    user = get_mysql_user(cast(DbSession, mock_session), "user1", "%")
+
+    assert user is not None
+    assert [factor.plugin for factor in user.authenticationFactors] == [
+        "authentication_pam",
+        "authentication_pam",
+        "authentication_webauthn",
+    ]
+    assert [factor.authenticationString for factor in user.authenticationFactors] == [
+        "mysql-unix",
+        "mysql-unix-second",
+        "",
+    ]
+
+
+def test_get_mysql_user_rejects_gapped_authentication_factors():
+    mock_session = MockSession(
+        MockResultSet(
+            {
+                "host": "%",
+                "user": "user1",
+                "plugin": "authentication_pam",
+                "firstAuthenticationString": "mysql-unix",
+                "secondAuthenticationPlugin": None,
+                "secondAuthenticationString": None,
+                "thirdAuthenticationPlugin": "authentication_webauthn",
+                "thirdAuthenticationString": "",
+            }
+        )
+    )
+
+    with pytest.raises(AssertionError):
+        get_mysql_user(cast(DbSession, mock_session), "user1", "%")
 
 
 def test_list_global_privilege_catalog_maps_show_privileges_metadata():
@@ -654,15 +711,18 @@ def test_get_create_user_defaults_normalizes_password_require_current(
     password_require_current, expected_password_require_current
 ):
     mock_session = MockSession(
-        MockResultSet(
-            {
-                "passwordLifetime": 90,
-                "passwordReuseHistory": 5,
-                "passwordReuseInterval": 30,
-                "passwordRequireCurrent": password_require_current,
-                "maxUserConnections": 12,
-            }
-        )
+        MockResultSet([
+            {"Variable_name": "default_password_lifetime", "Value": "90"},
+            {"Variable_name": "password_history", "Value": "5"},
+            {"Variable_name": "password_reuse_interval", "Value": "30"},
+            {"Variable_name": "password_require_current", "Value": str(password_require_current)},
+            {"Variable_name": "max_user_connections", "Value": "12"},
+            {"Variable_name": "authentication_policy", "Value": "*,,authentication_ldap_simple"},
+            {"Variable_name": "default_authentication_plugin", "Value": "caching_sha2_password"},
+            {"Variable_name": "require_secure_transport", "Value": "ON"},
+            {"Variable_name": "validate_password.policy", "Value": "STRONG"},
+            {"Variable_name": "validate_password.length", "Value": "16"},
+        ])
     )
 
     defaults = get_create_user_defaults(cast(DbSession, mock_session))
@@ -673,21 +733,49 @@ def test_get_create_user_defaults_normalizes_password_require_current(
         passwordReuseInterval=30,
         passwordRequireCurrent=expected_password_require_current,
         maxUserConnections=12,
+        authenticationPolicy="*,,authentication_ldap_simple",
+        defaultAuthenticationPlugin="caching_sha2_password",
+        passwordValidationInstalled=True,
+        passwordValidationPolicy="STRONG",
+        passwordValidationLength=16,
+        requireSecureTransport=True,
     )
     assert defaults.passwordRequireCurrent is expected_password_require_current
     assert mock_session.history == [
         (
             """
-SELECT
-  @@GLOBAL.default_password_lifetime AS passwordLifetime,
-  @@GLOBAL.password_history AS passwordReuseHistory,
-  @@GLOBAL.password_reuse_interval AS passwordReuseInterval,
-  @@GLOBAL.password_require_current AS passwordRequireCurrent,
-  @@GLOBAL.max_user_connections AS maxUserConnections
+SHOW GLOBAL VARIABLES
+WHERE Variable_name IN (
+    'default_password_lifetime',
+    'password_history',
+    'password_reuse_interval',
+    'password_require_current',
+    'max_user_connections',
+    'authentication_policy',
+    'default_authentication_plugin',
+    'require_secure_transport'
+)
+   OR Variable_name LIKE 'validate_password.%'
+   OR Variable_name LIKE 'validate_password_%'
 """,
             [],
-        )
+        ),
     ]
+
+
+def test_get_create_user_defaults_accepts_servers_without_newer_variables():
+    mock_session = MockSession(MockResultSet([
+        {"Variable_name": "default_password_lifetime", "Value": "90"},
+        {"Variable_name": "max_user_connections", "Value": "12"},
+    ]))
+
+    defaults = get_create_user_defaults(cast(DbSession, mock_session))
+
+    assert defaults == MySQLDefaultUserOptions(
+        passwordLifetime=90,
+        maxUserConnections=12,
+        passwordValidationInstalled=False,
+    )
 
 
 def test_list_user_global_privileges_returns_privilege_names_from_user_privileges():
@@ -1875,11 +1963,12 @@ def test_mysql_user_account_sql_uses_parameters_for_qa_style_values(user, host):
         MySQLUser(
             user=user,
             host=host,
+            authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password")],
             randomPassword=True,
         ),
     )
     assert mock_session.sql == """CREATE USER ?@?
-    IDENTIFIED BY RANDOM PASSWORD"""
+    IDENTIFIED WITH caching_sha2_password BY RANDOM PASSWORD"""
     assert mock_session.params == [user, host]
 
     update_mysql_user(cast(DbSession, mock_session), MySQLUser(user=user, host=host))
@@ -1901,18 +1990,302 @@ def test_create_mysql_user_returns_generated_password():
         MySQLUser(
             user="user1",
             host="%",
+            authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password")],
             randomPassword=True,
         ),
     )
 
     assert generated_password == "generated-password"
     assert mock_session.sql == """CREATE USER ?@?
-    IDENTIFIED BY RANDOM PASSWORD"""
+    IDENTIFIED WITH caching_sha2_password BY RANDOM PASSWORD"""
 
 
-def test_update_mysql_user_returns_generated_password():
+def test_create_mysql_user_supports_multiple_authentication_factors():
+    mock_session = MockSession()
+
+    create_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password", password="password1"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ],
+        ),
+    )
+
+    assert mock_session.sql == """CREATE USER ?@?
+    IDENTIFIED WITH caching_sha2_password BY /*((*/ ? /*))*/
+    AND IDENTIFIED WITH authentication_pam AS ?
+    AND IDENTIFIED WITH authentication_webauthn"""
+    assert mock_session.params == ["user1", "%", "password1", "mysql-unix"]
+
+
+def test_create_mysql_user_uses_initial_authentication_for_passwordless_webauthn():
+    mock_session = MockSession()
+
+    create_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="authentication_webauthn", password="initial-password"),
+            ],
+        ),
+    )
+
+    assert mock_session.sql == """CREATE USER ?@?
+    IDENTIFIED WITH authentication_webauthn INITIAL AUTHENTICATION IDENTIFIED BY /*((*/ ? /*))*/"""
+    assert mock_session.params == ["user1", "%", "initial-password"]
+
+
+def test_create_mysql_user_uses_random_initial_authentication_for_passwordless_webauthn():
+    mock_session = MockSession()
+
+    create_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ],
+            randomPassword=True,
+        ),
+    )
+
+    assert mock_session.sql == """CREATE USER ?@?
+    IDENTIFIED WITH authentication_webauthn INITIAL AUTHENTICATION IDENTIFIED BY RANDOM PASSWORD"""
+    assert mock_session.params == ["user1", "%"]
+
+
+@pytest.mark.parametrize("function", [create_mysql_user, update_mysql_user])
+def test_user_rejects_password_plugin_as_later_authentication_factor(function):
+    with pytest.raises(ValueError, match="Only the first authentication factor can use a password plugin"):
+        function(
+            cast(DbSession, MockSession()),
+            MySQLUser(
+                user="user1",
+                host="%",
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="authentication_pam"),
+                    AuthenticationFactor(plugin="caching_sha2_password"),
+                ],
+            ),
+        )
+
+
+@pytest.mark.parametrize(
+    ("function", "plugin"),
+    [
+        (create_mysql_user, "authentication_oci"),
+        (update_mysql_user, "authentication_oci"),
+        (update_mysql_user, "authentication_webauthn"),
+    ],
+)
+@pytest.mark.parametrize("random_password", [False, True])
+def test_user_factor_passwords_require_password_plugin(function, plugin, random_password):
+    factor = AuthenticationFactor(plugin=plugin)
+    if not random_password:
+        factor.password = "password"
+
+    with pytest.raises(ValueError, match="does not support password credentials"):
+        function(
+            cast(DbSession, MockSession()),
+            MySQLUser(
+                user="user1",
+                host="%",
+                authenticationFactors=[factor],
+                randomPassword=random_password,
+            ),
+        )
+
+
+def test_update_mysql_user_applies_desired_authentication_factors(monkeypatch):
+    mock_session = MockSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ]
+        ),
+    )
+
+    update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="authentication_ldap_sasl", authenticationString="uid=user1"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-pam"),
+            ],
+        ),
+    )
+
+    assert mock_session.history == [
+        (
+            "ALTER USER ?@?\n    IDENTIFIED WITH authentication_ldap_sasl AS ?",
+            ["user1", "%", "uid=user1"],
+        ),
+        (
+            "ALTER USER ?@? MODIFY 2 FACTOR IDENTIFIED WITH authentication_pam AS ?",
+            ["user1", "%", "mysql-pam"],
+        ),
+        ("ALTER USER ?@? DROP 3 FACTOR", ["user1", "%"]),
+    ]
+
+
+def test_update_mysql_user_preserves_registered_webauthn_factor(monkeypatch):
+    mock_session = MockSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_webauthn", authenticationString="registered-key"),
+            ]
+        ),
+    )
+
+    update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password", password="new-password"),
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ],
+        ),
+    )
+
+    assert mock_session.history == [
+        (
+            "ALTER USER ?@?\n    IDENTIFIED WITH caching_sha2_password BY /*((*/ ? /*))*/",
+            ["user1", "%", "new-password"],
+        ),
+    ]
+
+
+def test_update_mysql_user_clears_external_authentication_strings(monkeypatch):
+    mock_session = MockSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                AuthenticationFactor(plugin="authentication_ldap_sasl", authenticationString="uid=user1"),
+            ]
+        ),
+    )
+
+    update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="authentication_pam"),
+                AuthenticationFactor(plugin="authentication_ldap_sasl"),
+            ],
+        ),
+    )
+
+    assert mock_session.history == [
+        ("ALTER USER ?@?\n    IDENTIFIED WITH authentication_pam", ["user1", "%"]),
+        ("ALTER USER ?@? MODIFY 2 FACTOR IDENTIFIED WITH authentication_ldap_sasl", ["user1", "%"]),
+    ]
+
+
+def test_update_mysql_user_removes_a_middle_factor_by_renumbering(monkeypatch):
+    mock_session = MockSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                AuthenticationFactor(plugin="authentication_webauthn", authenticationString="registered-key"),
+            ]
+        ),
+    )
+
+    update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ],
+        ),
+    )
+
+    assert mock_session.history == [
+        ("ALTER USER ?@?", ["user1", "%"]),
+        ("ALTER USER ?@? DROP 2 FACTOR", ["user1", "%"]),
+    ]
+
+
+@pytest.mark.parametrize("authentication_factors", [
+    [
+        AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+        AuthenticationFactor(plugin="authentication_webauthn"),
+    ],
+    [
+        AuthenticationFactor(plugin="authentication_webauthn"),
+        AuthenticationFactor(plugin="authentication_ldap_sasl", authenticationString="uid=user1"),
+    ],
+])
+def test_update_mysql_user_rejects_promoting_a_removed_factor(monkeypatch, authentication_factors):
+    mock_session = MockSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ]
+        ),
+    )
+
+    with pytest.raises(ValueError, match="Cannot promote an authentication factor that is being removed"):
+        update_mysql_user(
+            cast(DbSession, mock_session),
+            MySQLUser(
+                user="user1",
+                host="%",
+                authenticationFactors=authentication_factors,
+            ),
+        )
+
+    assert mock_session.history == []
+
+
+def test_update_mysql_user_generates_a_password_after_adding_factors(monkeypatch):
     mock_session = MockSession(
-        MockResultSet({"generated password": "generated-password"})
+        [None, None, MockResultSet({"generated password": "generated-password"})]
+    )
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password")]
+        ),
     )
 
     generated_password = update_mysql_user(
@@ -1920,15 +2293,610 @@ def test_update_mysql_user_returns_generated_password():
         MySQLUser(
             user="user1",
             host="%",
-            plugin="caching_sha2_password",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+            ],
             randomPassword=True,
         ),
     )
 
     assert generated_password == "generated-password"
+    assert mock_session.history == [
+        ("ALTER USER ?@?", ["user1", "%"]),
+        (
+            "ALTER USER ?@? ADD 2 FACTOR IDENTIFIED WITH authentication_pam AS ?",
+            ["user1", "%", "mysql-unix"],
+        ),
+        (
+            "ALTER USER ?@? IDENTIFIED WITH caching_sha2_password BY RANDOM PASSWORD",
+            ["user1", "%"],
+        ),
+    ]
+
+
+def test_update_mysql_user_expires_generated_password(monkeypatch):
+    mock_session = MockSession(
+        [None, MockResultSet({"generated password": "generated-password"})]
+    )
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password")]
+        ),
+    )
+
+    generated_password = update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+            ],
+            randomPassword=True,
+            passwordExpire=True,
+        ),
+    )
+
+    assert generated_password == "generated-password"
+    assert mock_session.history == [
+        ("ALTER USER ?@?", ["user1", "%"]),
+        (
+            "ALTER USER ?@? IDENTIFIED WITH caching_sha2_password "
+            "BY RANDOM PASSWORD PASSWORD EXPIRE",
+            ["user1", "%"],
+        ),
+    ]
+
+
+@pytest.mark.parametrize("reject_credentials", [False, True])
+def test_update_mysql_user_updates_a_factor_before_renumbering(monkeypatch, reject_credentials):
+    plugins = ["caching_sha2_password", "authentication_pam", "authentication_ldap_sasl"]
+
+    class ReplacementSession(MockSession):
+        def run_sql(self, sql, params=None):
+            if "MODIFY" in sql and reject_credentials:
+                raise ValueError("Replacement credential rejected")
+            if "DROP 2 FACTOR" in sql:
+                plugins.pop(1)
+            return super().run_sql(sql, params)
+
+    mock_session = ReplacementSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                AuthenticationFactor(plugin="authentication_ldap_sasl", authenticationString="uid=user1"),
+            ]
+        ),
+    )
+
+    if reject_credentials:
+        with pytest.raises(ValueError, match="Replacement credential rejected"):
+            update_mysql_user(
+                cast(DbSession, mock_session),
+                MySQLUser(
+                    user="user1",
+                    host="%",
+                    authenticationFactors=[
+                        AuthenticationFactor(plugin="caching_sha2_password"),
+                        AuthenticationFactor(plugin="authentication_ldap_sasl", authenticationString="uid=user2"),
+                    ],
+                ),
+            )
+        assert plugins == ["caching_sha2_password", "authentication_pam", "authentication_ldap_sasl"]
+        return
+
+    update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_ldap_sasl", authenticationString="uid=user2"),
+            ],
+        ),
+    )
+
+    assert mock_session.history == [
+        ("ALTER USER ?@?", ["user1", "%"]),
+        (
+            "ALTER USER ?@? MODIFY 3 FACTOR IDENTIFIED WITH authentication_ldap_sasl AS ?",
+            ["user1", "%", "uid=user2"],
+        ),
+        ("ALTER USER ?@? DROP 2 FACTOR", ["user1", "%"]),
+    ]
+
+    assert plugins == ["caching_sha2_password", "authentication_ldap_sasl"]
+
+
+def test_update_mysql_user_rejects_passwordless_webauthn_account():
+    with pytest.raises(ValueError, match="can only be created"):
+        update_mysql_user(
+            cast(DbSession, MockSession()),
+            MySQLUser(
+                user="user1",
+                host="%",
+                authenticationFactors=[AuthenticationFactor(plugin="authentication_webauthn")],
+            ),
+        )
+
+
+def test_update_mysql_user_modifies_mfa_factors_atomically(monkeypatch):
+    mock_session = MockSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ]
+        ),
+    )
+
+    update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_ldap_sasl", authenticationString="uid=user1"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-pam"),
+            ],
+        ),
+    )
+
+    assert mock_session.history == [
+        ("ALTER USER ?@?", ["user1", "%"]),
+        (
+            "ALTER USER ?@? MODIFY 2 FACTOR IDENTIFIED WITH authentication_ldap_sasl AS ?"
+            " MODIFY 3 FACTOR IDENTIFIED WITH authentication_pam AS ?",
+            ["user1", "%", "uid=user1", "mysql-pam"],
+        ),
+    ]
+
+
+def test_update_mysql_user_frees_a_plugin_before_assigning_it_to_the_first_factor(monkeypatch):
+    mock_session = MockSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+            ]
+        ),
+    )
+
+    update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ],
+        ),
+    )
+
+    assert mock_session.history == [
+        (
+            "ALTER USER ?@? MODIFY 2 FACTOR IDENTIFIED WITH authentication_webauthn",
+            ["user1", "%"],
+        ),
+        (
+            "ALTER USER ?@?\n    IDENTIFIED WITH authentication_pam AS ?",
+            ["user1", "%", "mysql-unix"],
+        ),
+    ]
+
+
+def test_update_mysql_user_restores_pre_modified_factor_after_main_update_fails(monkeypatch):
+    class FailingSession(MockSession):
+        def run_sql(self, sql, params=None):
+            result = super().run_sql(sql, params)
+            if len(self.history) == 2 and "IDENTIFIED WITH authentication_pam" in sql:
+                raise RuntimeError("main update failed")
+            return result
+
+    mock_session = FailingSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+            ]
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match="main update failed"):
+        update_mysql_user(
+            cast(DbSession, mock_session),
+            MySQLUser(
+                user="user1",
+                host="%",
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                    AuthenticationFactor(plugin="authentication_webauthn"),
+                ],
+            ),
+        )
+
+    assert mock_session.history == [
+        (
+            "ALTER USER ?@? MODIFY 2 FACTOR IDENTIFIED WITH authentication_webauthn",
+            ["user1", "%"],
+        ),
+        (
+            "ALTER USER ?@?\n    IDENTIFIED WITH authentication_pam AS ?",
+            ["user1", "%", "mysql-unix"],
+        ),
+        (
+            "ALTER USER ?@? MODIFY 2 FACTOR IDENTIFIED WITH authentication_pam AS ?",
+            ["user1", "%", "mysql-unix"],
+        ),
+    ]
+
+
+def test_update_mysql_user_modifies_factor_before_adding_its_previous_plugin(session):
+    required_plugins = {"authentication_pam", "authentication_webauthn"}
+    loaded_plugins = {
+        row[0]
+        for row in session.run_sql(
+            "SELECT PLUGIN_NAME FROM INFORMATION_SCHEMA.PLUGINS WHERE PLUGIN_STATUS = 'ACTIVE'"
+        ).fetch_all()
+    }
+    if not required_plugins.issubset(loaded_plugins):
+        pytest.skip("requires authentication_pam and authentication_webauthn")
+
+    user = "mfa_factor_order"
+    host = "%"
+    session.run_sql("DROP USER IF EXISTS ?@?", [user, host])
+
+    try:
+        create_mysql_user(
+            session,
+            MySQLUser(
+                user=user,
+                host=host,
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="caching_sha2_password", password="password1"),
+                    AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                ],
+            ),
+        )
+
+        update_mysql_user(
+            session,
+            MySQLUser(
+                user=user,
+                host=host,
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="caching_sha2_password"),
+                    AuthenticationFactor(plugin="authentication_webauthn"),
+                    AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                ],
+            ),
+        )
+
+        updated_user = get_mysql_user(session, user, host)
+        assert updated_user is not None
+        assert [factor.plugin for factor in updated_user.authenticationFactors] == [
+            "caching_sha2_password",
+            "authentication_webauthn",
+            "authentication_pam",
+        ]
+    finally:
+        session.run_sql("DROP USER IF EXISTS ?@?", [user, host])
+
+
+def test_update_mysql_user_replaces_an_occupied_first_factor_plugin(session):
+    required_plugins = {"authentication_pam", "authentication_webauthn"}
+    loaded_plugins = {
+        row[0]
+        for row in session.run_sql(
+            "SELECT PLUGIN_NAME FROM INFORMATION_SCHEMA.PLUGINS WHERE PLUGIN_STATUS = 'ACTIVE'"
+        ).fetch_all()
+    }
+    if not required_plugins.issubset(loaded_plugins):
+        pytest.skip("requires authentication_pam and authentication_webauthn")
+
+    user = "mfa_first_factor_order"
+    host = "%"
+    session.run_sql("DROP USER IF EXISTS ?@?", [user, host])
+
+    try:
+        create_mysql_user(
+            session,
+            MySQLUser(
+                user=user,
+                host=host,
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="caching_sha2_password", password="password1"),
+                    AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                ],
+            ),
+        )
+
+        update_mysql_user(
+            session,
+            MySQLUser(
+                user=user,
+                host=host,
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                    AuthenticationFactor(plugin="authentication_webauthn"),
+                ],
+            ),
+        )
+
+        updated_user = get_mysql_user(session, user, host)
+        assert updated_user is not None
+        assert [factor.plugin for factor in updated_user.authenticationFactors] == [
+            "authentication_pam",
+            "authentication_webauthn",
+        ]
+    finally:
+        session.run_sql("DROP USER IF EXISTS ?@?", [user, host])
+
+
+def test_update_mysql_user_removes_multiple_authentication_factors(session):
+    required_plugins = {"authentication_pam", "authentication_webauthn"}
+    loaded_plugins = {
+        row[0]
+        for row in session.run_sql(
+            "SELECT PLUGIN_NAME FROM INFORMATION_SCHEMA.PLUGINS WHERE PLUGIN_STATUS = 'ACTIVE'"
+        ).fetch_all()
+    }
+    if not required_plugins.issubset(loaded_plugins):
+        pytest.skip("requires authentication_pam and authentication_webauthn")
+
+    user = "mfa_factor_removal"
+    host = "%"
+    session.run_sql("DROP USER IF EXISTS ?@?", [user, host])
+
+    try:
+        create_mysql_user(
+            session,
+            MySQLUser(
+                user=user,
+                host=host,
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="caching_sha2_password", password="password1"),
+                    AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                    AuthenticationFactor(plugin="authentication_webauthn"),
+                ],
+            ),
+        )
+
+        update_mysql_user(
+            session,
+            MySQLUser(
+                user=user,
+                host=host,
+                authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password")],
+            ),
+        )
+
+        updated_user = get_mysql_user(session, user, host)
+        assert updated_user is not None
+        assert [factor.plugin for factor in updated_user.authenticationFactors] == ["caching_sha2_password"]
+    finally:
+        session.run_sql("DROP USER IF EXISTS ?@?", [user, host])
+
+
+@pytest.mark.parametrize("random_password", [False, True])
+@pytest.mark.parametrize("remaining_plugins", [
+    [],
+    ["authentication_pam"],
+    ["authentication_webauthn"],
+])
+def test_update_mysql_user_requires_separate_password_and_factor_removal(
+    monkeypatch, random_password, remaining_plugins,
+):
+    mock_session = MockSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam"),
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ]
+        ),
+    )
+
+    with pytest.raises(ValueError, match="Change and apply the password before removing"):
+        update_mysql_user(
+            cast(DbSession, mock_session),
+            MySQLUser(
+                user="user1",
+                host="%",
+                randomPassword=random_password,
+                authenticationFactors=[
+                    AuthenticationFactor(
+                        plugin="caching_sha2_password",
+                        password=None if random_password else "new-password",
+                    ),
+                    *[AuthenticationFactor(plugin=plugin) for plugin in remaining_plugins],
+                ],
+            ),
+        )
+
+    assert mock_session.history == []
+
+
+def test_update_mysql_user_only_drops_factors_after_replacement(monkeypatch):
+    class FailingSession(MockSession):
+        def run_sql(self, sql, params=None):
+            result = super().run_sql(sql, params)
+            if "MODIFY" in sql:
+                raise RuntimeError("replacement rejected")
+            return result
+
+    mock_session = FailingSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+                AuthenticationFactor(plugin="authentication_webauthn"),
+            ]
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match="replacement rejected"):
+        update_mysql_user(
+            cast(DbSession, mock_session),
+            MySQLUser(
+                user="user1",
+                host="%",
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="caching_sha2_password"),
+                    AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-pam"),
+                ],
+            ),
+        )
+
+    assert mock_session.history == [
+        ("ALTER USER ?@?", ["user1", "%"]),
+        (
+            "ALTER USER ?@? MODIFY 2 FACTOR IDENTIFIED WITH authentication_pam AS ?",
+            ["user1", "%", "mysql-pam"],
+        ),
+    ]
+
+
+def test_update_mysql_user_redacts_factor_password(monkeypatch):
+    mock_session = MockSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password")]
+        ),
+    )
+
+    update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password", password="new-password")
+            ],
+        ),
+    )
+
     assert mock_session.sql == """ALTER USER ?@?
-    IDENTIFIED WITH ? BY RANDOM PASSWORD"""
-    assert mock_session.params == ["user1", "%", "caching_sha2_password"]
+    IDENTIFIED WITH caching_sha2_password BY /*((*/ ? /*))*/"""
+    assert mock_session.params == ["user1", "%", "new-password"]
+
+
+def test_update_mysql_user_defers_password_until_factor_changes_succeed(monkeypatch):
+    class FailingSession(MockSession):
+        def run_sql(self, sql, params=None):
+            result = super().run_sql(sql, params)
+            if "MODIFY" in sql:
+                raise RuntimeError("replacement rejected")
+            return result
+
+    mock_session = FailingSession()
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[
+                AuthenticationFactor(plugin="caching_sha2_password"),
+                AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-unix"),
+            ]
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match="replacement rejected"):
+        update_mysql_user(
+            cast(DbSession, mock_session),
+            MySQLUser(
+                user="user1",
+                host="%",
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="caching_sha2_password", password="new-password"),
+                    AuthenticationFactor(plugin="authentication_pam", authenticationString="mysql-pam"),
+                ],
+            ),
+        )
+
+    assert mock_session.history == [
+        ("ALTER USER ?@?", ["user1", "%"]),
+        (
+            "ALTER USER ?@? MODIFY 2 FACTOR IDENTIFIED WITH authentication_pam AS ?",
+            ["user1", "%", "mysql-pam"],
+        ),
+    ]
+
+
+@pytest.mark.parametrize("password", [None, ""])
+def test_update_mysql_user_requires_credentials_when_switching_to_password_plugin(
+    monkeypatch, password,
+):
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[AuthenticationFactor(plugin="authentication_pam")]
+        ),
+    )
+
+    with pytest.raises(ValueError, match="requires a password or random password"):
+        update_mysql_user(
+            cast(DbSession, MockSession()),
+            MySQLUser(
+                user="user1",
+                host="%",
+                authenticationFactors=[
+                    AuthenticationFactor(
+                        plugin="caching_sha2_password",
+                        password=password,
+                    )
+                ],
+            ),
+        )
+
+
+def test_update_mysql_user_rejects_selecting_no_login(monkeypatch):
+    monkeypatch.setattr(
+        user_management,
+        "get_mysql_user",
+        lambda _session, _user, _host: MySQLUser(
+            authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password")]
+        ),
+    )
+
+    with pytest.raises(ValueError, match="only be selected when creating"):
+        update_mysql_user(
+            cast(DbSession, MockSession()),
+            MySQLUser(
+                user="user1",
+                host="%",
+                authenticationFactors=[AuthenticationFactor(plugin="mysql_no_login")],
+            ),
+        )
 
 
 def test_create_mysql_user(session):
@@ -1954,7 +2922,9 @@ def test_create_mysql_user(session):
         **{
             "user": "user1",
             "host": "%",
-            "authString": None,
+            "authenticationFactors": [
+                AuthenticationFactor(plugin="caching_sha2_password"),
+            ],
             "randomPassword": True,
             "accountLocked": None,
             "comment": "Comment for this user",
@@ -1964,7 +2934,7 @@ def test_create_mysql_user(session):
     create_mysql_user(cast(DbSession, mock_session), user_options)
 
     assert mock_session.sql == """CREATE USER ?@?
-    IDENTIFIED BY RANDOM PASSWORD
+    IDENTIFIED WITH caching_sha2_password BY RANDOM PASSWORD
     COMMENT ?"""
 
     assert mock_session.params == [
@@ -1976,25 +2946,8 @@ def test_create_mysql_user(session):
     validate_user_creation(user_options)
 
     # add an auth string
-    user_options.authString = password1
-
-    create_mysql_user(cast(DbSession, mock_session), user_options)
-
-    assert mock_session.sql == """CREATE USER ?@?
-    IDENTIFIED BY /*((*/ ? /*))*/
-    COMMENT ?"""
-
-    assert mock_session.params == [
-        "user1",
-        "%",
-        password1,
-        "Comment for this user",
-    ]
-
-    validate_user_creation(user_options)
-
-    # add a plugin
-    user_options.plugin = "caching_sha2_password"
+    user_options.authenticationFactors[0].password = password1
+    user_options.randomPassword = False
 
     create_mysql_user(cast(DbSession, mock_session), user_options)
 
@@ -2112,13 +3065,13 @@ def test_create_mysql_user_applies_account_lock_option(lock_option, lock_clause)
         MySQLUser(
             user="user1",
             host="%",
-            authString="password1",
+            authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password", password="password1")],
             accountLocked=lock_option,
         ),
     )
 
     assert mock_session.sql == f"""CREATE USER ?@?
-    IDENTIFIED BY /*((*/ ? /*))*/
+    IDENTIFIED WITH caching_sha2_password BY /*((*/ ? /*))*/
     {lock_clause}"""
     assert mock_session.params == ["user1", "%", "password1"]
 
@@ -2131,12 +3084,14 @@ def test_create_mysql_user_uses_password_history_option():
         MySQLUser(
             user="user1",
             host="%",
+            authenticationFactors=[AuthenticationFactor(plugin="caching_sha2_password")],
             passwordLifetime=10,
             passwordReuseHistory=12,
         ),
     )
 
     assert mock_session.sql == """CREATE USER ?@?
+    IDENTIFIED WITH caching_sha2_password
     PASSWORD EXPIRE INTERVAL ? DAY
     PASSWORD HISTORY ?"""
     assert mock_session.params == ["user1", "%", 10, 12]
@@ -2200,42 +3155,6 @@ def test_update_mysql_user_clears_comment():
 
 
 @pytest.mark.parametrize(
-    ("plugin", "expected_sql", "expected_params"),
-    [
-        (
-            None,
-            """ALTER USER ?@?
-    IDENTIFIED BY /*((*/ ? /*))*/""",
-            ["user1", "%", "password1"],
-        ),
-        (
-            "caching_sha2_password",
-            """ALTER USER ?@?
-    IDENTIFIED WITH ? BY /*((*/ ? /*))*/""",
-            ["user1", "%", "caching_sha2_password", "password1"],
-        ),
-    ],
-)
-def test_update_mysql_user_redacts_authentication_string(
-    plugin: Optional[str], expected_sql: str, expected_params: list[str]
-) -> None:
-    mock_session = MockSession()
-
-    update_mysql_user(
-        cast(DbSession, mock_session),
-        MySQLUser(
-            user="user1",
-            host="%",
-            plugin=plugin,
-            authString="password1",
-        ),
-    )
-
-    assert mock_session.sql == expected_sql
-    assert mock_session.params == expected_params
-
-
-@pytest.mark.parametrize(
     ("lock_option", "lock_clause"),
     [
         (True, "ACCOUNT LOCK"),
@@ -2275,9 +3194,6 @@ def test_update_mysql_user_keeps_tls_before_password_options():
         **{
             "user": "user1",
             "host": "%",
-            "plugin": "mysql_native_password",
-            "authString": None,
-            "randomPassword": True,
             "sslType": "ANY",
             "passwordLifetime": 0,
             "passwordReuseHistory": 0,
@@ -2293,7 +3209,6 @@ def test_update_mysql_user_keeps_tls_before_password_options():
     update_mysql_user(cast(DbSession, mock_session), user_options)
 
     assert mock_session.sql == """ALTER USER ?@?
-    IDENTIFIED WITH ? BY RANDOM PASSWORD
     REQUIRE SSL
     PASSWORD EXPIRE NEVER
     PASSWORD HISTORY ?
@@ -2303,7 +3218,6 @@ def test_update_mysql_user_keeps_tls_before_password_options():
     assert mock_session.params == [
         "user1",
         "%",
-        "mysql_native_password",
         0,
         0,
         0,
@@ -2337,6 +3251,9 @@ def test_update_mysql_user_uses_password_history_option():
             MySQLUser(
                 user="user1",
                 host="%",
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="caching_sha2_password"),
+                ],
                 passwordExpire=True,
             ),
         ),
@@ -2355,8 +3272,16 @@ def test_user_password_can_be_expired_immediately(function, options):
 
     function(cast(DbSession, mock_session), options)
 
-    assert mock_session.sql == """%s USER ?@?
-    PASSWORD EXPIRE""" % ("CREATE" if function is create_mysql_user else "ALTER")
+    expected_authentication = (
+        "\n    IDENTIFIED WITH caching_sha2_password"
+        if function is create_mysql_user
+        else ""
+    )
+    assert mock_session.sql == """%s USER ?@?%s
+    PASSWORD EXPIRE""" % (
+        "CREATE" if function is create_mysql_user else "ALTER",
+        expected_authentication,
+    )
     assert mock_session.params == ["user1", "%"]
 
 
@@ -2406,9 +3331,12 @@ def test_update_mysql_user_clears_tls_requirements():
             MySQLUser(
                 user="user1",
                 host="%",
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="caching_sha2_password"),
+                ],
                 maxUserConnections=3,
             ),
-            "CREATE USER ?@?",
+            "CREATE USER ?@?\n    IDENTIFIED WITH caching_sha2_password",
         ),
         (
             update_mysql_user,
@@ -2439,6 +3367,9 @@ def test_user_resource_options_use_bound_parameters(function, options, statement
             MySQLUser(
                 user="user1",
                 host="%",
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="caching_sha2_password"),
+                ],
                 sslType="SPECIFIED",
                 sslCipher="cipher' OR 1=1 -- ",
             ),
@@ -2459,8 +3390,14 @@ def test_user_tls_values_use_bound_parameters(function, options):
 
     function(cast(DbSession, mock_session), options)
 
-    assert mock_session.sql == "%s USER ?@?\n    REQUIRE CIPHER ?" % (
-        "CREATE" if function is create_mysql_user else "ALTER"
+    expected_authentication = (
+        "\n    IDENTIFIED WITH caching_sha2_password"
+        if function is create_mysql_user
+        else ""
+    )
+    assert mock_session.sql == "%s USER ?@?%s\n    REQUIRE CIPHER ?" % (
+        "CREATE" if function is create_mysql_user else "ALTER",
+        expected_authentication,
     )
     assert mock_session.params == ["user1", "%", "cipher' OR 1=1 -- "]
 
@@ -2473,8 +3410,9 @@ def test_user_tls_values_use_bound_parameters(function, options):
             MySQLUser(
                 user="user1",
                 host="%",
-                plugin="mysql_native_password; DROP USER root",
-                authString="password",
+                authenticationFactors=[
+                    AuthenticationFactor(plugin="mysql_native_password; DROP USER root", password="password"),
+                ],
             ),
         ),
     ],
@@ -2482,3 +3420,8 @@ def test_user_tls_values_use_bound_parameters(function, options):
 def test_user_authentication_plugins_reject_sql_syntax(function, options):
     with pytest.raises(ValueError, match="Invalid authentication plugin"):
         function(cast(DbSession, MockSession()), options)
+
+
+def test_random_password_update_requires_authentication_factors():
+    with pytest.raises(ValueError, match="Random password generation requires authentication factors"):
+        update_mysql_user(cast(DbSession, MockSession()), MySQLUser(user="app", host="%", randomPassword=True))

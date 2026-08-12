@@ -107,9 +107,11 @@ class ModuleSession:
         self._prompt_replied = reply["type"] == "OK"
         self._prompt_reply = reply["reply"]
 
-        self._prompt_event_callback()
+        prompt_event_callback = self._prompt_event_callback
+        # Clear the old prompt before waking the thread, which may register the next one.
         self._expected_prompt = None
         self._prompt_event_callback = None
+        prompt_event_callback()
 
     def cancel_request(self, request_id):  # pragma: no cover
         raise NotImplementedError()

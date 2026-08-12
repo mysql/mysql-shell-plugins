@@ -24,6 +24,21 @@
 import enum
 
 
+def is_secure_mysql_transport(connection_options: dict) -> bool:
+    """Returns whether a MySQL connection uses TLS or a direct local transport."""
+    ssl_mode = str(connection_options.get("ssl-mode", "")).upper()
+    if ssl_mode in {"REQUIRED", "VERIFY_CA", "VERIFY_IDENTITY"}:
+        return True
+
+    if any(connection_options.get(option) for option in (
+        "ssh", "mysql-db-system-id", "bastion-id",
+    )):
+        return False
+
+    host = str(connection_options.get("host", "")).lower()
+    return bool(connection_options.get("socket")) or host in {"localhost", "127.0.0.1", "::1"}
+
+
 class MySQLData(enum.Enum):
     CONNECTION_ID = 1
     VERSION_INFO = 2

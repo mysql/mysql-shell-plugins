@@ -49,14 +49,22 @@ class MyShellContext:
         self._stderr = []
         self._shell_ctx = mysqlsh.globals.shell.create_context(
             {
-                "printDelegate": lambda x: self.on_shell_print(x),
-                "diagDelegate": lambda x: self.on_shell_print_diag(x),
-                "errorDelegate": lambda x: self.on_shell_print_error(x),
-                "promptDelegate": lambda x, y: self.on_shell_prompt(x, y),
+                "printDelegate": lambda x, attributes: self.on_shell_print(
+                    x, attributes
+                ),
+                "diagDelegate": lambda x, attributes: self.on_shell_print_diag(
+                    x, attributes
+                ),
+                "errorDelegate": lambda x, attributes: self.on_shell_print_error(
+                    x, attributes
+                ),
+                "promptDelegate": lambda x, options, attributes: self.on_shell_prompt(
+                    x, options, attributes
+                ),
             }
         )
 
-    def on_shell_prompt(self, text, options):
+    def on_shell_prompt(self, text, options, attributes):
         self._prompt_count += 1
         assert (
             self._expected_prompts
@@ -90,13 +98,13 @@ class MyShellContext:
         else:
             self._stdout.append(text)
 
-    def on_shell_print(self, text):
+    def on_shell_print(self, text, attributes):
         self.handle_print("info", text)
 
-    def on_shell_print_diag(self, text):
+    def on_shell_print_diag(self, text, attributes):
         self.handle_print("info", text)
 
-    def on_shell_print_error(self, text):
+    def on_shell_print_error(self, text, attributes):
         self.handle_print("error", text)
 
     def expect_prompt(self, text, response, options=None):
