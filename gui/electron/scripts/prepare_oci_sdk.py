@@ -24,6 +24,7 @@
 
 import argparse
 import compileall
+import py_compile
 import shutil
 import sys
 import tempfile
@@ -61,7 +62,7 @@ def _find_expected_files(oci_directory: Path) -> List[Path]:
     if set(bytecode_files) - expected_bytecode_files:
         raise ValueError(f"Unexpected OCI SDK bytecode files: {oci_directory}")
 
-    return sorted(python_files + bytecode_files, key=lambda path: str(path))
+    return sorted(bytecode_files, key=lambda path: str(path))
 
 
 def _temporary_sibling(site_packages: Path, suffix: str) -> Path:
@@ -128,9 +129,18 @@ def prepare_oci_sdk(site_packages: Path) -> None:
     print(f"  From: {oci_directory}")
     print(f"  To:   {final_archive}", flush=True)
     print("Compiling OCI SDK bytecode...", flush=True)
-    if not compileall.compile_dir(
-        str(oci_directory), force=True, quiet=1, legacy=True
-    ):
+    compile_options: Dict[str, object] = {
+        "ddir": oci_directory.name,
+        "force": True,
+        "quiet": 1,
+        "legacy": True,
+    }
+    if sys.version_info >= (3, 7):
+        compile_options["invalidation_mode"] = (
+            py_compile.PycInvalidationMode.CHECKED_HASH
+        )
+
+    if not compileall.compile_dir(str(oci_directory), **compile_options):
         raise RuntimeError(
             f"OCI SDK bytecode compilation failed: {oci_directory}"
         )

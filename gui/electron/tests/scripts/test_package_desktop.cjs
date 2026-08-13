@@ -24,11 +24,14 @@
  */
 
 const assert = require("node:assert/strict");
+const { spawnSync } = require("node:child_process");
 const {
+    chmodSync,
     existsSync,
     mkdirSync,
     mkdtempSync,
     readFileSync,
+    readdirSync,
     rmSync,
     symlinkSync,
     writeFileSync,
@@ -37,12 +40,20 @@ const { tmpdir } = require("node:os");
 const test = require("node:test");
 const { dirname, join, resolve } = require("node:path");
 const packageMetadata = require("../../package.json");
+const {
+    copyFiles,
+    getFileMatchers,
+} = require("../../node_modules/app-builder-lib/out/fileMatcher.js");
 
 const {
     buildAppManifest,
     buildElectronBuilderConfig,
     cleanShellBundle,
+    compilePythonFiles,
     copyArtifactFiles,
+    finalizeShellBundle,
+    findMysqlshExecutable,
+    getPythonCompilationRoot,
     getDesktopPackageName,
     getArtifactFileNames,
     parseArguments,
@@ -57,6 +68,188 @@ const writeFixtureFile = (path) => {
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, "fixture", { encoding: "utf8" });
 };
+
+test("bundled MySQL Shell discovery accepts one in-tree executable", (context) => {
+    const root = mkdtempSync(join(tmpdir(), "mysqlsh-discovery-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+
+    for (const executableName of ["mysqlsh", "mysqlsh.exe"]) {
+        const shell = join(root, executableName);
+        const executable = join(shell, "bin", executableName);
+        writeFixtureFile(executable);
+
+        assert.equal(findMysqlshExecutable(shell), executable);
+    }
+});
+
+test("bundled MySQL Shell discovery rejects missing and ambiguous candidates", (context) => {
+    const root = mkdtempSync(join(tmpdir(), "mysqlsh-discovery-errors-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+    const shell = join(root, "shell");
+    mkdirSync(join(shell, "bin"), { recursive: true });
+
+    assert.throws(() => {
+        findMysqlshExecutable(shell);
+    }, /Expected one bundled MySQL Shell executable/);
+
+    writeFixtureFile(join(shell, "bin", "mysqlsh"));
+    writeFixtureFile(join(shell, "bin", "mysqlsh.exe"));
+    assert.throws(() => {
+        findMysqlshExecutable(shell);
+    }, /Expected one bundled MySQL Shell executable/);
+});
+
+test("bundled MySQL Shell discovery accepts file symlinks and rejects directories", (context) => {
+    const root = mkdtempSync(join(tmpdir(), "mysqlsh-discovery-paths-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+
+    const outsideTarget = join(root, "outside", "mysqlsh-real");
+    const outsideShell = join(root, "outside-shell");
+    const outsideExecutable = join(outsideShell, "bin", "mysqlsh");
+    writeFixtureFile(outsideTarget);
+    mkdirSync(dirname(outsideExecutable), { recursive: true });
+    symlinkSync(outsideTarget, outsideExecutable, "file");
+    assert.equal(findMysqlshExecutable(outsideShell), outsideExecutable);
+
+    const directoryShell = join(root, "directory-shell");
+    mkdirSync(join(directoryShell, "bin", "mysqlsh"), { recursive: true });
+    assert.throws(() => {
+        findMysqlshExecutable(directoryShell);
+    }, /regular file/);
+});
+
+test("Python compilation uses bundled mysqlsh and reports progress", (context) => {
+    const root = mkdtempSync(join(tmpdir(), "mysqlsh-compile-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+    const shell = join(root, "shell");
+    const executableName = process.platform === "win32" ? "mysqlsh.exe" : "mysqlsh";
+    const executable = join(shell, "bin", executableName);
+    writeFixtureFile(executable);
+    const compilationRoot = getPythonCompilationRoot(shell);
+    const messages = [];
+    let configHome;
+
+    compilePythonFiles(shell, (command, args, options) => {
+        assert.equal(command, executable);
+        assert.deepEqual(args, [
+            "--disable-builtin-plugins",
+            "--pym",
+            "compileall",
+            "-q",
+            "-f",
+            "--invalidation-mode",
+            "checked-hash",
+            "-s",
+            compilationRoot,
+            compilationRoot,
+        ]);
+        assert.equal(options.stdio, "inherit");
+        assert.equal(options.windowsHide, process.platform === "win32");
+        assert.equal(options.env.PYTHONDONTWRITEBYTECODE, "1");
+        configHome = options.env.MYSQLSH_USER_CONFIG_HOME;
+        assert.equal(existsSync(configHome), true);
+
+        return { status: 0, signal: null };
+    }, (message) => messages.push(message));
+
+    assert.equal(existsSync(configHome), false);
+    assert.deepEqual(messages, [
+        "\nCompiling packaged Python files:",
+        `  With: ${executable}`,
+        `  Root: ${resolve(shell)}`,
+        "Python bytecode compilation complete.",
+    ]);
+});
+
+test("Python compilation cleans its config home after a nonzero exit", (context) => {
+    const root = mkdtempSync(join(tmpdir(), "mysqlsh-compile-exit-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+    const shell = join(root, "shell");
+    writeFixtureFile(join(
+        shell,
+        "bin",
+        process.platform === "win32" ? "mysqlsh.exe" : "mysqlsh",
+    ));
+    const messages = [];
+    let configHome;
+
+    assert.throws(() => {
+        compilePythonFiles(shell, (_command, _args, options) => {
+            configHome = options.env.MYSQLSH_USER_CONFIG_HOME;
+
+            return { status: 7, signal: null };
+        }, (message) => messages.push(message));
+    }, /exit status 7/);
+
+    assert.equal(existsSync(configHome), false);
+    assert.equal(messages.includes("Python bytecode compilation complete."), false);
+});
+
+test("Python compilation reports a failure to start bundled mysqlsh", (context) => {
+    const root = mkdtempSync(join(tmpdir(), "mysqlsh-compile-spawn-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+    const shell = join(root, "shell");
+    writeFixtureFile(join(
+        shell,
+        "bin",
+        process.platform === "win32" ? "mysqlsh.exe" : "mysqlsh",
+    ));
+
+    assert.throws(() => {
+        compilePythonFiles(shell, () => {
+            return { error: new Error("spawn failed"), status: null, signal: null };
+        }, () => undefined);
+    }, /spawn failed/);
+});
+
+test("Python compilation retains sources and writes checked-hash bytecode", {
+    skip: process.platform === "win32",
+}, (context) => {
+    const root = mkdtempSync(join(tmpdir(), "mysqlsh-compile-integration-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+    const shell = join(root, "shell");
+    const executable = join(shell, "bin", "mysqlsh");
+    const source = join(shell, "lib", "module.py");
+    mkdirSync(dirname(executable), { recursive: true });
+    mkdirSync(dirname(source), { recursive: true });
+    writeFileSync(executable, "#!/bin/sh\nshift 3\nexec python3 -m compileall \"$@\"\n");
+    chmodSync(executable, 0o755);
+    writeFileSync(source, "value = 1\n", { encoding: "utf8" });
+
+    compilePythonFiles(shell, undefined, () => undefined);
+
+    assert.equal(existsSync(source), true);
+    const cacheFolder = join(shell, "lib", "__pycache__");
+    const bytecodeName = readdirSync(cacheFolder)
+        .find((name) => /^module\.cpython-\d+\.pyc$/.test(name));
+    assert.ok(bytecodeName);
+    const bytecodePath = join(cacheFolder, bytecodeName);
+    const bytecode = readFileSync(bytecodePath);
+    assert.equal(bytecode.readUInt32LE(4), 3);
+
+    const inspection = spawnSync("python3", [
+        "-c",
+        "import marshal, sys; f = open(sys.argv[1], 'rb'); f.read(16); "
+            + "print(marshal.load(f).co_filename)",
+        bytecodePath,
+    ], { encoding: "utf8" });
+    assert.equal(inspection.status, 0, inspection.stderr);
+    assert.equal(inspection.stdout.trim(), "lib/module.py");
+});
 
 test("final Shell cleanup removes Unix runtime and plugin test artifacts", () => {
     const root = mkdtempSync(join(tmpdir(), "shell-cleanup-unix-"));
@@ -152,6 +345,34 @@ test("final Shell cleanup supports the Windows Python layout", () => {
     }
 });
 
+test("Shell finalization cleans before optional Python compilation", (context) => {
+    const root = mkdtempSync(join(tmpdir(), "shell-finalization-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+    const shell = join(root, "shell");
+    const plugins = join(shell, "lib", "mysqlsh", "plugins");
+    const source = join(plugins, "gui_plugin", "module.py");
+    const staleBytecode = join(plugins, "gui_plugin", "module.pyc");
+    writeFixtureFile(source);
+    writeFixtureFile(staleBytecode);
+    let compiledRoot;
+
+    finalizeShellBundle(shell, true, (compilationRoot) => {
+        assert.equal(existsSync(source), true);
+        assert.equal(existsSync(staleBytecode), false);
+        compiledRoot = compilationRoot;
+    });
+
+    assert.equal(compiledRoot, shell);
+
+    let disabledCompilerCalls = 0;
+    finalizeShellBundle(shell, false, () => {
+        disabledCompilerCalls += 1;
+    });
+    assert.equal(disabledCompilerCalls, 0);
+});
+
 test("Electron Builder runs its JavaScript CLI with Node", () => {
     const projectFolder = resolve("electron-project");
     const invocation = resolveElectronBuilderInvocation(projectFolder, [
@@ -227,6 +448,50 @@ test("Electron Builder retains the Workbench license location on Linux and Windo
     }
 });
 
+test("Electron Builder copies compiled Python as an app resource", async (context) => {
+    const root = mkdtempSync(join(tmpdir(), "package-desktop-python-files-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+    const appFolder = join(root, "app");
+    const bytecode = join(
+        appFolder,
+        "shell",
+        "__pycache__",
+        "module.cpython-313.pyc",
+    );
+    writeFixtureFile(bytecode);
+
+    const outputFolder = join(root, "builder-output");
+    const resourcesFolder = join(root, "resources");
+    const config = JSON.parse(buildElectronBuilderConfig(
+        "linux-x64",
+        outputFolder,
+        { artifacts: true, compilePython: true, packageNameSuffix: "", zip: true },
+        "mysql-workbench",
+    ));
+    const matchers = getFileMatchers(
+        config,
+        "extraResources",
+        resourcesFolder,
+        {
+            customBuildOptions: config.linux,
+            defaultSrc: appFolder,
+            globalOutDir: outputFolder,
+            macroExpander: (value) => value,
+        },
+    );
+    await copyFiles(matchers, null, false);
+
+    assert.equal(existsSync(join(
+        resourcesFolder,
+        "app",
+        "shell",
+        "__pycache__",
+        "module.cpython-313.pyc",
+    )), true);
+});
+
 test("package metadata defines the shared suffixes", () => {
     assert.deepEqual(packageMetadata.desktopPackageSuffixes, {
         community: "",
@@ -265,6 +530,25 @@ test("Linux installer skip options default to false", () => {
 
     assert.equal(options.skipDeb, false);
     assert.equal(options.skipRpm, false);
+});
+
+test("Python compilation is opt in and incompatible with quick mode", () => {
+    const defaults = parseArguments([
+        "node", "package_desktop.ts", "--targets=linux-x64", "--zip",
+    ]);
+    const enabled = parseArguments([
+        "node", "package_desktop.ts", "--targets=linux-x64", "--zip",
+        "--compile-python",
+    ]);
+
+    assert.equal(defaults.compilePython, false);
+    assert.equal(enabled.compilePython, true);
+    assert.throws(() => {
+        parseArguments([
+            "node", "package_desktop.ts", "--targets=linux-x64", "--quick",
+            "--compile-python",
+        ]);
+    }, /--quick cannot be combined with --compile-python/);
 });
 
 test("Windows signing is opt-in", () => {

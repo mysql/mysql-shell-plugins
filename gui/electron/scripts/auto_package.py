@@ -452,6 +452,7 @@ def package_target(
             str(script_dir / "package_desktop.ts"),
             f"--targets={target}",
             output_argument,
+            "--compile-python",
             f"--artifact-manifest={manifest_path}",
         ]
         if options.win_sign:

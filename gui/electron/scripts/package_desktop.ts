@@ -30,12 +30,21 @@ const {
     existsSync,
     lstatSync,
     mkdirSync,
+    mkdtempSync,
     readdirSync,
     rmSync,
     statSync,
     writeFileSync,
 } = require("fs");
-const { basename, dirname, isAbsolute, join, resolve } = require("path");
+const { tmpdir } = require("os");
+const {
+    basename,
+    dirname,
+    isAbsolute,
+    join,
+    resolve,
+    toNamespacedPath,
+} = require("path");
 
 class Logger {
 
@@ -228,6 +237,7 @@ const parseArguments = (argv) => {
     const result = {
         targets: [],
         quick: false,
+        compilePython: false,
         artifacts: false,
         zip: false,
         sign: false,
@@ -264,6 +274,11 @@ const parseArguments = (argv) => {
 
         if (argument === "--quick") {
             result.quick = true;
+            continue;
+        }
+
+        if (argument === "--compile-python") {
+            result.compilePython = true;
             continue;
         }
 
@@ -337,6 +352,10 @@ const parseArguments = (argv) => {
         throw new Error("--quick cannot be combined with --zip.");
     }
 
+    if (result.quick && result.compilePython) {
+        throw new Error("--quick cannot be combined with --compile-python.");
+    }
+
     if ((result.skipDeb || result.skipRpm) && !result.artifacts) {
         throw new Error("--skip-deb and --skip-rpm can only be used with --artifacts.");
     }
@@ -380,6 +399,80 @@ const copyPackagedRuntime = (target, source, destination) => {
     resetDirectory(destination);
     cpSync(source, destination, { recursive: true, force: true });
 };
+
+const findMysqlshExecutable = (shellFolder) => {
+    const executableFolder = join(shellFolder, "bin");
+    const candidates = ["mysqlsh", "mysqlsh.exe"]
+        .map((name) => join(executableFolder, name))
+        .filter((candidate) => existsSync(candidate));
+    if (candidates.length !== 1) {
+        throw new Error(
+            `Expected one bundled MySQL Shell executable under ${executableFolder}.`,
+        );
+    }
+
+    const executable = candidates[0];
+    if (!statSync(executable).isFile()) {
+        throw new Error(`Bundled MySQL Shell executable must be a regular file: ${executable}`);
+    }
+
+    return executable;
+};
+
+const getPythonCompilationRoot = (shellFolder) => {
+    const resolvedRoot = resolve(shellFolder);
+
+    return process.platform === "win32" ? toNamespacedPath(resolvedRoot) : resolvedRoot;
+};
+
+function compilePythonFiles(shellFolder, run = spawnSync, log = console.log) {
+    const executable = findMysqlshExecutable(shellFolder);
+    const resolvedRoot = resolve(shellFolder);
+    const compilationRoot = getPythonCompilationRoot(shellFolder);
+    const configHome = mkdtempSync(join(tmpdir(), "mysqlsh-compile-python-"));
+    const args = [
+        "--disable-builtin-plugins",
+        "--pym",
+        "compileall",
+        "-q",
+        "-f",
+        "--invalidation-mode",
+        "checked-hash",
+        "-s",
+        compilationRoot,
+        compilationRoot,
+    ];
+
+    log("\nCompiling packaged Python files:");
+    log(`  With: ${executable}`);
+    log(`  Root: ${resolvedRoot}`);
+    try {
+        const result = run(executable, args, {
+            stdio: "inherit",
+            windowsHide: process.platform === "win32",
+            env: {
+                ...process.env,
+                MYSQLSH_USER_CONFIG_HOME: configHome,
+                PYTHONDONTWRITEBYTECODE: "1",
+            },
+        });
+        if (result.error) {
+            throw new Error(`Could not run bundled MySQL Shell: ${result.error.message}`);
+        }
+        if (result.status !== 0) {
+            const outcome = result.status === null
+                ? `signal ${result.signal ?? "unknown"}`
+                : `exit status ${result.status}`;
+            throw new Error(
+                `Python bytecode compilation failed with ${outcome}: ${resolvedRoot}`,
+            );
+        }
+    } finally {
+        rmSync(configHome, { recursive: true, force: true });
+    }
+
+    log("Python bytecode compilation complete.");
+}
 
 const findPythonPluginFolder = (shellFolder) => {
     const candidate = join(shellFolder, "lib", "mysqlsh", "plugins");
@@ -466,6 +559,13 @@ const cleanShellBundle = (shellFolder) => {
     removePaths(shellFolder, [
         join("lib", "mysqlsh", "python-packages", "mysql_gadgets", "tests"),
     ]);
+};
+
+const finalizeShellBundle = (shellFolder, shouldCompile, compiler = compilePythonFiles) => {
+    cleanShellBundle(shellFolder);
+    if (shouldCompile) {
+        compiler(shellFolder);
+    }
 };
 
 const buildAppManifest = (packageName, packageNameSuffix) => {
@@ -608,6 +708,18 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions, packag
         from: join(electronFolder, "LICENSE.txt"),
         to: "LICENSE.txt",
     };
+    const extraResources = [
+        ...(target.startsWith("darwin") ? [licenseFile] : []),
+        ...(packageOptions.compilePython
+            ? [
+                {
+                    from: "shell",
+                    to: "app/shell",
+                    filter: ["**/__pycache__/**/*.pyc"],
+                },
+            ]
+            : []),
+    ];
     const config = {
         appId: desktopBundleIdentifier,
         productName: desktopProductName,
@@ -624,7 +736,7 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions, packag
             "**/*",
         ],
         extraFiles: target.startsWith("darwin") ? undefined : [licenseFile],
-        extraResources: target.startsWith("darwin") ? [licenseFile] : undefined,
+        extraResources: extraResources.length > 0 ? extraResources : undefined,
         artifactName: getArtifactFileName(packageName, target, "${ext}"),
         mac: {
             target: target.startsWith("darwin") ? targets : null,
@@ -809,7 +921,7 @@ const runElectronBuilder = (target, appFolder, configPath, packageOptions) => {
     }
 };
 
-const prepareShellBundle = (target, appFolder) => {
+const prepareShellBundle = (target, appFolder, compilePython) => {
     const shellSourceFolder = join(shellCacheFolder, target);
     if (!existsSync(shellSourceFolder)) {
         throw new Error(`Missing MySQL Shell cache for ${target} at ${shellSourceFolder}`);
@@ -850,7 +962,7 @@ const prepareShellBundle = (target, appFolder) => {
         });
     }
 
-    cleanShellBundle(shellTargetFolder);
+    finalizeShellBundle(shellTargetFolder, compilePython);
 };
 
 const installAppImages = (appFolder) => {
@@ -911,7 +1023,14 @@ const installProductBundleHelper = (target, targetFolder) => {
     }
 };
 
-const installAppPayload = (target, appFolder, includeShellBundle, packageName, packageNameSuffix) => {
+const installAppPayload = (
+    target,
+    appFolder,
+    includeShellBundle,
+    packageName,
+    packageNameSuffix,
+    compilePython = false,
+) => {
     if (includeShellBundle) {
         resetDirectory(appFolder);
     } else {
@@ -936,7 +1055,7 @@ const installAppPayload = (target, appFolder, includeShellBundle, packageName, p
     installAppImages(appFolder);
 
     if (includeShellBundle) {
-        prepareShellBundle(target, appFolder);
+        prepareShellBundle(target, appFolder, compilePython);
     }
 };
 
@@ -950,7 +1069,14 @@ const packageTarget = (target, packageOptions) => {
     const builderConfigPath = join(targetStagingFolder, "electron-builder.json");
 
     resetDirectory(targetStagingFolder);
-    installAppPayload(target, appFolder, true, packageName, packageOptions.packageNameSuffix);
+    installAppPayload(
+        target,
+        appFolder,
+        true,
+        packageName,
+        packageOptions.packageNameSuffix,
+        packageOptions.compilePython,
+    );
     writeFileSync(
         builderConfigPath,
         buildElectronBuilderConfig(target, builderOutputFolder, packageOptions, packageName),
@@ -1042,10 +1168,14 @@ module.exports = {
     buildAppManifest,
     buildElectronBuilderConfig,
     cleanShellBundle,
+    compilePythonFiles,
     copyArtifactFiles,
+    finalizeShellBundle,
+    findMysqlshExecutable,
     getArtifactFileName,
     getArtifactFileNames,
     getDesktopPackageName,
+    getPythonCompilationRoot,
     parseArguments,
     resolveElectronBuilderCacheFolder,
     resolveElectronBuilderInvocation,

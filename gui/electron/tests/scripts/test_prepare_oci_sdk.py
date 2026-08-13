@@ -24,7 +24,9 @@
 import contextlib
 import importlib.util
 import io
+import marshal
 import os
+import py_compile
 import shutil
 import subprocess
 import sys
@@ -33,6 +35,7 @@ import unittest
 import zipfile
 from pathlib import Path
 from types import ModuleType
+from typing import Optional
 from unittest import mock
 
 
@@ -79,9 +82,63 @@ class PrepareOciSdkTest(unittest.TestCase):
         with zipfile.ZipFile(site_packages / "oci.zip") as archive:
             self.assertIsNone(archive.testzip())
             self.assertEqual(
+                sorted(archive.namelist()),
+                ["oci/__init__.pyc", "oci/service.pyc"],
+            )
+            self.assertEqual(
                 archive.read("oci/service.pyc")[:4],
                 importlib.util.MAGIC_NUMBER,
             )
+
+    def test_bytecode_only_archive_is_importable(self) -> None:
+        helper = self.load_helper()
+        site_packages = self.create_site_packages()
+        helper.prepare_oci_sdk(site_packages)
+        archive_path = site_packages / "oci.zip"
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                (
+                    "import sys; "
+                    f"sys.path.insert(0, {str(archive_path)!r}); "
+                    "import oci; "
+                    "from oci.service import VALUE; "
+                    "assert VALUE == 1; "
+                    "assert type(oci.__loader__).__name__ == 'zipimporter'"
+                ),
+            ],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    @unittest.skipUnless(
+        sys.version_info >= (3, 7),
+        "checked-hash bytecode requires Python 3.7",
+    )
+    def test_oci_bytecode_is_stable_across_staging_directories(self) -> None:
+        helper = self.load_helper()
+        first_site_packages = self.create_site_packages("first/site-packages")
+        second_site_packages = self.create_site_packages("second/site-packages")
+
+        helper.prepare_oci_sdk(first_site_packages)
+        helper.prepare_oci_sdk(second_site_packages)
+
+        with zipfile.ZipFile(first_site_packages / "oci.zip") as first_archive:
+            first_bytecode = first_archive.read("oci/service.pyc")
+        with zipfile.ZipFile(second_site_packages / "oci.zip") as second_archive:
+            second_bytecode = second_archive.read("oci/service.pyc")
+
+        self.assertEqual(first_bytecode, second_bytecode)
+        self.assertEqual(int.from_bytes(first_bytecode[4:8], "little"), 3)
+        self.assertEqual(
+            marshal.loads(first_bytecode[16:]).co_filename,
+            "oci/service.py",
+        )
 
     def test_cli_prepares_supplied_site_packages(self) -> None:
         site_packages = self.create_site_packages()
@@ -108,8 +165,19 @@ class PrepareOciSdkTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "compilation failed"):
                 helper.prepare_oci_sdk(site_packages)
 
+        compile_options = {
+            "ddir": "oci",
+            "force": True,
+            "quiet": 1,
+            "legacy": True,
+        }
+        if sys.version_info >= (3, 7):
+            compile_options["invalidation_mode"] = (
+                py_compile.PycInvalidationMode.CHECKED_HASH
+            )
         compile_dir.assert_called_once_with(
-            str(site_packages / "oci"), force=True, quiet=1, legacy=True
+            str(site_packages / "oci"),
+            **compile_options,
         )
         self.assert_original_directory_is_retained(site_packages)
 
@@ -331,7 +399,31 @@ class PrepareOciSdkTest(unittest.TestCase):
     def test_prepares_oci_sdk_with_python_3_6_zipfile(self) -> None:
         helper = self.load_helper()
         site_packages = self.create_site_packages()
+        original_compile_dir = helper.compileall.compile_dir
         original_zip_file = zipfile.ZipFile
+
+        def python_3_6_compile_dir(
+            directory: str,
+            maxlevels: Optional[int] = None,
+            ddir: Optional[str] = None,
+            force: bool = False,
+            rx: Optional[object] = None,
+            quiet: int = 0,
+            legacy: bool = False,
+            optimize: int = -1,
+            workers: int = 1,
+        ) -> bool:
+            return original_compile_dir(
+                directory,
+                maxlevels=maxlevels,
+                ddir=ddir,
+                force=force,
+                rx=rx,
+                quiet=quiet,
+                legacy=legacy,
+                optimize=optimize,
+                workers=workers,
+            )
 
         def python_3_6_zip_file(
             file: object,
@@ -342,18 +434,27 @@ class PrepareOciSdkTest(unittest.TestCase):
             return original_zip_file(file, mode, compression, allow_zip64)
 
         with mock.patch.object(sys, "version_info", (3, 6)), mock.patch.object(
-            helper.zipfile,
-            "ZipFile",
-            new=python_3_6_zip_file,
+            helper.compileall,
+            "compile_dir",
+            new=python_3_6_compile_dir,
+        ), mock.patch.object(
+            helper.zipfile, "ZipFile", new=python_3_6_zip_file
         ):
             helper.prepare_oci_sdk(site_packages)
 
         with original_zip_file(site_packages / "oci.zip") as archive:
             self.assertIsNone(archive.testzip())
             self.assertEqual(
-                archive.getinfo("oci/service.py").compress_type,
+                archive.getinfo("oci/service.pyc").compress_type,
                 zipfile.ZIP_DEFLATED,
             )
+            bytecode = archive.read("oci/service.pyc")
+
+        header_size = 16 if sys.version_info >= (3, 7) else 12
+        self.assertEqual(
+            marshal.loads(bytecode[header_size:]).co_filename,
+            "oci/service.py",
+        )
 
     def test_cli_reports_invalid_site_packages_without_traceback(self) -> None:
         missing = Path(self.temporary_dir.name) / "missing"

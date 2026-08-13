@@ -1104,6 +1104,7 @@ class AutoPackageTest(unittest.TestCase):
                     str(root / "electron" / "scripts" / "package_desktop.ts"),
                     f"--targets={target}",
                     "--zip",
+                    "--compile-python",
                 ],
             )
             self.assertNotIn(
@@ -1271,6 +1272,7 @@ class AutoPackageTest(unittest.TestCase):
                 str(root / "electron" / "scripts" / "package_desktop.ts"),
                 f"--targets={target}",
                 "--artifacts",
+                "--compile-python",
             ]
             if target == "linux-arm64":
                 expected_arguments.append("--skip-deb")
@@ -1584,6 +1586,10 @@ class AutoPackageTest(unittest.TestCase):
             invocation = json.loads(log_path.read_text(encoding="utf-8"))
             self.assertIn(f"--targets={target}", invocation["arguments"])
             self.assertIn("--artifacts", invocation["arguments"])
+            self.assertEqual(
+                invocation["arguments"].count("--compile-python"),
+                1,
+            )
             self.assertEqual(invocation["arguments"].count("--win-sign"), 1)
             self.assertIn(
                 "--package-name-suffix=-commercial",
