@@ -38,7 +38,6 @@ from unittest import mock
 
 SCRIPT_DIR = Path(__file__).resolve().parents[2] / "scripts"
 SCRIPT_PATH = SCRIPT_DIR / "prepare_mysqlsh_tree.py"
-STRIP_SCRIPT_PATH = SCRIPT_DIR / "strip_mysqlsh_tree.sh"
 PACKAGE_SCRIPT_PATH = SCRIPT_DIR / "package_desktop.sh"
 
 
@@ -119,10 +118,6 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             "    source = Path(arguments[-2])\n"
             "    destination = Path(arguments[-1])\n"
             "    shutil.copytree(source, destination, symlinks=True)\n"
-            "    if '--clean' in arguments:\n"
-            "        for tests in destination.rglob('tests'):\n"
-            "            if tests.is_dir():\n"
-            "                shutil.rmtree(tests)\n"
             "elif arguments[0] == 'optimize-oci':\n"
             "    tree = Path(arguments[1])\n"
             "    site_packages = (\n"
@@ -146,22 +141,6 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             "            raise SystemExit(9)\n",
             encoding="utf-8",
         )
-
-        strip_script = scripts_dir / STRIP_SCRIPT_PATH.name
-        strip_script.write_text(
-            "#!/usr/bin/env python3\n"
-            "import json\n"
-            "import os\n"
-            "import sys\n"
-            "from pathlib import Path\n"
-            "event = {'tool': 'strip', 'arguments': sys.argv[1:]}\n"
-            "with Path(os.environ['PACKAGE_WRAPPER_EVENT_LOG']).open(\n"
-            "    'a', encoding='utf-8'\n"
-            ") as output:\n"
-            "    output.write(json.dumps(event) + '\\n')\n",
-            encoding="utf-8",
-        )
-        strip_script.chmod(0o755)
 
         for plugin in (
             root / "gui" / "backend" / "gui_plugin",
@@ -404,6 +383,35 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             self.assertTrue(staged_link.is_symlink())
             self.assertEqual(staged_link.readlink(), Path("mysqlsh.exe"))
 
+    def test_stage_preserves_development_content(self) -> None:
+        helper = self.load_helper()
+
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            source = self.create_shell_tree(root / "source")
+            plugin_test = (
+                source / "lib" / "mysqlsh" / "plugins" / "gui_plugin"
+                / "tests" / "test_plugin.py"
+            )
+            plugin_test.parent.mkdir()
+            plugin_test.write_text("keep", encoding="utf-8")
+            python_test = (
+                source / "lib" / "mysqlsh" / "lib" / "python3.13"
+                / "test" / "test_os.py"
+            )
+            python_test.parent.mkdir(parents=True)
+            python_test.write_text("keep", encoding="utf-8")
+            destination = root / "staging" / "linux-x64"
+
+            helper.stage_mysqlsh_tree(source, destination)
+
+            self.assertTrue(
+                (destination / plugin_test.relative_to(source)).is_file()
+            )
+            self.assertTrue(
+                (destination / python_test.relative_to(source)).is_file()
+            )
+
     def test_stage_oci_optimization_is_opt_in(self) -> None:
         helper = self.load_helper()
 
@@ -415,7 +423,7 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             with mock.patch.object(
                 helper, "prepare_oci_sdk", create=True
             ) as prepare_oci:
-                helper.stage_mysqlsh_tree(source, destination, cleanup=True)
+                helper.stage_mysqlsh_tree(source, destination)
                 prepare_oci.assert_not_called()
 
                 def mark_prepared(staged_tree: Path) -> None:
@@ -504,124 +512,19 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
 
             self.assertEqual(stale.read_text(encoding="utf-8"), "keep")
 
-    def test_cleanup_discovery_is_sorted_and_prunes_nested_candidates(self) -> None:
-        helper = self.load_helper()
-
-        with tempfile.TemporaryDirectory() as temporary_dir:
-            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
-            plugin_root = tree / "lib" / "mysqlsh" / "plugins"
-            nested = plugin_root / "gui_plugin"
-            candidates = (
-                nested / "tests",
-                nested / "docs",
-                nested / "examples",
-                nested / "node_modules",
-                nested / ".vscode",
-                nested / "__pycache__",
-            )
-            for candidate in candidates:
-                candidate.mkdir()
-
-            (nested / "tests" / "pytest.ini").write_text("nested", encoding="utf-8")
-            cleanup_files = (
-                "cspell.json",
-                "pytest-coverage.ini",
-                "pytest.ini",
-                "python.env",
-                "run_tests.py",
-            )
-            for name in cleanup_files:
-                (nested / name).write_text(name, encoding="utf-8")
-
-            (nested / "keep.py").write_text("keep", encoding="utf-8")
-            found = helper.find_cleanup_candidates(tree)
-
-            self.assertEqual(found, sorted(found, key=lambda path: str(path)))
-            self.assertEqual(set(found), set(candidates) | {
-                nested / name for name in cleanup_files
-            })
-            self.assertNotIn(nested / "tests" / "pytest.ini", found)
-
-    def test_cleanup_discovers_python_package_docs_on_all_platforms(self) -> None:
-        helper = self.load_helper()
-
-        with tempfile.TemporaryDirectory() as temporary_dir:
-            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
-            candidates = (
-                tree / "lib" / "mysqlsh" / "lib" / "python3.13"
-                / "site-packages" / "docs",
-                tree / "lib" / "Python3.13" / "Lib" / "site-packages"
-                / "docs",
-            )
-            for candidate in candidates:
-                candidate.mkdir(parents=True)
-
-            found = helper.find_cleanup_candidates(tree)
-
-            self.assertEqual(
-                found,
-                sorted(candidates, key=lambda path: str(path)),
-            )
-
-    def test_cleanup_removes_candidates_and_retains_other_content(self) -> None:
-        helper = self.load_helper()
-
-        with tempfile.TemporaryDirectory() as temporary_dir:
-            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
-            plugin = tree / "lib" / "mysqlsh" / "plugins" / "gui_plugin"
-            tests = plugin / "tests"
-            tests.mkdir()
-            (tests / "test_plugin.py").write_text("remove", encoding="utf-8")
-            pytest_ini = plugin / "pytest.ini"
-            pytest_ini.write_text("remove", encoding="utf-8")
-            keep = plugin / "keep.py"
-            keep.write_text("keep", encoding="utf-8")
-
-            removed = helper.clean_mysqlsh_tree(tree)
-
-            self.assertEqual(
-                removed,
-                sorted((pytest_ini, tests), key=lambda path: str(path)),
-            )
-            self.assertFalse(tests.exists())
-            self.assertFalse(pytest_ini.exists())
-            self.assertEqual(keep.read_text(encoding="utf-8"), "keep")
-
-    def test_clean_cli_supports_dry_run_and_apply(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_dir:
-            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
-            tests = tree / "lib" / "mysqlsh" / "plugins" / "gui_plugin" / "tests"
-            tests.mkdir()
-
-            dry_run = self.run_helper("clean", str(tree))
-            self.assertEqual(dry_run.returncode, 0, dry_run.stderr)
-            self.assertIn("Mode: dry-run", dry_run.stdout)
-            self.assertIn(str(tests), dry_run.stdout)
-            self.assertTrue(tests.is_dir())
-
-            apply = self.run_helper("clean", "--apply", str(tree))
-            self.assertEqual(apply.returncode, 0, apply.stderr)
-            self.assertIn("Mode: apply", apply.stdout)
-            self.assertFalse(tests.exists())
-
-    def test_stage_clean_cli_stages_cleaned_tree(self) -> None:
+    def test_stage_cli_rejects_cleanup(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
             source = self.create_shell_tree(root / "source")
-            tests = source / "lib" / "mysqlsh" / "plugins" / "gui_plugin" / "tests"
-            tests.mkdir()
             destination = root / "staging" / "linux-x64"
 
             result = self.run_helper(
                 "stage", "--clean", str(source), str(destination)
             )
 
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue((destination / "bin" / "mysqlsh.exe").is_file())
-            self.assertFalse(
-                (destination / "lib" / "mysqlsh" / "plugins" / "gui_plugin"
-                 / "tests").exists()
-            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("unrecognized arguments: --clean", result.stderr)
+            self.assertFalse(destination.exists())
 
     def test_stage_cli_supports_oci_optimization(self) -> None:
         helper = self.load_helper()
@@ -720,32 +623,6 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             self.assertIn("ERROR:", result.stderr)
             self.assertIn(str(source / "bin"), result.stderr)
 
-    def test_strip_wrapper_preserves_dry_run_and_apply_interface(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_dir:
-            tree = self.create_shell_tree(Path(temporary_dir) / "mysqlsh")
-            tests = tree / "lib" / "mysqlsh" / "plugins" / "gui_plugin" / "tests"
-            tests.mkdir()
-
-            dry_run = subprocess.run(
-                ["bash", str(STRIP_SCRIPT_PATH), str(tree)],
-                capture_output=True,
-                check=False,
-                text=True,
-            )
-            self.assertEqual(dry_run.returncode, 0, dry_run.stderr)
-            self.assertIn("Mode: dry-run", dry_run.stdout)
-            self.assertTrue(tests.is_dir())
-
-            apply = subprocess.run(
-                ["bash", str(STRIP_SCRIPT_PATH), "--apply", str(tree)],
-                capture_output=True,
-                check=False,
-                text=True,
-            )
-            self.assertEqual(apply.returncode, 0, apply.stderr)
-            self.assertIn("Mode: apply", apply.stdout)
-            self.assertFalse(tests.exists())
-
     def test_package_wrapper_optimizes_final_payloads(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
@@ -776,7 +653,7 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             )
             for required in ("bin", "lib", "share"):
                 self.assertTrue((staging / required).is_dir())
-            self.assertFalse(
+            self.assertTrue(
                 (staging / "lib" / "mysqlsh" / "plugins" / "gui_plugin"
                  / "tests").exists()
             )
@@ -787,7 +664,6 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
                         "tool": "prepare",
                         "arguments": [
                             "stage",
-                            "--clean",
                             "--optimize-oci",
                             str(source),
                             str(staging),
@@ -856,16 +732,8 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
                 self.read_package_wrapper_events(event_log),
                 [
                     {
-                        "tool": "strip",
-                        "arguments": ["--apply", str(staging)],
-                    },
-                    {
                         "tool": "prepare",
                         "arguments": ["optimize-oci", str(staging)],
-                    },
-                    {
-                        "tool": "strip",
-                        "arguments": ["--apply", str(staging)],
                     },
                     {
                         "tool": "prepare",
@@ -952,16 +820,8 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
                 self.read_package_wrapper_events(event_log),
                 [
                     {
-                        "tool": "strip",
-                        "arguments": ["--apply", str(staging)],
-                    },
-                    {
                         "tool": "prepare",
                         "arguments": ["optimize-oci", str(staging)],
-                    },
-                    {
-                        "tool": "strip",
-                        "arguments": ["--apply", str(staging)],
                     },
                     {
                         "tool": "prepare",
@@ -1002,7 +862,6 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
                         "tool": "prepare",
                         "arguments": [
                             "stage",
-                            "--clean",
                             str(source),
                             str(staging),
                         ],
@@ -1012,6 +871,10 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             self.assertFalse(node_log.exists())
             self.assertNotIn("--optimize-oci", events[0]["arguments"])
             self.assertNotIn("optimize-oci", events[0]["arguments"])
+            self.assertTrue(
+                (staging / "lib" / "mysqlsh" / "plugins" / "gui_plugin"
+                 / "tests").is_dir()
+            )
             self.assertEqual(
                 (staging / ".mysql-shell-staging-source").read_text(
                     encoding="utf-8"

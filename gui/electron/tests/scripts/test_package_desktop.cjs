@@ -30,16 +30,18 @@ const {
     mkdtempSync,
     readFileSync,
     rmSync,
+    symlinkSync,
     writeFileSync,
 } = require("node:fs");
 const { tmpdir } = require("node:os");
 const test = require("node:test");
-const { join, resolve } = require("node:path");
+const { dirname, join, resolve } = require("node:path");
 const packageMetadata = require("../../package.json");
 
 const {
     buildAppManifest,
     buildElectronBuilderConfig,
+    cleanShellBundle,
     copyArtifactFiles,
     getDesktopPackageName,
     getArtifactFileNames,
@@ -50,6 +52,105 @@ const {
     validateDesktopPackageSuffixes,
     writeArtifactManifest,
 } = require("../../scripts/package_desktop.ts");
+
+const writeFixtureFile = (path) => {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, "fixture", { encoding: "utf8" });
+};
+
+test("final Shell cleanup removes Unix runtime and plugin test artifacts", () => {
+    const root = mkdtempSync(join(tmpdir(), "shell-cleanup-unix-"));
+    try {
+        const shell = join(root, "shell");
+        const python = join(shell, "lib", "mysqlsh", "lib", "python3.13");
+        const plugins = join(shell, "lib", "mysqlsh", "plugins");
+        const remove = [
+            join(python, "test", "test_os.py"),
+            join(python, "__phello__", "spam.py"),
+            join(python, "idlelib", "idle_test", "test_idle.py"),
+            join(python, "site-packages", "tests", "test_dependency.py"),
+            join(python, "site-packages", "docs", "index.md"),
+            join(shell, "lib", "mysqlsh", "python-packages", "mysql_gadgets",
+                "tests", "test_gadget.py"),
+            join(plugins, "debug", "tests", "test_debug.py"),
+            join(plugins, "gui_plugin", "docs", "development.md"),
+            join(plugins, "gui_plugin", "pytest.ini"),
+            join(plugins, "gui_plugin", "cached.pyc"),
+            join(plugins, "mrs_plugin", "grammar", "test", "query.sql"),
+            join(plugins, "mrs_plugin", "scripts", "run_grammar_test.sh"),
+            join(plugins, "mrs_plugin", "db_schema", "mrs.msm.project",
+                "development", "schema.json"),
+            join(plugins, "mrs_plugin", "db_schema", "tasks.msm.project",
+                "development", "schema.json"),
+            join(plugins, "gui_plugin", "debugger", "init.py"),
+            join(plugins, "gui_plugin", "wrappers", "init.py"),
+        ];
+        const retain = [
+            join(python, "unittest", "__init__.py"),
+            join(python, "unittest", "mock.py"),
+            join(python, "doctest.py"),
+            join(python, "site-packages", "cryptography-45.0.0.dist-info",
+                "licenses", "LICENSE"),
+            join(plugins, "debug", "test", "keep.py"),
+            join(plugins, "mrs_plugin", "grammar", "MySQLParser.g4"),
+            join(plugins, "mrs_plugin", "lib", "mrs_parser", "parser.py"),
+        ];
+        for (const path of [...remove, ...retain]) {
+            writeFixtureFile(path);
+        }
+
+        const outside = join(root, "outside");
+        const outsideTests = join(outside, "tests", "keep.py");
+        writeFixtureFile(outsideTests);
+        symlinkSync(outside, join(plugins, "debug", "outside-link"), "dir");
+
+        cleanShellBundle(shell);
+
+        for (const path of remove) {
+            assert.equal(existsSync(path), false, `expected removal: ${path}`);
+        }
+        for (const path of retain) {
+            assert.equal(existsSync(path), true, `expected retained file: ${path}`);
+        }
+        assert.equal(existsSync(outsideTests), true);
+    } finally {
+        rmSync(root, { recursive: true, force: true });
+    }
+});
+
+test("final Shell cleanup supports the Windows Python layout", () => {
+    const root = mkdtempSync(join(tmpdir(), "shell-cleanup-windows-"));
+    try {
+        const shell = join(root, "shell");
+        const python = join(shell, "lib", "Python3.13", "Lib");
+        const plugins = join(shell, "lib", "mysqlsh", "plugins");
+        const remove = [
+            join(python, "test", "test_os.py"),
+            join(python, "__phello__", "spam.py"),
+            join(python, "idlelib", "idle_test", "test_idle.py"),
+            join(python, "site-packages", "tests", "test_dependency.py"),
+        ];
+        const retain = [
+            join(python, "unittest", "__init__.py"),
+            join(python, "unittest", "mock.py"),
+        ];
+        for (const path of [...remove, ...retain]) {
+            writeFixtureFile(path);
+        }
+        writeFixtureFile(join(plugins, "debug", "init.py"));
+
+        cleanShellBundle(shell);
+
+        for (const path of remove) {
+            assert.equal(existsSync(path), false, `expected removal: ${path}`);
+        }
+        for (const path of retain) {
+            assert.equal(existsSync(path), true, `expected retained file: ${path}`);
+        }
+    } finally {
+        rmSync(root, { recursive: true, force: true });
+    }
+});
 
 test("Electron Builder runs its JavaScript CLI with Node", () => {
     const projectFolder = resolve("electron-project");

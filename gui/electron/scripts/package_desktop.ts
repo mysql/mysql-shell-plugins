@@ -28,6 +28,7 @@ const {
     chmodSync,
     cpSync,
     existsSync,
+    lstatSync,
     mkdirSync,
     readdirSync,
     rmSync,
@@ -392,14 +393,15 @@ const findPythonPluginFolder = (shellFolder) => {
 const cleanPluginArtifacts = (folder) => {
     for (const entry of readdirSync(folder)) {
         const fullPath = join(folder, entry);
-        const stats = statSync(fullPath);
+        const stats = lstatSync(fullPath);
+
+        if ([".vscode", "__pycache__", "docs", "examples", "htmlcov", "node_modules", "tests"]
+            .includes(entry) && (stats.isDirectory() || stats.isSymbolicLink())) {
+            rmSync(fullPath, { recursive: true, force: true });
+            continue;
+        }
 
         if (stats.isDirectory()) {
-            if ([".vscode", "__pycache__", "docs", "examples", "htmlcov", "node_modules", "tests"].includes(entry)) {
-                rmSync(fullPath, { recursive: true, force: true });
-                continue;
-            }
-
             cleanPluginArtifacts(fullPath);
             continue;
         }
@@ -409,6 +411,61 @@ const cleanPluginArtifacts = (folder) => {
             rmSync(fullPath, { force: true });
         }
     }
+};
+
+const removePaths = (root, relativePaths) => {
+    for (const relativePath of relativePaths) {
+        rmSync(join(root, relativePath), { recursive: true, force: true });
+    }
+};
+
+const findDirectories = (parent, matches) => {
+    if (!existsSync(parent)) {
+        return [];
+    }
+
+    return readdirSync(parent, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory() && matches(entry.name))
+        .map((entry) => join(parent, entry.name));
+};
+
+const findPythonLibraryFolders = (shellFolder) => {
+    const unixParent = join(shellFolder, "lib", "mysqlsh", "lib");
+    const unixFolders = findDirectories(unixParent, (name) => name.startsWith("python"));
+    const windowsParent = join(shellFolder, "lib");
+    const windowsFolders = findDirectories(windowsParent, (name) => name.startsWith("Python"))
+        .map((folder) => join(folder, "Lib"))
+        .filter((folder) => existsSync(folder) && lstatSync(folder).isDirectory());
+
+    return [...unixFolders, ...windowsFolders];
+};
+
+const cleanShellBundle = (shellFolder) => {
+    const pluginsFolder = findPythonPluginFolder(shellFolder);
+    cleanPluginArtifacts(pluginsFolder);
+    removePaths(pluginsFolder, [
+        join("mrs_plugin", "db_schema", "mrs.msm.project", "development"),
+        join("mrs_plugin", "db_schema", "tasks.msm.project", "development"),
+        join("gui_plugin", "debugger"),
+        join("gui_plugin", "wrappers"),
+        join("mrs_plugin", "grammar", "test"),
+        join("mrs_plugin", "scripts", "run_grammar_test.sh"),
+    ]);
+
+    const pythonPathsToRemove = [
+        "test",
+        "__phello__",
+        join("idlelib", "idle_test"),
+        join("site-packages", "tests"),
+        join("site-packages", "docs"),
+    ];
+    for (const pythonFolder of findPythonLibraryFolders(shellFolder)) {
+        removePaths(pythonFolder, pythonPathsToRemove);
+    }
+
+    removePaths(shellFolder, [
+        join("lib", "mysqlsh", "python-packages", "mysql_gadgets", "tests"),
+    ]);
 };
 
 const buildAppManifest = (packageName, packageNameSuffix) => {
@@ -793,28 +850,7 @@ const prepareShellBundle = (target, appFolder) => {
         });
     }
 
-    cleanPluginArtifacts(pluginsTargetFolder);
-    const pluginPathsToRemove = [
-        join(
-            pluginsTargetFolder,
-            "mrs_plugin",
-            "db_schema",
-            "mrs.msm.project",
-            "development",
-        ),
-        join(
-            pluginsTargetFolder,
-            "mrs_plugin",
-            "db_schema",
-            "tasks.msm.project",
-            "development",
-        ),
-        join(pluginsTargetFolder, "gui_plugin", "debugger"),
-        join(pluginsTargetFolder, "gui_plugin", "wrappers"),
-    ];
-    for (const path of pluginPathsToRemove) {
-        rmSync(path, { recursive: true, force: true });
-    }
+    cleanShellBundle(shellTargetFolder);
 };
 
 const installAppImages = (appFolder) => {
@@ -1005,6 +1041,7 @@ const main = (argv) => {
 module.exports = {
     buildAppManifest,
     buildElectronBuilderConfig,
+    cleanShellBundle,
     copyArtifactFiles,
     getArtifactFileName,
     getArtifactFileNames,

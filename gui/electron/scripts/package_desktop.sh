@@ -258,7 +258,6 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ELECTRON_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-STRIP_MYSQLSH_TREE_SCRIPT="$SCRIPT_DIR/strip_mysqlsh_tree.sh"
 PREPARE_MYSQLSH_TREE_SCRIPT="$SCRIPT_DIR/prepare_mysqlsh_tree.py"
 
 cd "$ELECTRON_DIR"
@@ -312,11 +311,6 @@ fi
 
 mkdir -p "$MYSQL_SHELL_CACHE_ROOT"
 mkdir -p "$ELECTRON_CACHE_ROOT"
-
-if [ ! -x "$STRIP_MYSQLSH_TREE_SCRIPT" ]; then
-    echo "ERROR: Missing executable MySQL Shell strip script: $STRIP_MYSQLSH_TREE_SCRIPT"
-    exit 1
-fi
 
 if [ ! -f "$PREPARE_MYSQLSH_TREE_SCRIPT" ]; then
     echo "ERROR: Missing MySQL Shell preparation helper: $PREPARE_MYSQLSH_TREE_SCRIPT"
@@ -472,13 +466,6 @@ function extract_archive_preserving_layout() {
     shopt -u dotglob nullglob
 
     rmdir "$temp_dir" 2>/dev/null || :
-}
-
-function strip_mysqlsh_tree() {
-    local target_dir="$1"
-
-    echo "Stripping MySQL Shell tree at $target_dir..."
-    "$STRIP_MYSQLSH_TREE_SCRIPT" --apply "$target_dir"
 }
 
 function install_dev_plugin_links() {
@@ -637,7 +624,7 @@ for platform in "${TARGETS[@]}"; do
     echo "Preparing MySQL Shell staging for $platform..."
     if [ -n "$shell_tree" ]; then
         echo "Copying MySQL Shell tree for $platform from $shell_tree..."
-        PREPARE_MYSQLSH_TREE_ARGS=(stage --clean)
+        PREPARE_MYSQLSH_TREE_ARGS=(stage)
         if [ "$STAGE_MYSQLSH_ONLY" -eq 0 ]; then
             PREPARE_MYSQLSH_TREE_ARGS+=(--optimize-oci)
         fi
@@ -668,7 +655,6 @@ for platform in "${TARGETS[@]}"; do
         if [ "$STAGE_MYSQLSH_ONLY" -eq 0 ]; then
             rm -f "$(get_mysql_shell_staging_marker_path "$shell_dir")"
         fi
-        strip_mysqlsh_tree "$shell_dir"
         if [ "$STAGE_MYSQLSH_ONLY" -eq 0 ]; then
             python3 "$PREPARE_MYSQLSH_TREE_SCRIPT" optimize-oci "$shell_dir"
         fi

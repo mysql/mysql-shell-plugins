@@ -29,29 +29,12 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Optional, Sequence
+from typing import Optional, Sequence
 
 
 PREPARE_OCI_SDK_SCRIPT = Path(__file__).resolve().with_name(
     "prepare_oci_sdk.py"
 )
-
-
-CLEANUP_DIRECTORY_NAMES = {
-    ".vscode",
-    "__pycache__",
-    "docs",
-    "examples",
-    "node_modules",
-    "tests",
-}
-CLEANUP_FILE_NAMES = {
-    "cspell.json",
-    "pytest-coverage.ini",
-    "pytest.ini",
-    "python.env",
-    "run_tests.py",
-}
 
 
 def _is_within_tree(path: Path, tree: Path) -> bool:
@@ -142,61 +125,9 @@ def validate_mysqlsh_tree(tree: Path) -> None:
         raise ValueError(f"Plugin root does not exist: {plugin_root}")
 
 
-def find_cleanup_candidates(tree: Path) -> List[Path]:
-    validate_mysqlsh_tree(tree)
-    plugin_root = tree / "lib" / "mysqlsh" / "plugins"
-    candidates = [
-        path
-        for root, pattern in (
-            (
-                tree / "lib" / "mysqlsh" / "lib",
-                "python*/site-packages/docs",
-            ),
-            (tree / "lib", "Python*/Lib/site-packages/docs"),
-        )
-        for path in root.glob(pattern)
-        if path.is_dir() or path.is_symlink()
-    ]
-
-    for directory, directory_names, file_names in os.walk(
-        plugin_root, topdown=True, followlinks=False
-    ):
-        directory_names.sort()
-        file_names.sort()
-        current = Path(directory)
-        removable_directories = [
-            name for name in directory_names if name in CLEANUP_DIRECTORY_NAMES
-        ]
-        candidates.extend(current / name for name in removable_directories)
-        directory_names[:] = [
-            name for name in directory_names if name not in CLEANUP_DIRECTORY_NAMES
-        ]
-        candidates.extend(
-            current / name for name in file_names if name in CLEANUP_FILE_NAMES
-        )
-
-    return sorted(candidates, key=lambda path: str(path))
-
-
-def _remove_path(path: Path) -> None:
-    if path.is_symlink() or path.is_file():
-        path.unlink()
-    elif path.exists():
-        shutil.rmtree(path)
-
-
-def clean_mysqlsh_tree(tree: Path) -> List[Path]:
-    candidates = find_cleanup_candidates(tree)
-    for candidate in candidates:
-        _remove_path(candidate)
-
-    return candidates
-
-
 def stage_mysqlsh_tree(
     source: Path,
     destination: Path,
-    cleanup: bool = False,
     optimize_oci: bool = False,
 ) -> None:
     source = source.resolve()
@@ -219,9 +150,6 @@ def stage_mysqlsh_tree(
         if libexec.exists():
             shutil.copytree(libexec, staged_tree / "libexec", symlinks=True)
 
-        if cleanup:
-            clean_mysqlsh_tree(staged_tree)
-
         if optimize_oci:
             prepare_oci_sdk(staged_tree)
 
@@ -239,47 +167,6 @@ def stage_mysqlsh_tree(
             raise
 
 
-def _path_size(path: Path) -> int:
-    if path.is_symlink() or path.is_file():
-        return path.lstat().st_size
-
-    total = path.lstat().st_size
-    for child in path.iterdir():
-        total += _path_size(child)
-
-    return total
-
-
-def _format_size(size: int) -> str:
-    units = ("B", "KB", "MB", "GB")
-    value = float(size)
-    for unit in units:
-        if value < 1024 or unit == units[-1]:
-            return f"{value:.1f} {unit}"
-
-        value /= 1024
-
-    raise AssertionError("Unreachable size unit")
-
-
-def _report_cleanup(tree: Path, candidates: List[Path], apply: bool) -> None:
-    if not candidates:
-        print(f"No cleanup candidates found under {tree / 'lib/mysqlsh/plugins'}")
-
-        return
-
-    print(f"mysqlsh tree: {tree}")
-    print(f"Mode: {'apply' if apply else 'dry-run'}")
-    print("\nCleanup candidates:")
-    total_size = 0
-    for candidate in candidates:
-        size = _path_size(candidate)
-        total_size += size
-        print(f"  {_format_size(size):>10}  {candidate}")
-
-    print(f"\nEstimated removable size: {_format_size(total_size)}")
-
-
 def parse_arguments(arguments: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Prepare an unpacked MySQL Shell tree for desktop packaging."
@@ -287,14 +174,9 @@ def parse_arguments(arguments: Optional[Sequence[str]] = None) -> argparse.Names
     commands = parser.add_subparsers(dest="command")
 
     stage_parser = commands.add_parser("stage", help="Stage an unpacked tree.")
-    stage_parser.add_argument("--clean", action="store_true")
     stage_parser.add_argument("--optimize-oci", action="store_true")
     stage_parser.add_argument("source", type=Path)
     stage_parser.add_argument("destination", type=Path)
-
-    clean_parser = commands.add_parser("clean", help="Clean a staged tree.")
-    clean_parser.add_argument("--apply", action="store_true")
-    clean_parser.add_argument("tree", type=Path)
 
     optimize_oci_parser = commands.add_parser(
         "optimize-oci", help="Prepare the OCI SDK in an unpacked tree."
@@ -316,22 +198,10 @@ def main(arguments: Optional[Sequence[str]] = None) -> int:
             stage_mysqlsh_tree(
                 options.source,
                 options.destination,
-                options.clean,
                 options.optimize_oci,
             )
-        elif options.command == "optimize-oci":
-            prepare_oci_sdk(options.tree.resolve())
         else:
-            tree = options.tree.resolve()
-            candidates = find_cleanup_candidates(tree)
-            _report_cleanup(tree, candidates, options.apply)
-            if options.apply:
-                for candidate in candidates:
-                    _remove_path(candidate)
-                if candidates:
-                    print("Cleanup complete.")
-            elif candidates:
-                print("Dry run complete. Re-run with --apply to delete these paths.")
+            prepare_oci_sdk(options.tree.resolve())
     except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
 

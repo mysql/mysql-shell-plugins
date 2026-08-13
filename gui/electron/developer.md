@@ -135,8 +135,8 @@ The full packaging flow is:
 2. Resolve a MySQL Shell tree for each target.
 3. Stage the MySQL Shell tree under
    `gui/electron/packaging/mysql-shell-staging/<platform>`.
-4. Strip the staged MySQL Shell tree with
-   `gui/electron/scripts/strip_mysqlsh_tree.sh`.
+4. Prepare the staged OCI SDK for full packaging. Stage-only and development
+   trees are left otherwise unchanged.
 5. Use the unpacked Electron runtime under
    `gui/electron/packaging/electron/<platform>` when present, download it when
    `--download-electron` is used, or let electron-builder download it.
@@ -147,6 +147,8 @@ The full packaging flow is:
    tree into the MySQL Workbench payload. Plugin entries in the payload are
    replaced with copied plugin sources from this checkout, so a dev staging tree
    may use plugin symlinks while packaged apps contain real plugin directories.
+   After replacement, clean development artifacts from the complete assembled
+   Shell bundle, including built-in plugins and embedded Python test content.
 9. Invoke electron-builder with the `dir` target to create an unpacked desktop
    package and normalize the result back to the existing output directory. When
    `--artifacts` is used, electron-builder also creates the platform

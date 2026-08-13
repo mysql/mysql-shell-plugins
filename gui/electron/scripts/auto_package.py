@@ -428,7 +428,6 @@ def package_target(
     stage_mysqlsh_tree(
         mysqlsh_source,
         mysqlsh_destination,
-        cleanup=True,
         optimize_oci=True,
     )
 

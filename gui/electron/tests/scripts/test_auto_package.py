@@ -1119,7 +1119,7 @@ class AutoPackageTest(unittest.TestCase):
                 invocation["electron_builder_7zip_path"],
                 str(seven_zip.resolve()),
             )
-            self.assertFalse(invocation["staging_tests_exist"])
+            self.assertTrue(invocation["staging_tests_exist"])
 
     def test_commercial_zip_uses_configured_suffix_and_exact_output(self) -> None:
         target = self.host_target()
@@ -1287,7 +1287,7 @@ class AutoPackageTest(unittest.TestCase):
                 expected_arguments,
             )
             self.assertEqual(invocation["cwd"], str(root / "electron"))
-            self.assertFalse(invocation["staging_tests_exist"])
+            self.assertTrue(invocation["staging_tests_exist"])
             self.assertFalse((root / "electron" / "dist").exists())
 
     def test_linux_arm64_installer_skips_deb(self) -> None:
@@ -1352,7 +1352,6 @@ class AutoPackageTest(unittest.TestCase):
                 mysqlsh_source,
                 root / "electron" / "packaging" / "mysql-shell-staging"
                 / "linux-arm64",
-                cleanup=True,
                 optimize_oci=True,
             )
             self.assertEqual(output.flush_count, 5)
@@ -1596,7 +1595,7 @@ class AutoPackageTest(unittest.TestCase):
                 invocation["electron_builder_7zip_path"],
                 "/configured/7za",
             )
-            self.assertFalse(invocation["staging_tests_exist"])
+            self.assertTrue(invocation["staging_tests_exist"])
 
     def test_signed_windows_zip_forwards_sign_to_packager(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
