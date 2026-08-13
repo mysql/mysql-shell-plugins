@@ -187,22 +187,44 @@ test("Electron Builder cache location must be relative", () => {
     }, /desktopElectronBuilderCache must be a non-empty relative path/);
 });
 
-test("Electron Builder packages the Workbench license in the application content", () => {
+test("Electron Builder packages the Workbench license as a macOS resource", () => {
     const config = JSON.parse(buildElectronBuilderConfig(
-        "linux-x64",
+        "darwin-arm64",
         "/tmp/desktop-output",
         { artifacts: true, zip: true, packageNameSuffix: "" },
         "mysql-workbench",
     ));
-    const license = resolve(__dirname, "../../LICENSE");
+    const license = resolve(__dirname, "../../LICENSE.txt");
 
     assert.equal(existsSync(license), true);
-    assert.deepEqual(config.extraFiles, [
+    assert.deepEqual(config.extraResources, [
         {
             from: license,
-            to: "LICENSE",
+            to: "LICENSE.txt",
         },
     ]);
+    assert.equal("extraFiles" in config, false);
+});
+
+test("Electron Builder retains the Workbench license location on Linux and Windows", () => {
+    const license = resolve(__dirname, "../../LICENSE.txt");
+
+    for (const target of ["linux-x64", "win32-x64"]) {
+        const config = JSON.parse(buildElectronBuilderConfig(
+            target,
+            "/tmp/desktop-output",
+            { artifacts: true, zip: true, packageNameSuffix: "" },
+            "mysql-workbench",
+        ));
+
+        assert.deepEqual(config.extraFiles, [
+            {
+                from: license,
+                to: "LICENSE.txt",
+            },
+        ]);
+        assert.equal("extraResources" in config, false);
+    }
 });
 
 test("package metadata defines the shared suffixes", () => {

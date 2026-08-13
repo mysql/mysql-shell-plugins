@@ -604,6 +604,10 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions, packag
                 ]),
         ]
         : undefined;
+    const licenseFile = {
+        from: join(electronFolder, "LICENSE.txt"),
+        to: "LICENSE.txt",
+    };
     const config = {
         appId: desktopBundleIdentifier,
         productName: desktopProductName,
@@ -619,12 +623,8 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions, packag
         files: [
             "**/*",
         ],
-        extraFiles: [
-            {
-                from: join(electronFolder, "LICENSE"),
-                to: "LICENSE",
-            },
-        ],
+        extraFiles: target.startsWith("darwin") ? undefined : [licenseFile],
+        extraResources: target.startsWith("darwin") ? [licenseFile] : undefined,
         artifactName: getArtifactFileName(packageName, target, "${ext}"),
         mac: {
             target: target.startsWith("darwin") ? targets : null,
