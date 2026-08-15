@@ -1981,7 +1981,7 @@ def test_create_mysql_user(session):
     create_mysql_user(cast(DbSession, mock_session), user_options)
 
     assert mock_session.sql == """CREATE USER ?@?
-    IDENTIFIED BY ?
+    IDENTIFIED BY /*((*/ ? /*))*/
     COMMENT ?"""
 
     assert mock_session.params == [
@@ -1999,7 +1999,7 @@ def test_create_mysql_user(session):
     create_mysql_user(cast(DbSession, mock_session), user_options)
 
     assert mock_session.sql == """CREATE USER ?@?
-    IDENTIFIED WITH caching_sha2_password BY ?
+    IDENTIFIED WITH caching_sha2_password BY /*((*/ ? /*))*/
     COMMENT ?"""
 
     assert mock_session.params == [
@@ -2021,7 +2021,7 @@ def test_create_mysql_user(session):
     create_mysql_user(cast(DbSession, mock_session), user_options)
 
     assert mock_session.sql == """CREATE USER ?@?
-    IDENTIFIED WITH caching_sha2_password BY ?
+    IDENTIFIED WITH caching_sha2_password BY /*((*/ ? /*))*/
     REQUIRE SSL
     WITH MAX_QUERIES_PER_HOUR ? MAX_UPDATES_PER_HOUR ? MAX_CONNECTIONS_PER_HOUR ? MAX_USER_CONNECTIONS ?
     COMMENT ?"""
@@ -2048,7 +2048,7 @@ def test_create_mysql_user(session):
     create_mysql_user(cast(DbSession, mock_session), user_options)
 
     assert mock_session.sql == """CREATE USER ?@?
-    IDENTIFIED WITH caching_sha2_password BY ?
+    IDENTIFIED WITH caching_sha2_password BY /*((*/ ? /*))*/
     REQUIRE SSL
     COMMENT ?"""
 
@@ -2072,7 +2072,7 @@ def test_create_mysql_user(session):
     create_mysql_user(cast(DbSession, mock_session), user_options)
 
     assert mock_session.sql == """CREATE USER ?@?
-    IDENTIFIED WITH caching_sha2_password BY ?
+    IDENTIFIED WITH caching_sha2_password BY /*((*/ ? /*))*/
     REQUIRE SSL
     PASSWORD EXPIRE INTERVAL ? DAY
     PASSWORD HISTORY ?
@@ -2118,7 +2118,7 @@ def test_create_mysql_user_applies_account_lock_option(lock_option, lock_clause)
     )
 
     assert mock_session.sql == f"""CREATE USER ?@?
-    IDENTIFIED BY ?
+    IDENTIFIED BY /*((*/ ? /*))*/
     {lock_clause}"""
     assert mock_session.params == ["user1", "%", "password1"]
 
@@ -2197,6 +2197,42 @@ def test_update_mysql_user_clears_comment():
     assert mock_session.sql == """ALTER USER ?@?
     COMMENT ?"""
     assert mock_session.params == ["user1", "%", ""]
+
+
+@pytest.mark.parametrize(
+    ("plugin", "expected_sql", "expected_params"),
+    [
+        (
+            None,
+            """ALTER USER ?@?
+    IDENTIFIED BY /*((*/ ? /*))*/""",
+            ["user1", "%", "password1"],
+        ),
+        (
+            "caching_sha2_password",
+            """ALTER USER ?@?
+    IDENTIFIED WITH ? BY /*((*/ ? /*))*/""",
+            ["user1", "%", "caching_sha2_password", "password1"],
+        ),
+    ],
+)
+def test_update_mysql_user_redacts_authentication_string(
+    plugin: Optional[str], expected_sql: str, expected_params: list[str]
+) -> None:
+    mock_session = MockSession()
+
+    update_mysql_user(
+        cast(DbSession, mock_session),
+        MySQLUser(
+            user="user1",
+            host="%",
+            plugin=plugin,
+            authString="password1",
+        ),
+    )
+
+    assert mock_session.sql == expected_sql
+    assert mock_session.params == expected_params
 
 
 @pytest.mark.parametrize(

@@ -1414,7 +1414,7 @@ def create_mysql_user(session: DbSession, options: MySQLUser) -> Optional[str]:
             auth_option_clause = f"{auth_option_clause} WITH {plugin}"
 
         if options.authString is not None:
-            auth_option_clause = f"{auth_option_clause} BY ?"
+            auth_option_clause = f"{auth_option_clause} BY /*((*/ ? /*))*/"
             params.append(options.authString)
         else:
             auth_option_clause = f"{auth_option_clause} BY RANDOM PASSWORD"
@@ -1468,7 +1468,7 @@ def update_mysql_user(session: DbSession, options: MySQLUser) -> Optional[str]:
         elif options.plugin and options.authString:
             auth_option_clause = "IDENTIFIED WITH ?"
             params.append(options.plugin)
-            auth_string_place_holder = "?"
+            auth_string_place_holder = "/*((*/ ? /*))*/"
             if options.authString is not None:
                 # password exists
                 params.append(options.authString)
@@ -1478,7 +1478,7 @@ def update_mysql_user(session: DbSession, options: MySQLUser) -> Optional[str]:
         else:
             # if no authString is specified, we assume the password is not supposed to change
             if options.authString is not None:
-                auth_option_clause = "IDENTIFIED BY ?"
+                auth_option_clause = "IDENTIFIED BY /*((*/ ? /*))*/"
                 params.append(options.authString)
 
         if auth_option_clause:

@@ -267,7 +267,7 @@ def create_mysql_user(
     password: str,
 ) -> None:
     session.run_sql(
-        "CREATE USER ?@? IDENTIFIED BY ?",
+        "CREATE USER ?@? IDENTIFIED BY /*((*/ ? /*))*/",
         [user, host, password],
     )
 
@@ -279,7 +279,7 @@ def reset_mysql_user_password(
     password: str,
 ) -> None:
     session.run_sql(
-        "ALTER USER ?@? IDENTIFIED BY ?",
+        "ALTER USER ?@? IDENTIFIED BY /*((*/ ? /*))*/",
         [user, host, password],
     )
 

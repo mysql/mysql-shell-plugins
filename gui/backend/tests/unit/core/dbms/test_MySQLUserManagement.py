@@ -63,11 +63,11 @@ class MySQLUserManagementTests(unittest.TestCase):
 
         self.assertEqual(session.calls, [
             (
-                "CREATE USER ?@? IDENTIFIED BY ?",
+                "CREATE USER ?@? IDENTIFIED BY /*((*/ ? /*))*/",
                 ["mysqlbackup", "localhost", "created-secret"],
             ),
             (
-                "ALTER USER ?@? IDENTIFIED BY ?",
+                "ALTER USER ?@? IDENTIFIED BY /*((*/ ? /*))*/",
                 ["mysqlbackup", "localhost", "reset-secret"],
             ),
             (
