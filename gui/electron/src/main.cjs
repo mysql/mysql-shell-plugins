@@ -46,6 +46,7 @@ const {
 const { buildNativeMenuTemplate, resolvePositioningItem, translatePopupCoordinates } = require("./native-menu.cjs");
 const { createFileViewerHost } = require("./file-viewer-host.cjs");
 const { buildMysqlShellArguments, parseMysqlShellExtraArguments } = require("./mysqlsh-arguments.cjs");
+const { hasCommunicationDebugger } = require("./mysqlsh-runtime.cjs");
 const { createPrivateFiles } = require("./private-files.cjs");
 
 const { ensurePrivateDirectory, ensurePrivateFile, privateFileMode } = createPrivateFiles();
@@ -96,6 +97,7 @@ const explicitMysqlShellRuntimeDir = commandLineArguments["mysqlsh-runtime-dir"]
 const mysqlshRuntimeDir = explicitMysqlShellRuntimeDir
     ? path.resolve(explicitMysqlShellRuntimeDir)
     : (isBundledRuntime ? bundledShellDir : undefined);
+const communicationDebuggerAvailable = hasCommunicationDebugger(mysqlshRuntimeDir);
 const shouldUseHiddenE2EWindow = commandLineArguments["electron-e2e-background"] === "true"
     || process.env.ELECTRON_E2E_BACKGROUND === "1"
     || process.env.ELECTRON_E2E_BACKGROUND === "true";
@@ -1836,11 +1838,11 @@ const createMenu = () => {
     const developerMenu = {
         label: "Developer",
         submenu: [
-            {
-                ...createDesktopCommandMenuItem("dev.toggleDebugger", "Toggle Communication Debugger", {
+            ...(communicationDebuggerAvailable ? [
+                createDesktopCommandMenuItem("dev.toggleDebugger", "Toggle Communication Debugger", {
                     type: "checkbox",
                 }),
-            },
+            ] : []),
             { role: "toggleDevTools" },
             { type: "separator" },
             {
