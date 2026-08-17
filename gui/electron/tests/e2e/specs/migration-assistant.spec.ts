@@ -88,6 +88,24 @@ const openMigrationAssistant = async (
     await expect(sourceInfo).toContainText(`localhost:${connection.port}`, { timeout: 60000 });
     await expect(migrationPage.locator(".passwordDialog.visible")).toHaveCount(0);
 
+    const nativeWindowState = await electronApp.evaluate(({ BrowserWindow }) => {
+        const migrationAssistantWindow = BrowserWindow.getAllWindows().find((browserWindow) => {
+            return browserWindow.webContents.getURL().includes("subApp=migration");
+        });
+
+        return migrationAssistantWindow
+            ? {
+                menuBarVisible: migrationAssistantWindow.isMenuBarVisible(),
+                title: migrationAssistantWindow.getTitle(),
+            }
+            : undefined;
+    });
+
+    expect(nativeWindowState).toEqual({
+        menuBarVisible: false,
+        title: "MySQL Cloud Migration Assistant",
+    });
+
     return migrationPage;
 };
 

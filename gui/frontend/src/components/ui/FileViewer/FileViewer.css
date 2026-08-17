@@ -102,9 +102,10 @@ body.fileViewerBody,
 }
 
 .msg.fileViewer .fileViewerContent {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     width: 100%;
     min-height: 0;
+    overflow: auto;
     padding: 10px;
     resize: none;
     border: none;

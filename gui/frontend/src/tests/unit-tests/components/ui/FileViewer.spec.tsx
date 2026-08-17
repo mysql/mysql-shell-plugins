@@ -43,10 +43,14 @@ const renderFileViewer = () => {
     const root = document.createElement("div");
     root.id = "root";
     document.body.appendChild(root);
+    const result = render(<FileViewer />, { container: root });
+    const placeholder = document.createElement("div");
+    placeholder.className = "startupConnectionPlaceholder";
+    root.prepend(placeholder);
 
     return {
         root,
-        ...render(<FileViewer />, { container: root }),
+        ...result,
     };
 };
 
@@ -89,6 +93,9 @@ describe("FileViewer component tests", () => {
         expect(document.title).toBe("mysqlsh.log");
         expect(document.body.classList.contains("fileViewerBody")).toBe(true);
         expect(root.classList.contains("fileViewerRoot")).toBe(true);
+        expect(content.readOnly).toBe(true);
+        expect(content.classList.contains("selectableText")).toBe(true);
+        expect(document.querySelector(".startupConnectionPlaceholder")).toBeNull();
 
         const search = screen.getByPlaceholderText("Search");
         fireEvent.input(search, { target: { value: "alpha" } });
@@ -139,6 +146,34 @@ describe("FileViewer component tests", () => {
             maxBytes: maximumVisibleLogBytes,
             offset: firstContent.length,
         });
+    });
+
+    it("keeps the startup placeholder until the initial file read finishes", async () => {
+        let resolveRead!: (result: IFileViewerReadResult) => void;
+        const pendingRead = new Promise<IFileViewerReadResult>((resolve) => {
+            resolveRead = resolve;
+        });
+        window.fileViewer = {
+            browse: vi.fn().mockResolvedValue(false),
+            read: vi.fn().mockReturnValue(pendingRead),
+        };
+
+        const { container } = renderFileViewer();
+        const content = queryElement<HTMLTextAreaElement>(container, ".fileViewerContent");
+
+        expect(document.querySelector(".startupConnectionPlaceholder")).not.toBeNull();
+
+        resolveRead({
+            content: "log contents",
+            fileName: "mysqlsh.log",
+            offset: 0,
+            size: 12,
+        });
+
+        await waitFor(() => {
+            expect(content.value).toBe("log contents");
+        });
+        expect(document.querySelector(".startupConnectionPlaceholder")).toBeNull();
     });
 
     it("replaces content on refresh when the file was truncated or rotated", async () => {
@@ -467,5 +502,6 @@ describe("FileViewer component tests", () => {
         });
         expect(content.value).toBe("");
         expect(read).toHaveBeenCalledOnce();
+        expect(document.querySelector(".startupConnectionPlaceholder")).toBeNull();
     });
 });

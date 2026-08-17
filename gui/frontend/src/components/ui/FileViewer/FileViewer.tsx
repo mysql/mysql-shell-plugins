@@ -173,7 +173,9 @@ export class FileViewer extends Component<{}, IFileViewerState> {
                 </div>
                 <textarea
                     ref={this.contentRef}
-                    className={wrapLines ? "fileViewerContent fixedScrollbar wrap" : "fileViewerContent fixedScrollbar"}
+                    className={wrapLines
+                        ? "fileViewerContent fixedScrollbar selectableText wrap"
+                        : "fileViewerContent fixedScrollbar selectableText"}
                     value={content}
                     readOnly={true}
                     spellcheck={false}
@@ -205,6 +207,8 @@ export class FileViewer extends Component<{}, IFileViewerState> {
         this.setState({ isLoading: true, status: "Loading..." });
 
         const result = await this.readFile(request);
+        this.removeStartupPlaceholder();
+
         if (result.error) {
             this.fileStatus = "";
             this.lastMatchIndex = -1;
@@ -337,6 +341,10 @@ export class FileViewer extends Component<{}, IFileViewerState> {
             return { error: message || "Unable to read file." };
         }
     };
+
+    private removeStartupPlaceholder(): void {
+        document.getElementById("root")?.querySelector(".startupConnectionPlaceholder")?.remove();
+    }
 
     private handleSearchChange = (
         _event: UIEvent,

@@ -127,9 +127,12 @@ test.describe("Electron desktop shell", () => {
         await workbench.waitForShell();
 
         const marker = `electron-log-viewer-${Date.now()}`;
+        const logContent = `${Array.from({ length: 500 }, (_value, index) => {
+            return `Log line ${index}\n`;
+        }).join("")}Overlong log line: ${"1234567890".repeat(100)}\nLog viewer marker: ${marker}\n`;
         const logPath = testInfo.outputPath("electron-user-data", "mysqlsh", "mysqlsh.log");
         await mkdir(dirname(logPath), { recursive: true });
-        await writeFile(logPath, `Log viewer marker: ${marker}\n`, "utf8");
+        await writeFile(logPath, logContent, "utf8");
 
         const fileViewerPagePromise = electronApp.waitForEvent("window");
         await workbench.clickMenu(["View", "Developer", "Open mysqlsh.log File"]);
@@ -140,6 +143,65 @@ test.describe("Electron desktop shell", () => {
             timeout: 15000,
         });
         await expect(fileViewerPage.locator(".fileViewerStatus")).toContainText("loaded");
+
+        const previousClipboardText = await workbench.readSystemClipboardText();
+
+        try {
+            const contentState = await fileViewerPage.locator(".fileViewerContent")
+                .evaluate((element, selectedText) => {
+                    const content = element as HTMLTextAreaElement;
+                    const selectionStart = content.value.indexOf(selectedText);
+                    content.focus();
+                    content.setSelectionRange(selectionStart, selectionStart + selectedText.length);
+                    content.scrollTop = content.scrollHeight;
+                    content.scrollLeft = content.scrollWidth;
+
+                    return {
+                        clientHeight: content.clientHeight,
+                        clientWidth: content.clientWidth,
+                        readOnly: content.readOnly,
+                        scrollHeight: content.scrollHeight,
+                        scrollLeft: content.scrollLeft,
+                        scrollTop: content.scrollTop,
+                        scrollWidth: content.scrollWidth,
+                        selectedText: content.value.slice(content.selectionStart, content.selectionEnd),
+                        userSelect: getComputedStyle(content).userSelect,
+                    };
+                }, marker);
+
+            expect(contentState.readOnly).toBe(true);
+            expect(contentState.selectedText).toBe(marker);
+            expect(contentState.userSelect).toBe("text");
+            expect(contentState.scrollHeight).toBeGreaterThan(contentState.clientHeight);
+            expect(contentState.scrollWidth).toBeGreaterThan(contentState.clientWidth);
+            expect(contentState.scrollTop).toBeGreaterThan(0);
+            expect(contentState.scrollLeft).toBeGreaterThan(0);
+
+            await fileViewerPage.keyboard.press("ControlOrMeta+C");
+            await expect.poll(async () => {
+                return workbench.readSystemClipboardText();
+            }, { timeout: 15000 }).toBe(marker);
+        } finally {
+            await workbench.writeSystemClipboardText(previousClipboardText);
+        }
+
+        await expect(fileViewerPage.locator(".startupConnectionPlaceholder")).toHaveCount(0);
+
+        const nativeWindowState = await electronApp.evaluate(({ BrowserWindow }) => {
+            const fileViewerWindow = BrowserWindow.getAllWindows().find((browserWindow) => {
+                return browserWindow.webContents.getURL().includes("view=fileViewer");
+            });
+
+            return fileViewerWindow
+                ? {
+                    menuBarVisible: fileViewerWindow.isMenuBarVisible(),
+                }
+                : undefined;
+        });
+
+        expect(nativeWindowState).toEqual({
+            menuBarVisible: false,
+        });
 
         const bridgeState = await fileViewerPage.evaluate(() => {
             const fileViewerWindow = window as unknown as {

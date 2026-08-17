@@ -77,6 +77,7 @@ interface IFakeWindow {
     loadURL: ReturnType<typeof vi.fn>;
     on: ReturnType<typeof vi.fn>;
     options: Record<string, unknown>;
+    setMenu: ReturnType<typeof vi.fn>;
     show: ReturnType<typeof vi.fn>;
     webContents: IFakeWebContents;
 }
@@ -115,6 +116,7 @@ const createFakeWindow = (options: Record<string, unknown>): IFakeWindow => {
         loadURL: vi.fn().mockResolvedValue(undefined),
         on: vi.fn(),
         options,
+        setMenu: vi.fn(),
         show: vi.fn(),
         webContents: createFakeWebContents(),
     };
@@ -235,6 +237,8 @@ describe("Electron file viewer host", () => {
                 sandbox: true,
             },
         });
+        expect(windows[0].setMenu).toHaveBeenCalledOnce();
+        expect(windows[0].setMenu).toHaveBeenCalledWith(null);
         expect(installNavigationGuards).toHaveBeenCalledWith(windows[0].webContents);
         expect(windows[0].loadURL).toHaveBeenCalledWith(fileViewerEntryUrl);
 

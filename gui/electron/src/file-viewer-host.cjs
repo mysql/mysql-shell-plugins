@@ -94,6 +94,7 @@ const createFileViewerHost = ({
                 sandbox: true,
             },
         });
+        viewerWindow.setMenu(null);
 
         fileViewerPathByWebContents.set(viewerWindow.webContents, filePath);
         fileViewerWindowByPath.set(filePath, viewerWindow);

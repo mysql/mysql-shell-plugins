@@ -186,6 +186,7 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 const appName = "MySQL Workbench";
+const migrationAssistantTitle = "MySQL Cloud Migration Assistant";
 const isMac = process.platform === "darwin";
 const workbenchHelpUrl = "https://dev.mysql.com/doc/mysql-shell-gui/en/";
 const mrsDocsUrl = "https://dev.mysql.com/doc/dev/mysql-rest-service/latest/";
@@ -1514,7 +1515,7 @@ const openMigrationAssistantWindow = (details, requesterWindow) => {
         height: 860,
         minWidth: 900,
         minHeight: 700,
-        title: "MySQL Cloud Migration Assistant",
+        title: migrationAssistantTitle,
         backgroundColor: nativeTheme.shouldUseDarkColors ? "#181818" : "#f6f8fa",
         ...(process.platform === "darwin"
             ? {
@@ -1530,6 +1531,7 @@ const openMigrationAssistantWindow = (details, requesterWindow) => {
         },
     });
     migrationAssistantWindow = browserWindow;
+    browserWindow.setMenu(null);
 
     registerPrivilegedRendererWindow(browserWindow);
     backendBridge?.addWindow(browserWindow);
@@ -1541,6 +1543,10 @@ const openMigrationAssistantWindow = (details, requesterWindow) => {
 
     browserWindow.webContents.on("did-finish-load", () => {
         forwardThemeToMigrationAssistant();
+    });
+
+    browserWindow.on("page-title-updated", (event) => {
+        event.preventDefault();
     });
 
     browserWindow.on("closed", () => {
@@ -1677,7 +1683,7 @@ const handleHostMessage = (browserWindow, message) => {
 
         case "migrationStarted": {
             runningMigrationWindow = browserWindow;
-            browserWindow.setTitle(`${appName} - Running`);
+            browserWindow.setTitle(`${migrationAssistantTitle} - Running`);
             break;
         }
 
@@ -1685,7 +1691,7 @@ const handleHostMessage = (browserWindow, message) => {
             if (runningMigrationWindow === browserWindow) {
                 runningMigrationWindow = undefined;
             }
-            browserWindow.setTitle(appName);
+            browserWindow.setTitle(migrationAssistantTitle);
             break;
         }
 
