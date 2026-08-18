@@ -1,32 +1,59 @@
 # MySQL Shell Plugins
 
-The MySQL Shell Plugins Repository is a collection of plugins for the MySQL Shell (part of MySQL Server), written by the MySQL Client Tools team. It covers currently these plugins:
+The MySQL Shell Plugins Repository contains MySQL Shell plugins developed by
+the MySQL Client Tools team. It also contains the source code for MySQL
+Workbench, which is built on MySQL Shell and these plugins.
 
-- **GUI plugin**: provides backend functionality for the [MySQL Shell GUI](gui/frontend/readme.md) application.
-- **MDS plugin**: implements [MySQL Database Services](mds_plugin/readme.md) and Oracle Cloud Infrastructure support
-- **MRS plugin**: implements [MySQL REST Service](mrs_plugin/readme.md) support
-- **MSM plugin**: implements [MySQL Schema Management operations](msm_plugin/readme.md)
-- **Migration Assistant backend**: implements
-  [MySQL Migration operations](gui/backend/gui_plugin/migration/README.md) as
-  part of the GUI plugin
+The repository currently includes:
+
+- **GUI plugin**: provides backend functionality for MySQL Workbench.
+- **MDS plugin**: implements [MySQL Database Service](mds_plugin/readme.md) and
+  Oracle Cloud Infrastructure support.
+- **MRS plugin**: implements [MySQL REST Service](mrs_plugin/readme.md) support.
+- **MSM plugin**: implements [MySQL Schema Management](msm_plugin/readme.md)
+  operations.
+- **Utils plugin**: provides SQL formatting and visual query execution plans.
+
+## MySQL Workbench
+
+<img src="gui/electron/images/app-icon.png" alt="MySQL Workbench icon" width="80">
+
+MySQL Workbench is a desktop application for developing, administering, and
+migrating MySQL databases. It includes a rich SQL editor, database administration
+and maintenance tools, and migration tools.
+
+Workbench is an Electron application built from a Preact frontend, a Python
+backend running in MySQL Shell, and the plugins in this repository. See the
+[MySQL Workbench developer documentation](gui/WORKBENCH_DEV.md) to build it
+locally, make changes and write new features.
+
+The GUI plugin also contains the
+[MySQL Migration Assistant](gui/backend/gui_plugin/migration/README.md) backend.
 
 ## Installation
 
-The GUI plugin backend and the other plugins can all be used on their own via MySQL Shell, but together they power the [MySQL Shell GUI](gui/frontend/readme.md). Read the individual project readme files for more details, how to contribute and other information.
+Released versions of these plugins are included as built-in plugins in MySQL
+Shell package distributions. MySQL Workbench includes its own MySQL Shell runtime and copies of the
+plugins it needs, so users do not normally need to install them separately.
 
-The following plugins are installed by copying the folders into the MySQL Shell Plugins directory:
+- [Download MySQL Workbench](https://dev.mysql.com/downloads/workbench/)
+- [Download MySQL Shell](https://dev.mysql.com/downloads/shell/)
 
-- mds_plugin
-- mrs_plugin
-- msm_plugin
-- util_plugin
+To develop a plugin from this repository, copy or symlink its source directory
+into your MySQL Shell user plugin directory. Preserve the source directory name;
+the GUI plugin source is under `gui/backend/gui_plugin`, while the other plugin
+directories are at the repository root.
 
-The plugins location for the MySQL Shell depends on the target platform:
+The user plugin directory is:
 
-- Windows: %appdata%\MySQL\mysqlsh\plugins
-- Others: ~/.mysqlsh/plugins
+- Windows: `%AppData%\MySQL\mysqlsh\plugins`
+- macOS and Linux: `~/.mysqlsh/plugins`
 
-For instructions about how to build and install the gui_plugin refer to the MySQL Shell GUI [readme.md](gui/frontend/readme.md).
+Run MySQL Shell with `--disable-builtin-plugins` while developing so the source
+copy is loaded instead of the bundled version. For Workbench development, use
+the setup in the
+[MySQL Workbench developer documentation](gui/WORKBENCH_DEV.md), which prepares
+the runtime and plugin sources together.
 
 ## Documentation
 
@@ -45,7 +72,7 @@ Please consult the [security guide](./SECURITY.md) for our responsible security 
 
 ## License
 
-License information can be found in the LICENSE.txt file.
+License information can be found in the [LICENSE.txt](./LICENSE.txt) file.
 
 This distribution may include materials developed by third parties. For license and attribution notices for these materials, please refer to the LICENSE file.
 
