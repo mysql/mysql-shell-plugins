@@ -98,12 +98,14 @@ class MebControllerBackend(object):
         input_text: str,
         output_handler: Callable[[str], Any] | None = None,
         env: dict[str, str] | None = None,
+        timeout: float | None = None,
     ) -> int:
         return self._server_helper.execute_argv_with_input(
             command,
             input_text,
             output_handler,
             env,
+            timeout,
         )
 
     def get_file_content(
@@ -442,6 +444,7 @@ class LocalMebServerHelper(object):
         input_text: str,
         output_handler: Callable[[str], Any] | None = None,
         env: dict[str, str] | None = None,
+        timeout: float | None = None,
     ) -> int:
         process = subprocess.Popen(
             list(command),
@@ -450,9 +453,22 @@ class LocalMebServerHelper(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             env=env,
         )
-        output, _ = process.communicate(input=input_text)
+        try:
+            output, _ = process.communicate(input=input_text, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            output, _ = process.communicate()
+            if output_handler and output:
+                output_handler(output)
+            if output_handler:
+                output_handler(f"Command timed out after {timeout:g} seconds.")
+
+            return 124
+
         if output_handler and output:
             output_handler(output)
 

@@ -12,12 +12,15 @@ import importlib.util
 import json
 import os
 import re
+import subprocess
 import sys
 import threading
 import time
 import types
 import unittest
 from pathlib import Path
+from typing import Any, Callable
+from unittest import mock
 
 
 MEB_ROOT = Path(__file__).resolve().parents[3] / "gui_plugin" / "meb"
@@ -84,7 +87,9 @@ def load_dbms_module(name: str) -> types.ModuleType:
 
 
 models = load_meb_module("models")
+target_module = load_meb_module("target")
 load_meb_module("os_utils")
+backend_controller = load_meb_module("backend_controller")
 load_meb_module("backup_home")
 load_dbms_module("MySQLUserManagement")
 load_meb_module("grant_policy")
@@ -350,7 +355,7 @@ class MebSetupJobTests(unittest.TestCase):
 
         self.assertEqual(calls[0][1]["backupHome"], "/backup-home")
 
-    def test_windows_login_path_storage_executes_argv_without_a_shell(self) -> None:
+    def test_windows_login_path_storage_launches_isolated_mysqlsh_worker(self) -> None:
         calls = {"argv": [], "command": []}
 
         class WindowsBackend:
@@ -373,8 +378,9 @@ class MebSetupJobTests(unittest.TestCase):
                 input_text: str,
                 output_handler: object,
                 env: dict[str, str],
+                timeout: float | None = None,
             ) -> int:
-                calls["argv"].append((command, input_text, output_handler, env))
+                calls["argv"].append((command, input_text, output_handler, env, timeout))
 
                 return 0
 
@@ -384,19 +390,122 @@ class MebSetupJobTests(unittest.TestCase):
         context.backend = WindowsBackend()
         mysql_user = "backup&calc.exe&rem"
 
-        login_file, _login_path, result = setup._store_login_path(
-            context,
-            r"C:\backup-home",
-            mysql_user,
-            "secret",
-        )
+        with mock.patch.object(
+            setup.mysqlsh,
+            "executable",
+            r"C:\workbench\mysqlsh.exe",
+            create=True,
+        ):
+            login_file, login_path, result = setup._store_login_path(
+                context,
+                r"C:\backup-home",
+                mysql_user,
+                "secret",
+            )
 
         self.assertEqual(result.tone, "ok")
         self.assertEqual(calls["command"], [])
-        command, input_text, _output_handler, env = calls["argv"][0]
-        self.assertIn(f"--user={mysql_user}", command)
-        self.assertEqual(input_text, "secret\n")
+        command, input_text, _output_handler, env, timeout = calls["argv"][0]
+        self.assertEqual(command[:5], [
+            r"C:\workbench\mysqlsh.exe",
+            "--disable-plugins",
+            "--disable-builtin-plugins",
+            "--py",
+            "-f",
+        ])
+        self.assertEqual(Path(command[5]).name, "windows_conpty.py")
+        self.assertEqual(command[6:], [
+            "--stdin",
+            "--",
+            "mysql_config_editor.exe",
+            "set",
+            f"--login-path={login_path}",
+            "--host=localhost",
+            f"--user={mysql_user}",
+            "--password",
+            "--skip-warn",
+            "--port=3306",
+        ])
+        self.assertEqual(input_text, "secret\r")
         self.assertEqual(env["MYSQL_TEST_LOGIN_FILE"], login_file)
+        self.assertNotIn("secret", command)
+        self.assertNotIn("secret", env.values())
+        self.assertEqual(timeout, 30)
+
+    def test_windows_login_path_storage_redacts_worker_output(self) -> None:
+        class FailingWindowsBackend:
+            def execute_argv_with_input(
+                self,
+                command: list[str],
+                input_text: str,
+                output_handler: Callable[[str], Any],
+                env: dict[str, str],
+                timeout: float | None = None,
+            ) -> int:
+                del command, input_text, env, timeout
+                output_handler("mysql_config_editor rejected secret")
+
+                return 1
+
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        context.backend = FailingWindowsBackend()
+
+        result = setup._set_login_path(
+            context,
+            r"C:\backup-home\.mylogin.cnf",
+            "backup-login",
+            "mysqlbackup",
+            "secret",
+        )
+
+        self.assertEqual(result.tone, "warn")
+        self.assertIn("<redacted>", result.message)
+        self.assertNotIn("secret", result.message)
+
+    def test_execute_argv_with_input_kills_timed_out_process(self) -> None:
+        target = target_module.BackupTarget(is_windows=True)
+        helper = backend_controller.LocalMebServerHelper(target)
+        process = mock.Mock()
+        process.communicate.side_effect = [
+            subprocess.TimeoutExpired(["worker"], 3),
+            ("worker output", None),
+        ]
+        output: list[str] = []
+
+        with mock.patch.object(
+            backend_controller.subprocess,
+            "Popen",
+            return_value=process,
+        ) as popen:
+            result = helper.execute_argv_with_input(
+                ["worker"],
+                "secret\n",
+                output_handler=output.append,
+                timeout=3,
+            )
+
+        self.assertEqual(result, 124)
+        process.kill.assert_called_once_with()
+        self.assertEqual(process.communicate.call_args_list, [
+            mock.call(input="secret\n", timeout=3),
+            mock.call(),
+        ])
+        self.assertIn("worker output", "".join(output))
+        self.assertIn("timed out after 3 seconds", "".join(output))
+        self.assertNotIn("secret", "".join(output))
+        popen.assert_called_once_with(
+            ["worker"],
+            shell=False,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=None,
+        )
 
     def test_apply_setup_grants_existing_backup_account(self) -> None:
         context = FakeContext()

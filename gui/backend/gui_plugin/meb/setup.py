@@ -97,6 +97,7 @@ from .os_utils import get_current_os_user, get_path_group, get_path_owner, write
 
 
 DEFAULT_MYSQL_BACKUP_USER = "mysqlbackup"
+WINDOWS_CONFIG_EDITOR_TIMEOUT_SECONDS = 30
 DEFAULT_MYSQL_BACKUP_ACCOUNT = "mysqlbackup@localhost"
 
 
@@ -680,11 +681,26 @@ def _set_login_path(
     if context.target.is_windows:
         env = os.environ.copy()
         env["MYSQL_TEST_LOGIN_FILE"] = login_file
+        worker_command = [
+            str(getattr(mysqlsh, "executable", sys.executable)),
+            "--disable-plugins",
+            "--disable-builtin-plugins",
+            "--py",
+            "-f",
+            os.path.join(os.path.dirname(__file__), "windows_conpty.py"),
+            "--stdin",
+            "--",
+            *command_data,
+        ]
+
         rc = context.backend.execute_argv_with_input(
-            command_data,
-            f"{password}\n",
-            output_handler=output.append,
+            worker_command,
+            f"{password}\r",
+            output_handler=lambda text: output.append(
+                _redact_secret(text, password)
+            ),
             env=env,
+            timeout=WINDOWS_CONFIG_EDITOR_TIMEOUT_SECONDS,
         )
     else:
         command = _env_command(
@@ -893,7 +909,7 @@ def _execute_password_prompt_command(
                     text = chunk.decode("utf-8", errors="replace")
                     output += text
                     if output_handler:
-                        output_handler(text.replace(secret_text, "<redacted>"))
+                        output_handler(_redact_secret(text, secret_text))
 
                     if not sent_input and "password" in output.lower():
                         os.write(fd, input_text.encode("utf-8"))
@@ -913,6 +929,13 @@ def _execute_password_prompt_command(
             pass
 
     return exit_status
+
+
+def _redact_secret(text: str, secret: str) -> str:
+    if not secret:
+        return text
+
+    return text.replace(secret, "<redacted>")
 
 
 def _install_runtime_helper(context: Any, _backup_home_path: str) -> str:
