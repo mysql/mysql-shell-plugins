@@ -46,10 +46,21 @@
     min-height: 24px;
 }
 
+.legacyConfigurationImportPageHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    justify-content: space-between;
+    white-space: normal;
+}
+
+.legacyConfigurationImportPageHeader h2 {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .legacyConfigurationImportPageIcon {
-    position: absolute;
-    top: 12px;
-    right: 12px;
+    flex: 0 0 64px;
     width: 64px;
     height: 64px;
     object-fit: contain;

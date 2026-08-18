@@ -295,12 +295,14 @@ export class LegacyConfigurationImportWizard extends Component<
 
         return (
             <>
-                <img
-                    className="legacyConfigurationImportPageIcon"
-                    src={mysqlWorkbenchIcon}
-                    alt="MySQL Workbench 8"
-                />
-                <h2>Import MySQL Workbench 8 Connections</h2>
+                <div className="legacyConfigurationImportPageHeader">
+                    <h2>Import MySQL Workbench 8 Connections</h2>
+                    <img
+                        className="legacyConfigurationImportPageIcon"
+                        src={mysqlWorkbenchIcon}
+                        alt="MySQL Workbench 8"
+                    />
+                </div>
                 <div className="legacyConfigurationImportInventory">
                     <Label
                         caption={`${formatCount(workbench.connectionCount, "connection definition")} `
@@ -326,12 +328,14 @@ export class LegacyConfigurationImportWizard extends Component<
 
         return (
             <>
-                <img
-                    className="legacyConfigurationImportPageIcon"
-                    src={mysqlShellExtensionIcon}
-                    alt="MySQL Shell for VS Code"
-                />
-                <h2>Import MySQL Shell for VS Code Connections</h2>
+                <div className="legacyConfigurationImportPageHeader">
+                    <h2>Import MySQL Shell for VS Code Connections</h2>
+                    <img
+                        className="legacyConfigurationImportPageIcon"
+                        src={mysqlShellExtensionIcon}
+                        alt="MySQL Shell for VS Code"
+                    />
+                </div>
                 <div className="legacyConfigurationImportInventory">
                     {vscode.connectionsPending
                         ? <Label

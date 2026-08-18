@@ -26,7 +26,7 @@
 import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { TestInfo } from "@playwright/test";
+import type { Locator, TestInfo } from "@playwright/test";
 import type { ElectronApplication } from "playwright";
 
 import {
@@ -64,6 +64,27 @@ const expectPathMissing = async (path: string): Promise<void> => {
     await expect(access(path)).rejects.toThrow();
 };
 
+const expectHeadingAndIconNotToOverlap = async (wizard: Locator): Promise<void> => {
+    const overlap = await wizard.locator(".legacyConfigurationImportPage").evaluate((page) => {
+        const heading = page.querySelector("h2");
+        const icon = page.querySelector(".legacyConfigurationImportPageIcon");
+
+        if (!heading || !icon) {
+            throw new Error("The configuration import page header is incomplete");
+        }
+
+        const headingBounds = heading.getBoundingClientRect();
+        const iconBounds = icon.getBoundingClientRect();
+
+        return headingBounds.left < iconBounds.right
+            && headingBounds.right > iconBounds.left
+            && headingBounds.top < iconBounds.bottom
+            && headingBounds.bottom > iconBounds.top;
+    });
+
+    expect(overlap).toBe(false);
+};
+
 const manifestPath = (testInfo: TestInfo, userDataDir?: string): string => {
     return join(
         userDataDir ?? testInfo.outputPath("electron-user-data"),
@@ -78,6 +99,30 @@ test.describe("Legacy configuration import", () => {
     test("opens the normal application when no legacy sources exist", async ({ workbench, page }) => {
         await workbench.waitForShell();
         await expect(page.locator("#legacyConfigurationImportWizard")).toHaveCount(0);
+    });
+
+    test("keeps source icons clear of page headings", async ({}, testInfo) => {
+        const sources = await createLegacyConfigurationImportTestSources(testInfo, {
+            workbenchConnections: true,
+            vsCodeConnections: true,
+        });
+        let launched: ILaunchedWorkbench | undefined;
+
+        try {
+            launched = await launchWorkbench(testInfo);
+            const workbenchPage = await launched.workbench.openLegacyConfigurationImportWizard();
+            await expectHeadingAndIconNotToOverlap(workbenchPage);
+            await launched.workbench.advanceLegacyConfigurationImportWizard();
+            const vsCodePage = await launched.workbench.expectLegacyConfigurationImportPage(
+                "Import MySQL Shell for VS Code Connections",
+            );
+            await expectHeadingAndIconNotToOverlap(vsCodePage);
+        } finally {
+            if (launched) {
+                await closeElectronApp(launched.app);
+            }
+            sources.close();
+        }
     });
 
     test("keeps the Configuration Import panel dismissed after restart", async ({}, testInfo) => {
