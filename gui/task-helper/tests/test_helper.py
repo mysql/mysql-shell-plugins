@@ -783,6 +783,66 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(jobs[0]["outputDirectory"], output_dir.as_posix())
         self.assertEqual(jobs[0]["defaultsFile"], result["profilePath"])
 
+    def test_jobs_list_allows_unsupported_platform_metadata_checks(self) -> None:
+        _, config, backup_home, output_dir, _option_file = self.make_job_fixture()
+        self.create_single_profile(backup_home, output_dir)
+        owner_check = {
+            "id": "backupHome.owner",
+            "status": "indeterminate",
+            "expected": "owned by the effective helper user",
+            "observed": "unsupported platform",
+            "message": "Ownership validation is not available on this platform.",
+        }
+        mode_check = {
+            "id": "backupHome.permissions",
+            "status": "indeterminate",
+            "expected": "0700",
+            "observed": "unsupported platform",
+            "message": "POSIX mode validation is not available on this platform.",
+        }
+
+        with mock.patch.object(helper, "_owner_check", return_value=owner_check):
+            with mock.patch.object(helper, "_mode_check", return_value=mode_check):
+                response = handle_request({
+                    "operation": "jobs.list",
+                    "params": {
+                        "backupHome": backup_home.as_posix(),
+                    },
+                }, config)
+
+        self.assertTrue(response["ok"], response)
+        self.assertEqual(len(response["result"]["jobs"]), 2)
+
+    def test_windows_profile_reader_ignores_unstable_stat_identifiers(self) -> None:
+        _, _config, backup_home, output_dir, _option_file = self.make_job_fixture()
+        profile_path = self.write_profile_config(backup_home, output_dir)
+        file_stat = profile_path.stat()
+        opened_stat = os.stat_result((
+            file_stat.st_mode,
+            file_stat.st_ino + 1,
+            file_stat.st_dev + 1,
+            file_stat.st_nlink,
+            file_stat.st_uid,
+            file_stat.st_gid,
+            file_stat.st_size,
+            file_stat.st_atime,
+            file_stat.st_mtime,
+            file_stat.st_ctime,
+        ))
+
+        read_error = None
+        parser = None
+        try:
+            with mock.patch.object(helper.os, "name", "nt"):
+                with mock.patch.object(helper.os, "fstat", return_value=opened_stat):
+                    parser = helper._read_profile_config(profile_path, file_stat)
+        except HelperError as error:
+            read_error = error
+
+        self.assertIsNone(read_error)
+        self.assertIsNotNone(parser)
+        self.assertTrue(parser.has_section("meb_manager"))
+
     def test_jobs_execute_dry_run_emits_fixed_argv_process_plan(self) -> None:
         _, config, backup_home, output_dir, option_file = self.make_job_fixture()
         self.create_single_profile(backup_home, output_dir)
@@ -1828,6 +1888,9 @@ class HelperTests(unittest.TestCase):
 
     def test_jobs_list_rejects_writable_profile_config(self) -> None:
         _, config, backup_home, output_dir, _option_file = self.make_job_fixture()
+        if os.name != "posix":
+            self.skipTest("POSIX file mode validation test")
+
         profile_path = self.write_profile_config(backup_home, output_dir)
         profile_path.chmod(0o666)
 
@@ -1840,6 +1903,21 @@ class HelperTests(unittest.TestCase):
 
         self.assertFalse(response["ok"])
         self.assertEqual(response["error"]["code"], "invalid_request")
+
+    def test_windows_option_file_permissions_ignore_posix_mode_bits(self) -> None:
+        root = Path(tempfile.mkdtemp(prefix="task-helper-windows-mode-")).resolve()
+        option_file = root / "mysql.cnf"
+        option_file.write_text("[client]\n", encoding="utf-8")
+        option_file.chmod(0o666)
+
+        validation_error = None
+        try:
+            with mock.patch.object(helper.os, "name", "nt"):
+                helper._validate_option_file_permissions(option_file.as_posix(), None)
+        except HelperError as error:
+            validation_error = error
+
+        self.assertIsNone(validation_error)
 
     def test_jobs_execute_does_not_return_raw_process_output(self) -> None:
         _, config, backup_home, output_dir, option_file = self.make_job_fixture()

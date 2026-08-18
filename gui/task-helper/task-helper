@@ -892,10 +892,13 @@ RESERVED_BACKUP_HOME_NAMES = {
 
 def _validate_option_file_permissions(path: str, target_uid: int | None) -> None:
     file_stat = os.stat(path)
+    if os.name != "posix":
+        return
+
     if file_stat.st_mode & 0o022:
         raise HelperError("invalid_request", "defaultsFile must not be group or world writable.")
 
-    if os.name == "posix" and os.geteuid() == 0 and file_stat.st_uid not in {0, target_uid}:
+    if os.geteuid() == 0 and file_stat.st_uid not in {0, target_uid}:
         raise HelperError("invalid_request", "defaultsFile must be owned by root or the target user.")
 
 
@@ -1242,7 +1245,7 @@ def _read_log_tail(log_path: Path, file_stat: os.stat_result, max_bytes: int) ->
 
 def _require_valid_backup_home(backup_home: Path, config: HelperConfig, user: dict[str, Any], write: bool) -> Path:
     checks, _backup_home_stat = _backup_home_checks(backup_home, config, user, write=write)
-    if _validation_status(checks) != "valid":
+    if not _validation_allows_operation(checks):
         raise HelperError("invalid_request", "backupHome is not valid.")
 
     try:
@@ -1339,7 +1342,7 @@ def _read_profile_config(path: Path, file_stat: os.stat_result) -> configparser.
     try:
         fd = os.open(path, flags)
         opened_stat = os.fstat(fd)
-        if opened_stat.st_dev != file_stat.st_dev or opened_stat.st_ino != file_stat.st_ino:
+        if os.name == "posix" and (opened_stat.st_dev != file_stat.st_dev or opened_stat.st_ino != file_stat.st_ino):
             raise HelperError("invalid_request", "profile configuration changed while opening.")
         if not stat.S_ISREG(opened_stat.st_mode):
             raise HelperError("invalid_request", "profile configuration must be a regular file.")
@@ -3348,6 +3351,17 @@ def _validation_status(checks: list[dict[str, str]]) -> str:
         return "indeterminate"
 
     return "valid"
+
+
+def _validation_allows_operation(checks: list[dict[str, str]]) -> bool:
+    return all(
+        check["status"] == "pass"
+        or (
+            check["status"] == "indeterminate"
+            and check["observed"] == "unsupported platform"
+        )
+        for check in checks
+    )
 
 
 def _file_type(file_stat: os.stat_result) -> str:
