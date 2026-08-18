@@ -1172,7 +1172,6 @@ const clearPendingWindowCloseRequests = (browserWindow, allow = true) => {
             continue;
         }
 
-        clearTimeout(pending.timeout);
         pendingWindowCloseRequests.delete(requestId);
         pending.resolve(allow);
     }
@@ -1189,19 +1188,9 @@ const requestWindowCloseApproval = (browserWindow) => {
     const requestId = `window-close-${++nextWindowCloseRequestId}`;
 
     return new Promise((resolve) => {
-        const timeout = setTimeout(() => {
-            if (!pendingWindowCloseRequests.delete(requestId)) {
-                return;
-            }
-
-            appendDesktopLog(`window close approval timed out for ${requestId}`);
-            resolve(true);
-        }, 5000);
-
         pendingWindowCloseRequests.set(requestId, {
             browserWindow,
             resolve,
-            timeout,
         });
 
         sendHostMessage(browserWindow, "desktopWindowCloseRequested", { requestId });
@@ -1219,7 +1208,6 @@ const resolveWindowCloseApproval = (browserWindow, data) => {
         return false;
     }
 
-    clearTimeout(pending.timeout);
     pendingWindowCloseRequests.delete(requestId);
     pending.resolve(data?.allow === true);
 

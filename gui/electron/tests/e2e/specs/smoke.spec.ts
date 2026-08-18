@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { access, mkdir, stat, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { test, expect } from "../fixtures/electron.js";
@@ -51,6 +51,91 @@ test.describe("Electron desktop shell", () => {
 
         const menuLabels = await workbench.menuLabels();
         expect(menuLabels).toEqual(expect.arrayContaining(["File", "Edit", "View", "Run", "Database", "Window", "Help"]));
+    });
+
+    test("waits for delayed renderer approval before closing", async ({ electronApp, page, workbench }, testInfo) => {
+        await workbench.waitForShell();
+
+        await page.evaluate(() => {
+            const testWindow = window as typeof window & { delayedCloseRequestId?: string; };
+            window.electronHost?.setMessageHandler?.((message) => {
+                if (message.command === "desktopWindowCloseRequested") {
+                    testWindow.delayedCloseRequestId = message.data?.requestId as string | undefined;
+                }
+            });
+        });
+
+        await electronApp.evaluate(({ BrowserWindow }) => {
+            BrowserWindow.getAllWindows()[0]?.close();
+        });
+        await expect.poll(async () => {
+            return page.evaluate(() => {
+                return (window as typeof window & { delayedCloseRequestId?: string; }).delayedCloseRequestId;
+            });
+        }, { timeout: 15000 }).toMatch(/^window-close-/);
+
+        await page.waitForTimeout(7000);
+
+        expect(await electronApp.evaluate(({ BrowserWindow }) => {
+            return BrowserWindow.getAllWindows().length;
+        })).toBe(1);
+
+        const firstRequestId = await page.evaluate(() => {
+            const testWindow = window as typeof window & { delayedCloseRequestId?: string; };
+            const requestId = testWindow.delayedCloseRequestId;
+            testWindow.delayedCloseRequestId = undefined;
+
+            return requestId;
+        });
+        if (!firstRequestId) {
+            throw new Error("The first window close request id was not captured.");
+        }
+
+        await page.evaluate((requestId) => {
+            window.electronHost?.postMessage({
+                source: "app",
+                command: "desktopWindowCloseResponse",
+                data: { requestId, allow: false },
+            });
+        }, firstRequestId);
+        const desktopLogPath = testInfo.outputPath("electron-user-data", "MySQL Workbench-electron.log");
+        await expect.poll(async () => {
+            return readFile(desktopLogPath, "utf8");
+        }, { timeout: 15000 }).toContain("main window close canceled by renderer");
+        expect(await electronApp.evaluate(({ BrowserWindow }) => {
+            return BrowserWindow.getAllWindows().length;
+        })).toBe(1);
+
+        await electronApp.evaluate(({ BrowserWindow }) => {
+            BrowserWindow.getAllWindows()[0]?.close();
+        });
+        await expect.poll(async () => {
+            return page.evaluate(() => {
+                return (window as typeof window & { delayedCloseRequestId?: string; }).delayedCloseRequestId;
+            });
+        }, { timeout: 15000 }).toMatch(/^window-close-/);
+
+        const secondRequestId = await page.evaluate(() => {
+            return (window as typeof window & { delayedCloseRequestId?: string; }).delayedCloseRequestId;
+        });
+        if (!secondRequestId) {
+            throw new Error("The second window close request id was not captured.");
+        }
+
+        page.on("dialog", (dialog) => {
+            void dialog.accept().catch(() => {
+                // The close can complete before Playwright accepts the beforeunload dialog.
+            });
+        });
+        const closePromise = electronApp.waitForEvent("close");
+        await page.evaluate((requestId) => {
+            window.electronHost?.postMessage({
+                source: "app",
+                command: "desktopWindowCloseResponse",
+                data: { requestId, allow: true },
+            });
+        }, secondRequestId);
+        await closePromise;
     });
 
     test("keeps the renderer viewport aligned with the native content area", async ({ electronApp, page }) => {
