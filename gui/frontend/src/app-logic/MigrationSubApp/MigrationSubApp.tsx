@@ -262,6 +262,7 @@ const appendNewOciApiKeyStatusHint = (message: string, appendHint?: boolean): st
 export interface IMigrationSetupStatusState {
     backendRequestInProgress?: boolean;
     backendRequestStatusMessage?: string;
+    isFetchingCompartments?: boolean;
     isFetchingShapes?: boolean;
     isFetchingSubnets?: boolean;
     isFetchingVcns?: boolean;
@@ -273,6 +274,7 @@ export interface IMigrationSetupStatusState {
 export const getMigrationSetupStatusMessage = ({
     backendRequestInProgress,
     backendRequestStatusMessage,
+    isFetchingCompartments,
     isFetchingShapes,
     isFetchingSubnets,
     isFetchingVcns,
@@ -284,6 +286,8 @@ export const getMigrationSetupStatusMessage = ({
 
     if (ociLoginInProgress) {
         statusMessage = ociSignInStatusMessage ?? "Signing in to OCI...";
+    } else if (isFetchingCompartments) {
+        statusMessage = "Loading OCI compartments...";
     } else if (isFetchingSubnets) {
         statusMessage = "Loading subnets...";
     } else if (isFetchingVcns) {

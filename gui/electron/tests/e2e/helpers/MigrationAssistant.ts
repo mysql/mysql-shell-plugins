@@ -168,7 +168,7 @@ const locator = {
         next: `div[caption="Next"]`,
         startMigration: `div[caption="Start Migration Process"]`,
         abortMigration: `div[caption="Abort"]`,
-        loadingIcon: "#backend-request-overlay .progressIndicatorHost, .target-selection .progressIndicatorHost",
+        loadingStatus: ".migration-navigation .footer-status",
         currentHeader: "#steps .header",
         tile: {
             root: ".tile",
@@ -371,14 +371,11 @@ export class MigrationAssistant {
     }
 
     public async waitForLoadingIcon(timeout = wait1second * 60): Promise<void> {
-        const loadingIcons = this.page.locator(locator.mainPage.loadingIcon);
-        await loadingIcons.first().waitFor({ state: "visible", timeout: wait1second }).catch(() => {
-            // The request may complete before the loading overlay becomes visible.
+        const loadingStatus = this.page.locator(locator.mainPage.loadingStatus);
+        await loadingStatus.waitFor({ state: "visible", timeout: wait1second }).catch(() => {
+            // The request may complete before the loading status becomes visible.
         });
-
-        for (const loadingIcon of await loadingIcons.all()) {
-            await loadingIcon.waitFor({ state: "detached", timeout });
-        }
+        await loadingStatus.waitFor({ state: "detached", timeout });
     }
 
     public async next(): Promise<void> {

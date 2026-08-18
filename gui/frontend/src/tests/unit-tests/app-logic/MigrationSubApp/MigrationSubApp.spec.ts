@@ -140,6 +140,12 @@ describe("MigrationSubApp status helpers", () => {
             isFetchingShapes: true,
         })).toBe("Loading available shapes...");
     });
+
+    it("uses a loading message while OCI compartments are being fetched", () => {
+        expect(getMigrationSetupStatusMessage({
+            isFetchingCompartments: true,
+        })).toBe("Loading OCI compartments...");
+    });
 });
 
 describe("MigrationSubApp migration lifecycle", () => {
