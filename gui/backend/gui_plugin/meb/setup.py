@@ -45,6 +45,7 @@ from xml.dom.minidom import parseString
 
 import mysqlsh
 
+import gui_plugin.core.Logger as logger
 from gui_plugin.core.dbms.MySQLUserManagement import (
     create_mysql_user,
     grant_mysql_user_privileges,
@@ -99,6 +100,9 @@ from .os_utils import get_current_os_user, get_path_group, get_path_owner, write
 DEFAULT_MYSQL_BACKUP_USER = "mysqlbackup"
 WINDOWS_CONFIG_EDITOR_TIMEOUT_SECONDS = 30
 DEFAULT_MYSQL_BACKUP_ACCOUNT = "mysqlbackup@localhost"
+_TERMINAL_ESCAPE_SEQUENCE = re.compile(
+    r"\x1b(?:\][^\x1b\x07]*(?:\x07|\x1b\\)|\[[0-?]*[ -/]*[@-~]|[@-_])"
+)
 
 
 def _fetch_one(result: Any) -> Any | None:
@@ -313,8 +317,9 @@ def _run_runtime_helper_self_test(
     require_config: bool,
 ) -> MebValidationStatus:
     output: list[str] = []
-    rc = context.backend.execute_command(
-        context.backend.list2cmdline([helper_path, "--backup-home", backup_home_path, "--self-test"]),
+    rc = context.backend.execute_argv_with_input(
+        [helper_path, "--backup-home", backup_home_path, "--self-test"],
+        "",
         output_handler=output.append,
     )
     if rc != 0:
@@ -352,10 +357,9 @@ def _runtime_helper_request(
     params: dict[str, Any],
 ) -> dict[str, Any]:
     helper_path = _runtime_helper_source_path(context)
-    command = context.backend.list2cmdline([helper_path])
     output: list[str] = []
-    rc = context.backend.execute_command_with_input(
-        command,
+    rc = context.backend.execute_argv_with_input(
+        [helper_path],
         json.dumps({
             "version": 1,
             "backupHome": backup_home_path,
@@ -717,10 +721,22 @@ def _set_login_path(
         )
     if rc != 0:
         detail = "".join(output).strip()
+        failure = f"MEB mysql_config_editor failed with exit code {rc}"
         if detail:
-            return _validation("warn", f"mysql_config_editor failed: {detail}")
+            logger.error(f"{failure}: {detail}")
+            display_detail = _clean_terminal_output(detail)
+            if display_detail:
+                return _validation(
+                    "warn",
+                    f"mysql_config_editor failed (exit code {rc}): {display_detail}",
+                )
+        else:
+            logger.error(f"{failure}.")
 
-        return _validation("warn", "mysql_config_editor failed.")
+        return _validation(
+            "warn",
+            f"mysql_config_editor failed (exit code {rc}).",
+        )
 
     return _validation("ok", "Credentials were stored with mysql_config_editor.")
 
@@ -936,6 +952,16 @@ def _redact_secret(text: str, secret: str) -> str:
         return text
 
     return text.replace(secret, "<redacted>")
+
+
+def _clean_terminal_output(text: str) -> str:
+    plain_text = _TERMINAL_ESCAPE_SEQUENCE.sub("", text)
+    printable_text = "".join(
+        character if character.isprintable() or character in "\r\n\t" else " "
+        for character in plain_text
+    )
+
+    return " ".join(printable_text.split())
 
 
 def _install_runtime_helper(context: Any, _backup_home_path: str) -> str:

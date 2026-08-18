@@ -193,6 +193,12 @@ MebBackupProfile = models.MebBackupProfile
 MebSetupState = models.MebSetupState
 MebStatus = models.MebStatus
 MebProfileSchedule = models.MebProfileSchedule
+WINDOWS_CONFIG_EDITOR_TERMINAL_OUTPUT = (
+    "\x1b[?9001h\x1b[?1004h\x1b[?25l"
+    "\x1b[?9001l\x1b[?1004l\x1b[2J\x1b[m\x1b[H"
+    "\x1b]0;C:\\mysql\\bin\\mysql_config_editor.exe\x07"
+    "\x1b[?25h"
+)
 _install_runtime_helper = setup._install_runtime_helper
 _manager_values = setup._manager_values
 _profile_jobs = setup._profile_jobs
@@ -324,18 +330,18 @@ class MebSetupJobTests(unittest.TestCase):
         self.assertEqual(helper_path, "C:/Workbench/Helpers/task-helper.cmd")
 
     def test_runtime_helper_request_selects_backup_home(self) -> None:
-        calls = []
+        calls: list[tuple[list[str], dict[str, Any]]] = []
 
         class RequestBackend:
-            def list2cmdline(self, command: list[str]) -> str:
-                return " ".join(command)
-
-            def execute_command_with_input(
+            def execute_argv_with_input(
                 self,
-                command: str,
+                command: list[str],
                 input_text: str,
-                output_handler: object,
+                output_handler: Callable[[str], Any],
+                env: dict[str, str] | None = None,
+                timeout: float | None = None,
             ) -> int:
+                del env, timeout
                 calls.append((command, json.loads(input_text)))
                 output_handler(json.dumps({"ok": True, "result": {}}))
 
@@ -345,15 +351,54 @@ class MebSetupJobTests(unittest.TestCase):
         context.target = FakeTarget()
         context.backend = RequestBackend()
 
-        setup._runtime_helper_request(
+        with patched_setup(
+            _runtime_helper_source_path=lambda _context: "/workbench new/helpers/task-helper",
+        ):
+            setup._runtime_helper_request(
+                context,
+                "/backup home",
+                {},
+                "cron.removeManagedJob",
+                {"jobId": "nightly"},
+            )
+
+        self.assertEqual(calls[0][0], ["/workbench new/helpers/task-helper"])
+        self.assertEqual(calls[0][1]["backupHome"], "/backup home")
+
+    def test_runtime_helper_self_test_preserves_windows_argv(self) -> None:
+        calls: list[tuple[list[str], str]] = []
+
+        class RequestBackend:
+            def execute_argv_with_input(
+                self,
+                command: list[str],
+                input_text: str,
+                output_handler: Callable[[str], Any],
+                env: dict[str, str] | None = None,
+                timeout: float | None = None,
+            ) -> int:
+                del env, timeout
+                calls.append((command, input_text))
+                output_handler(json.dumps({"ok": True, "configLoaded": True}))
+
+                return 0
+
+        context = FakeContext()
+        context.backend = RequestBackend()
+        result = setup._run_runtime_helper_self_test(
             context,
-            "/backup-home",
-            {},
-            "cron.removeManagedJob",
-            {"jobId": "nightly"},
+            r"C:\Workbench new\helpers\task-helper.cmd",
+            r"C:\backups new",
+            True,
         )
 
-        self.assertEqual(calls[0][1]["backupHome"], "/backup-home")
+        self.assertEqual(result.tone, "ok")
+        self.assertEqual(calls, [([
+            r"C:\Workbench new\helpers\task-helper.cmd",
+            "--backup-home",
+            r"C:\backups new",
+            "--self-test",
+        ], "")])
 
     def test_windows_login_path_storage_launches_isolated_mysqlsh_worker(self) -> None:
         calls = {"argv": [], "command": []}
@@ -445,7 +490,7 @@ class MebSetupJobTests(unittest.TestCase):
                 del command, input_text, env, timeout
                 output_handler("mysql_config_editor rejected secret")
 
-                return 1
+                return 3221225786
 
         context = FakeContext()
         context.target = FakeTarget()
@@ -461,8 +506,156 @@ class MebSetupJobTests(unittest.TestCase):
         )
 
         self.assertEqual(result.tone, "warn")
+        self.assertIn("exit code 3221225786", result.message)
         self.assertIn("<redacted>", result.message)
         self.assertNotIn("secret", result.message)
+
+    def test_windows_login_path_storage_cleans_terminal_sequences_from_failure(self) -> None:
+        class FailingWindowsBackend:
+            def execute_argv_with_input(
+                self,
+                command: list[str],
+                input_text: str,
+                output_handler: Callable[[str], Any],
+                env: dict[str, str],
+                timeout: float | None = None,
+            ) -> int:
+                del command, input_text, env, timeout
+                output_handler(
+                    WINDOWS_CONFIG_EDITOR_TERMINAL_OUTPUT
+                    + "\r\nmysql_config_editor rejected secret\r\n"
+                )
+
+                return 3221225786
+
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        context.backend = FailingWindowsBackend()
+
+        result = setup._set_login_path(
+            context,
+            r"C:\backup-home\.mylogin.cnf",
+            "backup-login",
+            "mysqlbackup",
+            "secret",
+        )
+
+        self.assertEqual(
+            result.message,
+            "mysql_config_editor failed (exit code 3221225786): "
+            "mysql_config_editor rejected <redacted>",
+        )
+
+    def test_windows_login_path_storage_omits_terminal_only_failure_details(self) -> None:
+        class FailingWindowsBackend:
+            def execute_argv_with_input(
+                self,
+                command: list[str],
+                input_text: str,
+                output_handler: Callable[[str], Any],
+                env: dict[str, str],
+                timeout: float | None = None,
+            ) -> int:
+                del command, input_text, env, timeout
+                output_handler(WINDOWS_CONFIG_EDITOR_TERMINAL_OUTPUT)
+
+                return 3221225786
+
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        context.backend = FailingWindowsBackend()
+
+        result = setup._set_login_path(
+            context,
+            r"C:\backup-home\.mylogin.cnf",
+            "backup-login",
+            "mysqlbackup",
+            "secret",
+        )
+
+        self.assertEqual(
+            result.message,
+            "mysql_config_editor failed (exit code 3221225786).",
+        )
+
+    def test_windows_login_path_storage_logs_redacted_failure_details(self) -> None:
+        class FailingWindowsBackend:
+            def execute_argv_with_input(
+                self,
+                command: list[str],
+                input_text: str,
+                output_handler: Callable[[str], Any],
+                env: dict[str, str],
+                timeout: float | None = None,
+            ) -> int:
+                del command, input_text, env, timeout
+                output_handler(
+                    WINDOWS_CONFIG_EDITOR_TERMINAL_OUTPUT
+                    + "\r\nmysql_config_editor rejected secret\r\n"
+                )
+
+                return 3221225786
+
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        context.backend = FailingWindowsBackend()
+        logger = types.SimpleNamespace(error=mock.Mock())
+
+        with mock.patch.object(setup, "logger", logger, create=True):
+            setup._set_login_path(
+                context,
+                r"C:\backup-home\.mylogin.cnf",
+                "backup-login",
+                "mysqlbackup",
+                "secret",
+            )
+
+        logger.error.assert_called_once()
+        logged_message = logger.error.call_args.args[0]
+        self.assertIn("\x1b[?9001h", logged_message)
+        self.assertIn("\x1b]0;C:\\mysql\\bin\\mysql_config_editor.exe\x07", logged_message)
+        self.assertIn("mysql_config_editor rejected <redacted>", logged_message)
+        self.assertNotIn("secret", logged_message)
+
+    def test_windows_login_path_storage_reports_empty_failure_details(self) -> None:
+        class FailingWindowsBackend:
+            def execute_argv_with_input(
+                self,
+                command: list[str],
+                input_text: str,
+                output_handler: Callable[[str], Any],
+                env: dict[str, str],
+                timeout: float | None = None,
+            ) -> int:
+                del command, input_text, output_handler, env, timeout
+
+                return 7
+
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        context.backend = FailingWindowsBackend()
+        logger = types.SimpleNamespace(error=mock.Mock())
+
+        with mock.patch.object(setup, "logger", logger, create=True):
+            result = setup._set_login_path(
+                context,
+                r"C:\backup-home\.mylogin.cnf",
+                "backup-login",
+                "mysqlbackup",
+                "secret",
+            )
+
+        self.assertEqual(
+            result.message,
+            "mysql_config_editor failed (exit code 7).",
+        )
+        logger.error.assert_called_once_with(
+            "MEB mysql_config_editor failed with exit code 7."
+        )
 
     def test_execute_argv_with_input_kills_timed_out_process(self) -> None:
         target = target_module.BackupTarget(is_windows=True)

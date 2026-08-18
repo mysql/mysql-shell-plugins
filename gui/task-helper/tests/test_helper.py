@@ -21,7 +21,7 @@ import threading
 import time
 import unittest
 from dataclasses import replace
-from pathlib import Path
+from pathlib import Path, PurePath
 from unittest import mock
 
 HELPER_ROOT = Path(__file__).resolve().parents[1]
@@ -2283,6 +2283,38 @@ class HelperTests(unittest.TestCase):
         )
         self.assertIn("<MultipleInstancesPolicy>Queue</MultipleInstancesPolicy>", response["result"]["xml"])
         self.assertIn("NT AUTHORITY\\SYSTEM", response["result"]["xml"])
+
+    def test_windows_task_scheduler_accepts_cmd_job_runner(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        root = Path(tempfile.mkdtemp(prefix="task-helper-windows-runner-")).resolve()
+        job_runner = root / "task-helper.cmd"
+        job_runner.write_text("@echo off\r\n", encoding="utf-8")
+        windows_config = copy_config(
+            config,
+            backup_home=r"C:\Users\paandrus\backups new",
+            target_user=TargetUser(uid=1, gid=1, account=r"NT AUTHORITY\SYSTEM"),
+            job_runner=job_runner.as_posix(),
+        )
+
+        with mock.patch.object(helper.os, "name", "nt"):
+            with mock.patch.object(helper, "Path", PurePath):
+                xml = helper._render_windows_task_xml(
+                    windows_config,
+                    "nightly",
+                    {
+                        "minute": "0",
+                        "hour": "2",
+                        "dayOfMonth": "*",
+                        "month": "*",
+                        "dayOfWeek": "*",
+                    },
+                ).decode("utf-8")
+
+        self.assertIn(f"<Command>{job_runner.as_posix()}</Command>", xml)
+        self.assertIn(
+            r'<Arguments>--backup-home "C:\Users\paandrus\backups new" run-job nightly</Arguments>',
+            xml,
+        )
 
     def test_windows_task_scheduler_generates_monthly_day_list(self) -> None:
         _, config, _, _ = self.make_fixture()

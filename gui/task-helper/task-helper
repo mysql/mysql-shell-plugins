@@ -475,7 +475,11 @@ def validate_process_plan(plan: ProcessPlan) -> None:
             raise HelperError("invalid_plan", "progressPath must not contain NUL bytes.")
 
 
-def validate_executable_reference(executable: str) -> None:
+def validate_executable_reference(
+    executable: str,
+    *,
+    allow_windows_command_script: bool = False,
+) -> None:
     try:
         executable_stat = os.lstat(executable)
     except OSError:
@@ -485,8 +489,10 @@ def validate_executable_reference(executable: str) -> None:
         raise HelperError("invalid_plan", "executable must be a regular file, not a symlink or directory.")
 
     if os.name == "nt":
-        if Path(executable).suffix.lower() != ".exe":
-            raise HelperError("invalid_plan", "Windows executables must be .exe files.")
+        allowed_suffixes = {".exe", ".cmd"} if allow_windows_command_script else {".exe"}
+        if Path(executable).suffix.lower() not in allowed_suffixes:
+            expected = ".exe or .cmd" if allow_windows_command_script else ".exe"
+            raise HelperError("invalid_plan", f"Windows executables must be {expected} files.")
 
         return
 
@@ -2814,7 +2820,7 @@ def _windows_command_path(path: str) -> str:
 
     if os.name == "nt":
         try:
-            validate_executable_reference(path)
+            validate_executable_reference(path, allow_windows_command_script=True)
         except HelperError as error:
             raise HelperError("invalid_config", f"config.jobRunner is invalid: {error.message}")
     elif re.fullmatch(r"[A-Za-z]:\\[^<>|?*\"]+", path) is None and re.fullmatch(r"/[A-Za-z0-9._/+@:-]+", path) is None:

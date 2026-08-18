@@ -293,8 +293,6 @@ def _write_input(
             offset += bytes_written.value
     except BaseException as error:
         errors.append(error)
-    finally:
-        kernel32.close_handle(handle)
 
 
 def _close_pseudoconsole(
@@ -420,6 +418,8 @@ def run_in_pseudoconsole(
         kernel32.close_handle(input_read)
         kernel32.close_handle(output_write)
 
+        # Closing the ConPTY input pipe signals CTRL_CLOSE_EVENT to the child.
+        # Keep it open until the child exits and the owner performs cleanup.
         writer = threading.Thread(
             target=_write_input,
             args=(kernel32, input_write, input_data, io_errors),

@@ -116,6 +116,38 @@ class WindowsConPtyTests(unittest.TestCase):
         stdin.buffer.read.assert_not_called()
         run.assert_called_once_with(["child.exe"], b"")
 
+    def test_write_input_leaves_handle_open_until_process_cleanup(self) -> None:
+        class FakeKernel32:
+            def __init__(self) -> None:
+                self.dll = types.SimpleNamespace(WriteFile=self.write_file)
+                self.close_handle = mock.Mock()
+
+            @staticmethod
+            def write_file(
+                handle: object,
+                buffer: object,
+                size: int,
+                bytes_written: object,
+                overlapped: object,
+            ) -> bool:
+                del handle, buffer, overlapped
+                bytes_written._obj.value = size  # type: ignore[attr-defined]
+
+                return True
+
+        kernel32 = FakeKernel32()
+        errors: list[BaseException] = []
+
+        self.worker._write_input(
+            kernel32,
+            object(),
+            b"terminal input\r",
+            errors,
+        )
+
+        self.assertEqual(errors, [])
+        kernel32.close_handle.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
