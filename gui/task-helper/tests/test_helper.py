@@ -1050,6 +1050,23 @@ class HelperTests(unittest.TestCase):
 
         process_exists.assert_called_once_with(424242)
 
+    def test_windows_current_account_matches_supported_aliases(self) -> None:
+        with mock.patch.dict(helper.os.environ, {
+            "USERNAME": "lroot",
+            "USERDOMAIN": "WORKGROUP",
+            "COMPUTERNAME": "PAWEL-ANDRUSZKI",
+        }, clear=True):
+            self.assertTrue(helper._windows_current_account_matches("lroot"))
+            self.assertTrue(helper._windows_current_account_matches(
+                r"WORKGROUP\lroot",
+            ))
+            self.assertTrue(helper._windows_current_account_matches(
+                r"PAWEL-ANDRUSZKI\lroot",
+            ))
+            self.assertFalse(helper._windows_current_account_matches(
+                r"OTHERDOMAIN\lroot",
+            ))
+
     def test_scheduled_jobs_execute_waits_for_existing_run_lock(self) -> None:
         root, config, backup_home, output_dir, option_file = self.make_job_fixture()
         self.create_single_profile(backup_home, output_dir)

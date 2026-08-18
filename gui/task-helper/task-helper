@@ -573,13 +573,17 @@ def _terminate_process_group_by_pid(pid: int) -> None:
 
 
 def _windows_current_account_matches(account: str) -> bool:
-    user_domain = os.environ.get("USERDOMAIN", "")
     user_name = os.environ.get("USERNAME", "")
     if not user_name:
         return False
 
-    current = f"{user_domain}\\{user_name}" if user_domain else user_name
-    return account.casefold() == current.casefold()
+    current_accounts = {user_name.casefold()}
+    for qualifier_name in ("USERDOMAIN", "COMPUTERNAME"):
+        qualifier = os.environ.get(qualifier_name, "")
+        if qualifier:
+            current_accounts.add(f"{qualifier}\\{user_name}".casefold())
+
+    return account.casefold() in current_accounts
 
 
 class ProcessProgressTracker:
