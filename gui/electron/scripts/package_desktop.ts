@@ -971,11 +971,7 @@ const installAppImages = (appFolder) => {
     cpSync(electronImagesFolder, imagesTargetFolder, { recursive: true, force: true });
 };
 
-const getTaskHelperInstallFolder = (target, targetFolder) => {
-    return join(getPackagedResourcesDirectory(target, targetFolder), "app", "helpers");
-};
-
-const installProductBundleHelper = (target, targetFolder) => {
+const installProductBundleHelper = (target, appFolder) => {
     const helperSourcePath = join(taskHelperFolder, "task-helper");
     const setupSourcePath = join(taskHelperFolder, "task-helper-setup");
     const setupModuleSourcePath = join(taskHelperFolder, "task_helper_setup.py");
@@ -985,7 +981,7 @@ const installProductBundleHelper = (target, targetFolder) => {
         }
     }
 
-    const helpersFolder = getTaskHelperInstallFolder(target, targetFolder);
+    const helpersFolder = join(appFolder, "helpers");
     ensureDirectory(helpersFolder);
 
     if (target.startsWith("win32")) {
@@ -1057,6 +1053,8 @@ const installAppPayload = (
     if (includeShellBundle) {
         prepareShellBundle(target, appFolder, compilePython);
     }
+
+    installProductBundleHelper(target, appFolder);
 };
 
 const packageTarget = (target, packageOptions) => {
@@ -1092,8 +1090,6 @@ const packageTarget = (target, packageOptions) => {
             getArtifactFileNames(target, packageOptions, packageName),
         )
         : [];
-    installProductBundleHelper(target, targetOutputFolder);
-
     Logger.success(`Created desktop package for ${target} in ${targetOutputFolder}`);
     if (packageOptions.artifacts || packageOptions.zip) {
         Logger.success(`Created desktop artifacts for ${target} in ${targetArtifactFolder}`);
@@ -1118,7 +1114,6 @@ const quickPackageTarget = (target, packageOptions) => {
     }
 
     installAppPayload(target, appFolder, false, packageName, packageOptions.packageNameSuffix);
-    installProductBundleHelper(target, targetOutputFolder);
     Logger.success(`Updated desktop package app payload for ${target} in ${targetOutputFolder}`);
 };
 
@@ -1176,6 +1171,7 @@ module.exports = {
     getArtifactFileNames,
     getDesktopPackageName,
     getPythonCompilationRoot,
+    installProductBundleHelper,
     parseArguments,
     resolveElectronBuilderCacheFolder,
     resolveElectronBuilderInvocation,

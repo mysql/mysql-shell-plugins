@@ -56,6 +56,7 @@ const {
     getPythonCompilationRoot,
     getDesktopPackageName,
     getArtifactFileNames,
+    installProductBundleHelper,
     parseArguments,
     resolveElectronBuilderCacheFolder,
     resolveElectronBuilderInvocation,
@@ -68,6 +69,44 @@ const writeFixtureFile = (path) => {
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, "fixture", { encoding: "utf8" });
 };
+
+test("Windows product helpers are installed in the app payload", (context) => {
+    const root = mkdtempSync(join(tmpdir(), "product-bundle-helper-"));
+    context.after(() => {
+        rmSync(root, { recursive: true, force: true });
+    });
+    const appFolder = join(root, "app");
+
+    installProductBundleHelper("win32-x64", appFolder);
+
+    const helpersFolder = join(appFolder, "helpers");
+    assert.equal(
+        readFileSync(join(helpersFolder, "task-helper.py"), "utf8"),
+        readFileSync(resolve(__dirname, "../../../task-helper/task-helper"), "utf8"),
+    );
+    assert.equal(
+        readFileSync(join(helpersFolder, "task-helper-setup.py"), "utf8"),
+        readFileSync(resolve(__dirname, "../../../task-helper/task-helper-setup"), "utf8"),
+    );
+    assert.equal(
+        readFileSync(join(helpersFolder, "task_helper_setup.py"), "utf8"),
+        readFileSync(resolve(__dirname, "../../../task-helper/task_helper_setup.py"), "utf8"),
+    );
+    assert.equal(
+        readFileSync(join(helpersFolder, "task-helper.cmd"), "utf8"),
+        "@echo off\r\n"
+        + "setlocal\r\n"
+        + "\"%~dp0..\\shell\\bin\\mysqlsh.exe\" --py -f \"%~dp0task-helper.py\" %*\r\n"
+        + "exit /b %ERRORLEVEL%\r\n",
+    );
+    assert.equal(
+        readFileSync(join(helpersFolder, "task-helper-setup.cmd"), "utf8"),
+        "@echo off\r\n"
+        + "setlocal\r\n"
+        + "\"%~dp0..\\shell\\bin\\mysqlsh.exe\" --py -f \"%~dp0task-helper-setup.py\" %*\r\n"
+        + "exit /b %ERRORLEVEL%\r\n",
+    );
+});
 
 test("bundled MySQL Shell discovery accepts one in-tree executable", (context) => {
     const root = mkdtempSync(join(tmpdir(), "mysqlsh-discovery-"));
