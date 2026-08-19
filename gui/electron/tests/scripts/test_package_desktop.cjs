@@ -868,6 +868,12 @@ test("community app manifest keeps the base version and an empty desktop suffix"
     assert.equal(manifest.desktopPackageSuffix, "");
 });
 
+test("app manifest identifies Oracle Corporation as the package author", () => {
+    const manifest = JSON.parse(buildAppManifest("mysql-workbench", ""));
+
+    assert.deepEqual(manifest.author, { name: "Oracle Corporation" });
+});
+
 test("commercial app manifest keeps the base version and commercial desktop suffix", () => {
     const manifest = JSON.parse(buildAppManifest("mysql-workbench-commercial", "-commercial"));
 

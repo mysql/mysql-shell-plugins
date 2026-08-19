@@ -81,7 +81,7 @@ const desktopBundleStem = "MySQL Workbench";
 const desktopLinuxExecutableName = "mysql-workbench";
 const desktopBundleIdentifier = "com.oracle.mysqlworkbench";
 const desktopPackageAuthor = {
-    name: "Oracle and/or its affiliates",
+    name: "Oracle Corporation",
 };
 const desktopPackageHomepage = "https://www.mysql.com/products/workbench/";
 const desktopPackageLicense = "GPL-2.0";
