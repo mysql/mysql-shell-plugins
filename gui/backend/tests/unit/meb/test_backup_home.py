@@ -407,6 +407,24 @@ class MebBackupHomeTests(unittest.TestCase):
         self.assertEqual(resolved.activity_type, "Full Backup")
         self.assertEqual(resolved.require_backup_id(), f"nightly/{artifact.name}")
 
+    def test_resolved_activity_reads_named_log_status_on_demand(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            log_path = Path(temporary) / "backup.log"
+            resolved = backup_home.ResolvedActivity(
+                activity_id="activity:v1:logs/backup.log",
+                log_path=log_path.as_posix(),
+                backup_id=None,
+                profile_id=None,
+                activity_type="Full Backup",
+            )
+            log_path.write_text("mysqlbackup failed\n", encoding="utf-8")
+
+            log_status = resolved.read_log_status()
+
+        self.assertEqual(log_status.detail, "Errors reported in mysqlbackup log")
+        self.assertEqual(log_status.status, "Failed")
+        self.assertEqual(log_status.tone, "warn")
+
     def test_backup_path_for_activity_returns_canonical_backup_directory(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             backup_home_path = Path(temporary) / "backup-home"

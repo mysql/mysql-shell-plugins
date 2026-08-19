@@ -127,6 +127,13 @@ CLOUD_OPTION_FIELDS = {
 
 
 @dataclass(frozen=True)
+class _ActivityLogStatus:
+    detail: str
+    status: str
+    tone: str
+
+
+@dataclass(frozen=True)
 class ResolvedActivity:
     activity_id: str
     log_path: str
@@ -141,6 +148,9 @@ class ResolvedActivity:
 
         return self.backup_id
 
+    def read_log_status(self) -> _ActivityLogStatus:
+        return _activity_log_status(_read_text_tail(self.log_path, LOG_ACTIVITY_TAIL_BYTES))
+
 
 @dataclass(frozen=True)
 class _BackupRestorePoint:
@@ -148,6 +158,10 @@ class _BackupRestorePoint:
     is_incremental: bool
     start_lsn: int
     end_lsn: int
+
+
+class _BackupMetadataNotFoundError(ValueError):
+    pass
 
 
 class _RestoreChainResolutionError(ValueError):
@@ -1098,6 +1112,10 @@ def _read_backup_restore_point(path: str, *, required: bool) -> _BackupRestorePo
     try:
         with open(variables_path, encoding="utf-8") as variables_file:
             parser.read_file(variables_file)
+    except FileNotFoundError:
+        if required:
+            raise _BackupMetadataNotFoundError("Backup metadata could not be read")
+        return None
     except (OSError, configparser.Error):
         if required:
             raise ValueError("Backup metadata could not be read")
@@ -1172,7 +1190,7 @@ def _activity_backup_type(log_path: str, profiles: list[MebBackupProfileInfo]) -
     return None
 
 
-def _activity_log_status(content: str) -> tuple[str, str, str]:
+def _activity_log_status(content: str) -> _ActivityLogStatus:
     lower_content = content.lower()
     verify_result = re.search(
         r"(?im)^# backups\.verify finished exitCode=(-?\d+) timedOut=(true|false)\b",
@@ -1182,9 +1200,9 @@ def _activity_log_status(content: str) -> tuple[str, str, str]:
         exit_code = int(verify_result.group(1))
         timed_out = verify_result.group(2).lower() == "true"
         if exit_code == 0 and not timed_out:
-            return "Backup verification completed successfully", "Verified", "ok"
+            return _ActivityLogStatus("Backup verification completed successfully", "Verified", "ok")
 
-        return "Backup verification failed", "Failed", "warn"
+        return _ActivityLogStatus("Backup verification failed", "Failed", "warn")
 
     helper_failure = re.search(r"\bfinished exitcode=(?!0\b)\d+", lower_content) is not None
     mysqlbackup_failure = (
@@ -1194,11 +1212,11 @@ def _activity_log_status(content: str) -> tuple[str, str, str]:
         or helper_failure
     )
     if mysqlbackup_failure:
-        return "Errors reported in mysqlbackup log", "Failed", "warn"
+        return _ActivityLogStatus("Errors reported in mysqlbackup log", "Failed", "warn")
     if re.search(r"(?im)^\s*mysqlbackup completed ok!\s*$", content) is not None:
-        return "mysqlbackup completed OK", "Completed OK", "ok"
+        return _ActivityLogStatus("mysqlbackup completed OK", "Completed OK", "ok")
 
-    return "Log file updated", "Updated", "info"
+    return _ActivityLogStatus("Log file updated", "Updated", "info")
 
 
 def _collect_log_activity(
@@ -1251,7 +1269,10 @@ def _collect_log_activity(
         except (OSError, ValueError):
             continue
 
-        detail, status, tone = _activity_log_status(content)
+        log_status = _activity_log_status(content)
+        detail = log_status.detail
+        status = log_status.status
+        tone = log_status.tone
         profile = _profile_for_log(path, profiles)
         size = _activity_backup_size(path, root, profiles)
         activity_type = _activity_backup_type(path, profiles)
@@ -1308,10 +1329,10 @@ def _profile_has_backup_data(backup_home_path: str, profile: MebBackupProfileInf
                 resolved_candidate = _canonical_path(candidate)
                 if _profile_for_log(resolved_candidate, [profile]) is None:
                     continue
-                _detail, status, _tone = _activity_log_status(_read_text_tail(
+                status = _activity_log_status(_read_text_tail(
                     resolved_candidate,
                     LOG_ACTIVITY_TAIL_BYTES,
-                ))
+                )).status
             except (OSError, ValueError):
                 continue
 

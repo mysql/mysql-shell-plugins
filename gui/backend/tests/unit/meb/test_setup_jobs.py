@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import types
@@ -90,7 +91,7 @@ models = load_meb_module("models")
 target_module = load_meb_module("target")
 load_meb_module("os_utils")
 backend_controller = load_meb_module("backend_controller")
-load_meb_module("backup_home")
+backup_home = load_meb_module("backup_home")
 load_dbms_module("MySQLUserManagement")
 load_meb_module("grant_policy")
 setup = load_meb_module("setup")
@@ -1282,6 +1283,176 @@ class MebSetupJobTests(unittest.TestCase):
                 "logId": "20260618T120000Z-profile-1-full-test.log",
             }),
         ])
+
+    def test_delete_failed_activity_backup_without_restore_metadata(self) -> None:
+        calls: list[object] = []
+        context = FakeContext()
+        refreshed_status = MebStatus()
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home_path = Path(temporary) / "backup-home"
+            backup_path = backup_home_path / "Backup" / "2026-08-19_11-03-00"
+            log_path = backup_home_path / "logs" / "20260819T110300Z-profile-1-full-test.log"
+            backup_path.mkdir(parents=True)
+            log_path.parent.mkdir()
+            log_path.write_text(
+                f"Backup directory created: '{backup_path}'\n"
+                "MAIN: [ERROR] Back_systablespace::back_doublewrite_init: "
+                "source file should be open.\n",
+                encoding="utf-8",
+            )
+            profile = MebBackupProfileInfo(
+                uuid="profile-1",
+                label="Backup",
+                destination=(backup_home_path / "Backup").as_posix(),
+            )
+            activity_id = f"activity:v1:logs/{log_path.name}"
+
+            with activity_setup(
+                context,
+                calls,
+                profile,
+                refreshed_status,
+                resolve_activity=backup_home.resolve_activity,
+                _runtime_helper_request=(
+                    lambda _context, _backup_home_path, _manager_values, operation, params:
+                        calls.append((operation, params)) or {"status": "deleted"}
+                ),
+            ):
+                status = setup.delete_activity_backup(backup_home_path.as_posix(), activity_id)
+
+        self.assertIs(status, refreshed_status)
+        self.assertEqual(calls, [
+            "install",
+            ("backups.delete", {
+                "backupHome": backup_home_path.resolve().as_posix(),
+                "backupId": "Backup/2026-08-19_11-03-00",
+                "logId": log_path.name,
+            }),
+        ])
+
+    def test_delete_failed_activity_backup_rejects_unreadable_restore_metadata(self) -> None:
+        calls: list[object] = []
+        context = FakeContext()
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home_path = Path(temporary) / "backup-home"
+            backup_path = backup_home_path / "Backup" / "2026-08-19_11-03-00"
+            log_path = backup_home_path / "logs" / "20260819T110300Z-profile-1-full-test.log"
+            metadata_path = backup_path / "meta" / "backup_variables.txt"
+            metadata_path.parent.mkdir(parents=True)
+            metadata_path.write_text(
+                "[backup_variables]\n"
+                "is_incremental=0\n"
+                "start_lsn=10\n"
+                "end_lsn=20\n",
+                encoding="utf-8",
+            )
+            log_path.parent.mkdir()
+            log_path.write_text(
+                f"Backup directory created: '{backup_path}'\n"
+                "MAIN: [ERROR] Back_systablespace::back_doublewrite_init: "
+                "source file should be open.\n",
+                encoding="utf-8",
+            )
+            profile = MebBackupProfileInfo(
+                uuid="profile-1",
+                label="Backup",
+                destination=(backup_home_path / "Backup").as_posix(),
+            )
+            activity_id = f"activity:v1:logs/{log_path.name}"
+            real_open = open
+
+            def open_with_unreadable_metadata(path: Any, *args: Any, **kwargs: Any) -> Any:
+                if Path(path).resolve() == metadata_path.resolve():
+                    raise PermissionError("Metadata access denied")
+
+                return real_open(path, *args, **kwargs)
+
+            with activity_setup(
+                context,
+                calls,
+                profile,
+                resolve_activity=backup_home.resolve_activity,
+                _runtime_helper_request=(
+                    lambda _context, _backup_home_path, _manager_values, operation, params:
+                        calls.append((operation, params)) or {"status": "deleted"}
+                ),
+            ), mock.patch("builtins.open", side_effect=open_with_unreadable_metadata):
+                with self.assertRaisesRegex(ValueError, "Backup metadata could not be read"):
+                    setup.delete_activity_backup(backup_home_path.as_posix(), activity_id)
+
+        self.assertEqual(calls, [])
+
+    def test_delete_failed_activity_backup_rejects_malformed_restore_metadata(self) -> None:
+        calls: list[object] = []
+        context = FakeContext()
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home_path = Path(temporary) / "backup-home"
+            backup_path = backup_home_path / "Backup" / "2026-08-19_11-03-00"
+            log_path = backup_home_path / "logs" / "20260819T110300Z-profile-1-full-test.log"
+            metadata_path = backup_path / "meta" / "backup_variables.txt"
+            metadata_path.parent.mkdir(parents=True)
+            metadata_path.write_text("[unexpected]\nvalue=1\n", encoding="utf-8")
+            log_path.parent.mkdir()
+            log_path.write_text(
+                f"Backup directory created: '{backup_path}'\n"
+                "MAIN: [ERROR] Back_systablespace::back_doublewrite_init: "
+                "source file should be open.\n",
+                encoding="utf-8",
+            )
+            profile = MebBackupProfileInfo(
+                uuid="profile-1",
+                label="Backup",
+                destination=(backup_home_path / "Backup").as_posix(),
+            )
+            activity_id = f"activity:v1:logs/{log_path.name}"
+
+            with activity_setup(
+                context,
+                calls,
+                profile,
+                MebStatus(),
+                resolve_activity=backup_home.resolve_activity,
+                _runtime_helper_request=(
+                    lambda _context, _backup_home_path, _manager_values, operation, params:
+                        calls.append((operation, params)) or {"status": "deleted"}
+                ),
+            ):
+                with self.assertRaisesRegex(ValueError, "Backup metadata is malformed"):
+                    setup.delete_activity_backup(backup_home_path.as_posix(), activity_id)
+
+        self.assertEqual(calls, [])
+
+    def test_delete_completed_activity_backup_requires_restore_metadata(self) -> None:
+        calls: list[object] = []
+        context = FakeContext()
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home_path = Path(temporary) / "backup-home"
+            backup_path = backup_home_path / "Backup" / "2026-08-19_11-03-00"
+            log_path = backup_home_path / "logs" / "20260819T110300Z-profile-1-full-test.log"
+            backup_path.mkdir(parents=True)
+            log_path.parent.mkdir()
+            log_path.write_text(
+                f"Backup directory created: '{backup_path}'\n"
+                "mysqlbackup completed OK!\n",
+                encoding="utf-8",
+            )
+            profile = MebBackupProfileInfo(
+                uuid="profile-1",
+                label="Backup",
+                destination=(backup_home_path / "Backup").as_posix(),
+            )
+            activity_id = f"activity:v1:logs/{log_path.name}"
+
+            with activity_setup(
+                context,
+                calls,
+                profile,
+                resolve_activity=backup_home.resolve_activity,
+            ):
+                with self.assertRaisesRegex(ValueError, "Backup metadata could not be read"):
+                    setup.delete_activity_backup(backup_home_path.as_posix(), activity_id)
+
+        self.assertEqual(calls, [])
 
     def test_delete_activity_backup_rejects_incremental_backup_dependencies(self) -> None:
         context = FakeContext()

@@ -61,6 +61,7 @@ from .backup_home import (
     LEGACY_MYSQLBACKUP_METADATA_OPTIONS,
     SCHEDULE_INTERVAL_MAXIMUMS,
     ResolvedActivity,
+    _BackupMetadataNotFoundError,
     build_status,
     resolve_activity,
     _dependent_incremental_backups,
@@ -1763,7 +1764,16 @@ def delete_activity_backup(
         return build_status(backup_home_path, manager_values, _read_profiles(backup_home_path))
 
     backup_id = resolved.require_backup_id()
-    dependent_backups = _dependent_incremental_backups(backup_home_path, backup_id)
+    try:
+        dependent_backups = _dependent_incremental_backups(backup_home_path, backup_id)
+    except _BackupMetadataNotFoundError:
+        # A failed backup may leave its directory before writing metadata and cannot be
+        # a valid incremental base. Otherwise, dependencies cannot be checked safely.
+        if resolved.read_log_status().status != "Failed":
+            raise
+
+        dependent_backups = []
+
     if dependent_backups:
         dependent_labels = ", ".join(os.path.basename(path) for path in dependent_backups)
         raise ValueError(
