@@ -24,9 +24,40 @@
  */
 
 import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { spawn, type ChildProcess } from "node:child_process";
 import { dirname, join } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 
-import { test, expect } from "../fixtures/electron.js";
+import { createElectronLaunchOptions, test, expect } from "../fixtures/electron.js";
+
+const waitForProcessExit = async (childProcess: ChildProcess, timeout = 5000): Promise<void> => {
+    const retryInterval = 50;
+    const attempts = Math.ceil(timeout / retryInterval);
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+        if (childProcess.exitCode !== null || childProcess.signalCode !== null) {
+            return;
+        }
+
+        await delay(retryInterval);
+    }
+
+    throw new Error(`Process ${childProcess.pid ?? "unknown"} did not exit within ${timeout}ms.`);
+};
+
+const stopProcess = async (childProcess: ChildProcess): Promise<void> => {
+    if (childProcess.exitCode !== null || childProcess.signalCode !== null) {
+        return;
+    }
+
+    childProcess.kill();
+    try {
+        await waitForProcessExit(childProcess);
+    } catch {
+        childProcess.kill("SIGKILL");
+        await waitForProcessExit(childProcess);
+    }
+};
 
 test.describe("Electron desktop shell", () => {
     test("launches the desktop host and exposes the native bridges", async ({ page, workbench }) => {
@@ -52,6 +83,105 @@ test.describe("Electron desktop shell", () => {
         const menuLabels = await workbench.menuLabels();
         expect(menuLabels).toEqual(expect.arrayContaining(["File", "Edit", "View", "Run", "Database", "Window", "Help"]));
     });
+
+    test("keeps one running process per Electron user data profile",
+        async ({ electronApp, electronLaunchEnvironment }, testInfo) => {
+            const desktopLogPath = testInfo.outputPath("electron-user-data", "MySQL Workbench-electron.log");
+            const startupMarker = "startup isBundledRuntime=";
+            const startupCountBeforeSecondLaunch = (await readFile(desktopLogPath, "utf8"))
+                .split(startupMarker).length - 1;
+
+            const { focusWindowId, mainWindowId } = await electronApp.evaluate(({ BrowserWindow }) => {
+                const mainWindow = BrowserWindow.getAllWindows()[0];
+                const focusWindow = new BrowserWindow({ show: true });
+                focusWindow.focus();
+
+                return {
+                    focusWindowId: focusWindow.id,
+                    mainWindowId: mainWindow.id,
+                };
+            });
+            await expect.poll(async () => {
+                return electronApp.evaluate(({ BrowserWindow }, windowId) => {
+                    return BrowserWindow.fromId(windowId)?.isFocused();
+                }, mainWindowId);
+            }).toBe(false);
+            await electronApp.evaluate(({ BrowserWindow }, windowId) => {
+                const browserWindow = BrowserWindow.fromId(windowId);
+
+                if (!browserWindow) {
+                    return;
+                }
+
+                Reflect.set(browserWindow, "e2eFocusObserved", false);
+                browserWindow.once("focus", () => {
+                    Reflect.set(browserWindow, "e2eFocusObserved", true);
+                });
+            }, mainWindowId);
+
+            const launchOptions = await createElectronLaunchOptions(testInfo, electronLaunchEnvironment);
+            const secondProcess = spawn(launchOptions.executablePath, launchOptions.args, {
+                env: launchOptions.env,
+                stdio: "ignore",
+            });
+
+            try {
+                await expect.poll(() => {
+                    return secondProcess.exitCode;
+                }, { timeout: 15000 }).toBe(0);
+                await expect.poll(async () => {
+                    return electronApp.evaluate(({ BrowserWindow }, windowId) => {
+                        const browserWindow = BrowserWindow.fromId(windowId);
+
+                        return {
+                            focusObserved: browserWindow
+                                ? Reflect.get(browserWindow, "e2eFocusObserved") === true
+                                : false,
+                            visible: browserWindow?.isVisible(),
+                        };
+                    }, mainWindowId);
+                }, { timeout: 15000 }).toEqual({ focusObserved: true, visible: true });
+
+                const startupCountAfterSecondLaunch = (await readFile(desktopLogPath, "utf8"))
+                    .split(startupMarker).length - 1;
+                expect(startupCountAfterSecondLaunch).toBe(startupCountBeforeSecondLaunch);
+            } finally {
+                await stopProcess(secondProcess);
+                await electronApp.evaluate(({ BrowserWindow }, windowId) => {
+                    BrowserWindow.fromId(windowId)?.destroy();
+                }, focusWindowId);
+            }
+        });
+
+    test("allows separate Electron user data profiles to run concurrently",
+        async ({ electronApp, electronLaunchEnvironment }, testInfo) => {
+            const primaryUserDataPath = await electronApp.evaluate(({ app }) => {
+                return app.getPath("userData");
+            });
+            const secondaryUserDataPath = testInfo.outputPath("secondary-electron-user-data");
+            expect(secondaryUserDataPath).not.toBe(primaryUserDataPath);
+
+            const launchOptions = await createElectronLaunchOptions(
+                testInfo,
+                electronLaunchEnvironment,
+                secondaryUserDataPath,
+            );
+            const secondProcess = spawn(launchOptions.executablePath, launchOptions.args, {
+                env: launchOptions.env,
+                stdio: "ignore",
+            });
+
+            try {
+                const desktopLogPath = join(secondaryUserDataPath, "MySQL Workbench-electron.log");
+                await expect.poll(async () => {
+                    return readFile(desktopLogPath, "utf8").catch(() => "");
+                }, { timeout: 15000 }).toContain("app.whenReady");
+                expect(secondProcess.exitCode).toBeNull();
+                expect(secondProcess.signalCode).toBeNull();
+            } finally {
+                await stopProcess(secondProcess);
+            }
+        });
 
     test("waits for delayed renderer approval before closing", async ({ electronApp, page, workbench }, testInfo) => {
         await workbench.waitForShell();

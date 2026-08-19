@@ -106,6 +106,11 @@ if (typeof explicitUserDataDir === "string" && explicitUserDataDir.length > 0) {
     app.setPath("userData", path.resolve(explicitUserDataDir));
 }
 
+const isPrimaryInstance = app.requestSingleInstanceLock();
+if (!isPrimaryInstance) {
+    app.exit(0);
+}
+
 const windowStatePath = path.join(app.getPath("userData"), "window-state.json");
 const recentFilesPath = path.join(app.getPath("userData"), "recent-files.json");
 const desktopLogPath = path.join(app.getPath("userData"), "MySQL Workbench-electron.log");
@@ -1033,6 +1038,24 @@ const approvedWindowCloseByWindow = new WeakSet();
 const windowCloseCheckByWindow = new WeakSet();
 const pendingWindowCloseRequests = new Map();
 let nextWindowCloseRequestId = 0;
+
+if (isPrimaryInstance) {
+    app.on("second-instance", () => {
+        if (!mainWindow || mainWindow.isDestroyed()) {
+            return;
+        }
+
+        if (mainWindow.isMinimized()) {
+            mainWindow.restore();
+        }
+
+        if (!mainWindow.isVisible()) {
+            mainWindow.show();
+        }
+
+        mainWindow.focus();
+    });
+}
 
 const registerPrivilegedRendererWindow = (browserWindow) => {
     const { webContents } = browserWindow;
@@ -2232,16 +2255,18 @@ ipcMain.on("electron-backend-send", (event, payload) => {
     backendBridge.send(payload, browserWindow);
 });
 
-app.whenReady().then(async () => {
-    appendDesktopLog("app.whenReady");
+if (isPrimaryInstance) {
+    app.whenReady().then(async () => {
+        appendDesktopLog("app.whenReady");
 
-    createAppProtocol();
-    await createWindow();
+        createAppProtocol();
+        await createWindow();
 
-    nativeTheme.on("updated", () => {
-        forwardThemeToMigrationAssistant();
+        nativeTheme.on("updated", () => {
+            forwardThemeToMigrationAssistant();
+        });
     });
-});
+}
 
 app.on("window-all-closed", () => {
     appendDesktopLog("window-all-closed");
