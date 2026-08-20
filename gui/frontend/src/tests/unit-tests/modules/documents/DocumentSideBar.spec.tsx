@@ -58,6 +58,7 @@ describe("DocumentSideBar", () => {
     interface ITestDocumentSideBar {
         buildHomeConnectionTreeItem(entry: ICdmConnectionEntry | ICdmConnectionGroupEntry): IConnectionTreeItemTestData;
         buildWorkspaceConnectionTreeItem(entry: Record<string, unknown>): IConnectionTreeItemTestData;
+        connectionTreeCellFormatter(cell: { getData: () => IConnectionTreeItemTestData; }): HTMLElement;
         handleConnectionTreeRowExpanded(row: RowComponentMock): void;
         handleSchemasTreeRowExpanded(row: RowComponentMock): void;
         handleSectionExpand(props: unknown, sectionId: string, expanded: boolean): void;
@@ -352,6 +353,39 @@ describe("DocumentSideBar", () => {
         expect(host.classList.contains("marked")).toBe(true);
         expect(host.querySelector(".icon")?.classList.contains("markedSchemaIcon")).toBe(true);
         expect(host.querySelector("#mainCaption")?.classList.contains("markedSchemaPill")).toBe(false);
+    });
+
+    it("identifies the SQL Script connection action in the dispatched command", () => {
+        const { connection } = createConnectionTree();
+        const onConnectionTreeCommand = vi.fn().mockResolvedValue({ success: true });
+        const sideBar = new DocumentSideBar({
+            selectedOpenDocument: "",
+            markedSchema: "",
+            overviewId: "overview",
+            sidebarMode: "electronHome",
+            onConnectionTreeCommand,
+            onDocumentTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onOciTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+        });
+
+        const testSideBar = sideBar as unknown as ITestDocumentSideBar;
+        const treeItem = testSideBar.buildHomeConnectionTreeItem(
+            connection as unknown as ICdmConnectionEntry);
+        const host = testSideBar.connectionTreeCellFormatter({
+            getData: () => {
+                return treeItem;
+            },
+        });
+        const button = host.querySelector<HTMLElement>(
+            '[data-tooltip="Open New Connection using SQL Script"]');
+
+        button?.click();
+
+        expect(onConnectionTreeCommand).toHaveBeenCalledWith({
+            title: "Open New Connection using SQL Script",
+            command: "msg.openConnection",
+            arguments: ["script"],
+        }, connection);
     });
 
     it("persists auto-expansion of the current schema across schema refresh", () => {

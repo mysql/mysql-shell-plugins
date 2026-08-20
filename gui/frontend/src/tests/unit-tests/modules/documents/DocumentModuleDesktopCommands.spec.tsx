@@ -4227,6 +4227,84 @@ describe("Document module desktop commands", () => {
         expect(module.state.selectedPage).toBe(userPage.id);
     });
 
+    it("opens a new script workspace from Home instead of reselecting an existing notebook", async () => {
+        const module = new TestDocumentModule({});
+        const sharedConnection = createElectronWorkspaceConnection();
+        const existingConnection = sharedConnection.connection;
+        const notebookPage = {
+            id: "notebook-page-1",
+            caption: connectionDetails.caption,
+            details: connectionDetails,
+        };
+        const openedConnection = {
+            ...existingConnection,
+            backend: {
+                getExecutionHistoryEntries: vi.fn().mockResolvedValue([]),
+            },
+            initialize: vi.fn().mockResolvedValue(true),
+            isOffline: false,
+        };
+        const testModule = module as unknown as {
+            connectionsDataModel: {
+                createConnectionEntry: (details: IConnectionDetails) => typeof openedConnection;
+            };
+            connectionPresentation: Map<unknown, { documents: Array<{ type: OdmEntityType; }>; }>;
+            setStatePromise: (state: Partial<typeof module.state>) => Promise<void>;
+            showPage: (data: {
+                connectionId: number;
+                pageId: string;
+                createNewWorkspace: boolean;
+                editor: "script";
+            }) => Promise<boolean>;
+        };
+
+        module.state = {
+            selectedPage: "overview",
+            selectedWorkspace: "__workspace_home__",
+            connectionWorkspaces: [{
+                dataModelEntry: notebookPage,
+                connection: existingConnection,
+                suppressAbout: false,
+            }] as never,
+            documentTabs: [],
+            shellSessionTabs: [],
+            schemaDiagramTabs: [],
+            sidebarState: new Map(),
+            showSidebar: false,
+            showTabs: true,
+            loading: false,
+            progressMessage: "",
+            overviewId: "overview",
+        };
+
+        vi.spyOn(testModule.connectionsDataModel, "createConnectionEntry").mockReturnValue(openedConnection);
+        vi.spyOn(testModule, "setStatePromise").mockImplementation((state) => {
+            module.state = { ...module.state, ...state };
+
+            return Promise.resolve();
+        });
+        vi.spyOn(requisitions, "executeRemote").mockResolvedValue(true);
+
+        await testModule.showPage({
+            connectionId: connectionDetails.id,
+            pageId: notebookPage.id,
+            createNewWorkspace: true,
+            editor: "script",
+        });
+
+        expect(module.state.connectionWorkspaces).toHaveLength(2);
+        expect(module.state.selectedPage).not.toBe(notebookPage.id);
+
+        const newWorkspace = module.state.connectionWorkspaces[1];
+        const presentation = testModule.connectionPresentation.get(newWorkspace.dataModelEntry);
+        if (!presentation) {
+            throw new Error("The new script workspace has no presentation state.");
+        }
+
+        expect(presentation.documents).toHaveLength(1);
+        expect(presentation.documents[0].type).toBe(OdmEntityType.Script);
+    });
+
     it("reuses the workspace service connection when opening another admin tab", async () => {
         const module = new TestDocumentModule({});
         const sharedConnection = createElectronWorkspaceConnection();

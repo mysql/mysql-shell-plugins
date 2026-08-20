@@ -2758,7 +2758,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     onClick={() => {
                         const { onConnectionTreeCommand } = this.props;
                         void onConnectionTreeCommand({
-                            title: "Open New Connection using Notebook",
+                            title: "Open New Connection using SQL Script",
                             command: "msg.openConnection",
                             arguments: ["script"],
                         }, connection);

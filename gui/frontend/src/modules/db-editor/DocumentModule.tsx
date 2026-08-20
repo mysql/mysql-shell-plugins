@@ -2898,7 +2898,8 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
             if (entry) {
                 const workspaceId = this.getConnectionWorkspaceId(entry.connection.details.id,
                     entry.dataModelEntry.id);
-                if (selectedPage !== data.pageId || selectedWorkspace !== workspaceId) {
+                if (!data.createNewWorkspace
+                    && (selectedPage !== data.pageId || selectedWorkspace !== workspaceId)) {
                     this.rememberConnectionPage(entry);
                     this.setState({ selectedPage: data.pageId, selectedWorkspace: workspaceId });
 
