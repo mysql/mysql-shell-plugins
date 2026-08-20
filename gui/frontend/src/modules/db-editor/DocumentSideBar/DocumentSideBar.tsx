@@ -28,6 +28,7 @@ import "./DocumentSideBar.css";
 import { ComponentChild, createRef, render, type RefObject } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
+import type { Mutable } from "../../../app-logic/general-types.js";
 import { ui } from "../../../app-logic/UILayer.js";
 import { DbSystem, LoadBalancer } from "../../../communication/Oci.js";
 import { Accordion, IAccordionProperties, type IAccordionSection } from "../../../components/ui/Accordion/Accordion.js";
@@ -801,12 +802,16 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         entry: ConnectionDataModelEntry,
         sectionRef?: RefObject<AccordionSection>,
     ): Promise<boolean> => {
+        if (!entry.refresh) {
+            return true;
+        }
+
         try {
             await this.withSectionProgress(sectionRef, async () => {
                 ++this.refreshRunning;
 
                 try {
-                    await entry.refresh?.((result?: string | Error) => {
+                    await entry.refresh!((result?: string | Error) => {
                         if (result instanceof Error) {
                             void ui.showErrorMessage(convertErrorToString(result), {});
                         } else if (typeof result === "string") {
@@ -892,8 +897,6 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             this.schemaSearchLoadedConnectionId = connection.details.id;
         } catch (error) {
             void ui.showErrorMessage(convertErrorToString(error), {});
-        } finally {
-            await this.replaceWorkspaceSchemasTreeData();
         }
     };
 
@@ -902,10 +905,43 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
         const refreshed = await this.refreshConnectionEntry(connection, this.schemasSectionRef);
         const filterValue = this.state.schemaSearchValues.value ?? "";
-        if (refreshed && filterValue.trim().length > 0) {
-            await this.loadSchemaSearchData(connection);
-        } else {
-            await this.replaceWorkspaceSchemasTreeData();
+        if (refreshed) {
+            this.invalidateLoadedWorkspaceSchemaEntries(connection.schemaEntries);
+
+            if (filterValue.trim().length > 0) {
+                await this.loadSchemaSearchData(connection);
+            }
+
+            await this.refreshExpandedWorkspaceSchemaEntries(connection.schemaEntries);
+        }
+
+        await this.replaceWorkspaceSchemasTreeData();
+    };
+
+    private invalidateLoadedWorkspaceSchemaEntries = (entries: readonly ConnectionDataModelEntry[]): void => {
+        for (const entry of entries) {
+            if (entry.refresh && entry.state.initialized) {
+                const state = entry.state as Mutable<IDataModelEntryState>;
+                state.initialized = false;
+            }
+
+            if (entry.state.expandedOnce) {
+                this.invalidateLoadedWorkspaceSchemaEntries(entry.getChildren?.() ?? []);
+            }
+        }
+    };
+
+    private refreshExpandedWorkspaceSchemaEntries = async (
+        entries: readonly ConnectionDataModelEntry[],
+    ): Promise<void> => {
+        for (const entry of entries) {
+            if (entry.state.expanded) {
+                if (!entry.state.initialized) {
+                    await this.refreshConnectionEntry(entry, this.schemasSectionRef);
+                }
+
+                await this.refreshExpandedWorkspaceSchemaEntries(entry.getChildren?.() ?? []);
+            }
         }
     };
 
@@ -1354,12 +1390,19 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     ): Promise<void> => {
         const entry = row.getData() as IConnectionTreeItem;
         entry.dataModelEntry.state.expanded = true;
-        if (!entry.dataModelEntry.state.isLeaf && !entry.dataModelEntry.state.expandedOnce) {
+        const isFirstExpansion = !entry.dataModelEntry.state.isLeaf
+            && !entry.dataModelEntry.state.expandedOnce;
+        const isElectronSchemasTree = sectionRef === this.schemasSectionRef && this.isElectronConnectionSidebar();
+        if (isFirstExpansion) {
             entry.dataModelEntry.state.expandedOnce = true;
             await this.refreshConnectionEntry(entry.dataModelEntry, sectionRef);
-            if (sectionRef === this.schemasSectionRef && this.isElectronConnectionSidebar()) {
+
+            if (isElectronSchemasTree) {
                 await this.replaceWorkspaceSchemasTreeData();
             }
+        } else if (isElectronSchemasTree) {
+            await this.refreshExpandedWorkspaceSchemaEntries([entry.dataModelEntry]);
+            await this.replaceWorkspaceSchemasTreeData();
         } else {
             this.forceUpdate();
         }
@@ -1468,6 +1511,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 const connection = this.getActiveWorkspaceConnectionEntry();
                 if (connection) {
                     await this.loadSchemaSearchData(connection);
+                    await this.replaceWorkspaceSchemasTreeData();
                 }
             });
         }
