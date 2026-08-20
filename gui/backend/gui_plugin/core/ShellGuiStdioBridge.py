@@ -70,10 +70,14 @@ class ShellGuiStdioBridge:
 
     def __init__(
         self,
-        stdin: typing.Optional[typing.TextIO] = None,
+        stdin: typing.Optional[typing.Union[typing.TextIO, typing.BinaryIO]] = None,
         stdout: typing.Optional[typing.TextIO] = None,
     ) -> None:
-        self._stdin: typing.TextIO = stdin if stdin is not None else sys.stdin
+        self._stdin: typing.Union[typing.TextIO, typing.BinaryIO] = (
+            stdin
+            if stdin is not None
+            else getattr(sys, "real_stdin", sys.stdin).buffer
+        )
         self._stdout: typing.TextIO = stdout if stdout is not None else sys.stdout
         self._stdout_lock: threading.Lock = threading.Lock()
 
@@ -249,12 +253,19 @@ class ShellGuiStdioBridge:
 
         try:
             for raw_line in self._stdin:
-                line = raw_line.strip()
-                if not line:
-                    continue
-
+                line = ""
                 json_message = None
+
                 try:
+                    line = (
+                        raw_line.decode("utf-8")
+                        if isinstance(raw_line, bytes)
+                        else raw_line
+                    ).strip()
+
+                    if not line:
+                        continue
+
                     json_message = json.loads(line)
                     if "request" not in json_message:
                         raise Exception(

@@ -227,6 +227,61 @@ def test_stdio_transport_emits_ready_and_session_messages(monkeypatch):
     assert session_message["session_uuid"] == output_lines[0]["data"]["session_uuid"]
 
 
+def test_stdio_transport_decodes_real_stdin_protocol_as_utf8(monkeypatch):
+    _patch_stdio_bootstrap(monkeypatch)
+
+    request = {
+        "request": "execute",
+        "request_id": "utf8-request",
+        "command": "gui.sqlEditor.execute",
+        "args": {"sql": "select 'テスト%'"},
+    }
+    real_stdin = io.TextIOWrapper(
+        io.BytesIO((json.dumps(request, ensure_ascii=False) + "\n").encode("utf-8")),
+        encoding="cp932",
+        errors="surrogateescape",
+    )
+    monkeypatch.setattr(StdioBridgeModule.sys, "stdin", SimpleNamespace())
+    monkeypatch.setattr(
+        StdioBridgeModule.sys, "real_stdin", real_stdin, raising=False
+    )
+
+    messages = []
+    bridge = ShellGuiStdioBridge(stdout=io.StringIO())
+    bridge._db = _FakeBootstrapDb()
+    monkeypatch.setattr(bridge, "process_message", messages.append)
+
+    bridge.run()
+
+    assert messages == [request]
+
+
+def test_stdio_transport_decodes_stdin_protocol_without_real_stdin(monkeypatch):
+    _patch_stdio_bootstrap(monkeypatch)
+
+    request = {
+        "request": "execute",
+        "request_id": "utf8-request",
+        "command": "gui.sqlEditor.execute",
+        "args": {"sql": "select 'テスト%'"},
+    }
+    stdin = io.TextIOWrapper(
+        io.BytesIO((json.dumps(request, ensure_ascii=False) + "\n").encode("utf-8")),
+        encoding="cp1252",
+    )
+    monkeypatch.delattr(StdioBridgeModule.sys, "real_stdin", raising=False)
+    monkeypatch.setattr(StdioBridgeModule.sys, "stdin", stdin)
+
+    messages = []
+    bridge = ShellGuiStdioBridge(stdout=io.StringIO())
+    bridge._db = _FakeBootstrapDb()
+    monkeypatch.setattr(bridge, "process_message", messages.append)
+
+    bridge.run()
+
+    assert messages == [request]
+
+
 def test_stdio_transport_exposes_local_backend_context_identity(monkeypatch):
     _patch_stdio_bootstrap(monkeypatch)
 
