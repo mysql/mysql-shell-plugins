@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import codecs
 import configparser
 import importlib.machinery
 import importlib.util
@@ -2349,6 +2350,44 @@ class HelperTests(unittest.TestCase):
         self.assertIn("<MultipleInstancesPolicy>Queue</MultipleInstancesPolicy>", response["result"]["xml"])
         self.assertIn("NT AUTHORITY\\SYSTEM", response["result"]["xml"])
 
+    def test_windows_task_scheduler_xml_uses_utf16_encoding(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        windows_config = copy_config(
+            config,
+            target_user=TargetUser(uid=1, gid=1, account=r"NT AUTHORITY\SYSTEM"),
+            job_runner=r"C:\Program Files\MySQL\Zażółć\task-helper.cmd",
+        )
+
+        task_xml = helper._render_windows_task_xml(
+            windows_config,
+            "nightly",
+            {
+                "minute": "0",
+                "hour": "2",
+                "dayOfMonth": "*",
+                "month": "*",
+                "dayOfWeek": "*",
+            },
+        )
+
+        self.assertIn(task_xml[:2], (codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE))
+        decoded_xml = task_xml.decode("utf-16")
+        self.assertTrue(decoded_xml.startswith("<?xml version='1.0' encoding='utf-16'?>"))
+        self.assertIn(f"<Command>{windows_config.job_runner}</Command>", decoded_xml)
+
+    def test_windows_task_scheduler_plan_preserves_system_root(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        windows_config = copy_config(
+            config,
+            scheduler_backend="schtasks",
+            schtasks=r"D:\Windows\System32\schtasks.exe",
+        )
+
+        with mock.patch.dict(helper.os.environ, {"SystemRoot": r"D:\Windows"}, clear=True):
+            plan = helper._schtasks_plan(windows_config, ["/Query"])
+
+        self.assertEqual(plan.env.get("SYSTEMROOT"), r"D:\Windows")
+
     def test_windows_task_scheduler_accepts_cmd_job_runner(self) -> None:
         _, config, _, _ = self.make_fixture()
         root = Path(tempfile.mkdtemp(prefix="task-helper-windows-runner-")).resolve()
@@ -2373,7 +2412,7 @@ class HelperTests(unittest.TestCase):
                         "month": "*",
                         "dayOfWeek": "*",
                     },
-                ).decode("utf-8")
+                ).decode("utf-16")
 
         self.assertIn(f"<Command>{job_runner.as_posix()}</Command>", xml)
         self.assertIn(

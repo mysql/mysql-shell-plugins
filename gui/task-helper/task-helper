@@ -108,6 +108,31 @@ class ProcessPlan:
     progress_path: str | None = None
     progress_context: dict[str, Any] | None = None
 
+
+def _posix_process_env() -> dict[str, str]:
+    return {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin",
+    }
+
+
+def _windows_process_env() -> dict[str, str]:
+    system_root = os.environ.get("SystemRoot", r"C:\Windows")
+
+    return {
+        "PATH": r"C:\Windows\System32",
+        "SYSTEMROOT": system_root,
+    }
+
+
+def _mysqlbackup_process_env(config: HelperConfig) -> dict[str, str]:
+    env = _windows_process_env() if os.name == "nt" else _posix_process_env()
+    env["MYSQL_TEST_LOGIN_FILE"] = config.login_file
+
+    return env
+
+
 # Request validation
 def require_dict(value: Any, label: str) -> dict[str, Any]:
     if not isinstance(value, dict):
@@ -1780,22 +1805,11 @@ def _mysqlbackup_plan_for_job(job: dict[str, Any], config: HelperConfig) -> Proc
             "backup",
         ])
 
-    env = {
-        "PATH": r"C:\Windows\System32",
-        "SYSTEMROOT": os.environ.get("SystemRoot", r"C:\Windows"),
-        "MYSQL_TEST_LOGIN_FILE": config.login_file,
-    } if os.name == "nt" else {
-        "LANG": "C",
-        "LC_ALL": "C",
-        "PATH": "/usr/bin:/bin",
-        "MYSQL_TEST_LOGIN_FILE": config.login_file,
-    }
-
     return ProcessPlan(
         executable=config.mysqlbackup,
         args=args,
         cwd=config.working_directory,
-        env=env,
+        env=_mysqlbackup_process_env(config),
         uid=target_user.uid,
         gid=target_user.gid,
         timeout_ms=config.timeout_ms,
@@ -1818,16 +1832,6 @@ def _with_mysqlbackup_progress_file(plan: ProcessPlan, progress_path: Path) -> P
 
 def _mysqlbackup_validate_plan_for_backup(backup_dir: Path, config: HelperConfig) -> ProcessPlan:
     target_user = resolve_target_user(config)
-    env = {
-        "PATH": r"C:\Windows\System32",
-        "SYSTEMROOT": os.environ.get("SystemRoot", r"C:\Windows"),
-        "MYSQL_TEST_LOGIN_FILE": config.login_file,
-    } if os.name == "nt" else {
-        "LANG": "C",
-        "LC_ALL": "C",
-        "PATH": "/usr/bin:/bin",
-        "MYSQL_TEST_LOGIN_FILE": config.login_file,
-    }
 
     return ProcessPlan(
         executable=config.mysqlbackup,
@@ -1837,7 +1841,7 @@ def _mysqlbackup_validate_plan_for_backup(backup_dir: Path, config: HelperConfig
             "validate",
         ],
         cwd=config.working_directory,
-        env=env,
+        env=_mysqlbackup_process_env(config),
         uid=target_user.uid,
         gid=target_user.gid,
         timeout_ms=config.timeout_ms,
@@ -1953,16 +1957,6 @@ def _mysqlbackup_restore_plan_for_backup(
     is_incremental = variables.get("is_incremental") == "1"
     is_compressed = variables.get("is_compressed") == "1"
     apply_log_done = variables.get("apply_log_done") == "1"
-    env = {
-        "PATH": r"C:\Windows\System32",
-        "SYSTEMROOT": os.environ.get("SystemRoot", r"C:\Windows"),
-        "MYSQL_TEST_LOGIN_FILE": config.login_file,
-    } if os.name == "nt" else {
-        "LANG": "C",
-        "LC_ALL": "C",
-        "PATH": "/usr/bin:/bin",
-        "MYSQL_TEST_LOGIN_FILE": config.login_file,
-    }
     args = [
         f"--defaults-file={defaults_file.as_posix()}",
         f"--login-path={config.login_path}",
@@ -1980,7 +1974,7 @@ def _mysqlbackup_restore_plan_for_backup(
         executable=config.mysqlbackup,
         args=args,
         cwd=config.working_directory,
-        env=env,
+        env=_mysqlbackup_process_env(config),
         uid=target_user.uid,
         gid=target_user.gid,
         timeout_ms=config.timeout_ms,
@@ -3048,7 +3042,7 @@ def _launchctl_plan(config: HelperConfig, args: list[str]) -> ProcessPlan:
         executable=config.launchctl,
         args=args,
         cwd=config.working_directory,
-        env={"LANG": "C", "LC_ALL": "C", "PATH": "/usr/bin:/bin"},
+        env=_posix_process_env(),
         uid=os.geteuid() if os.name == "posix" else None,
         gid=os.getegid() if os.name == "posix" else None,
         timeout_ms=config.timeout_ms,
@@ -3207,7 +3201,7 @@ def _render_windows_task_xml(config: HelperConfig, job_id: str, schedule: dict[s
     ET.SubElement(exec_action, "Command").text = _windows_command_path(config.job_runner)
     ET.SubElement(exec_action, "Arguments").text = subprocess.list2cmdline(_scheduled_job_arguments(config, job_id))
 
-    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+    return ET.tostring(root, encoding="utf-16", xml_declaration=True)
 
 
 def _schtasks_plan(config: HelperConfig, args: list[str]) -> ProcessPlan:
@@ -3215,7 +3209,7 @@ def _schtasks_plan(config: HelperConfig, args: list[str]) -> ProcessPlan:
         executable=config.schtasks,
         args=args,
         cwd=config.working_directory,
-        env={"PATH": r"C:\Windows\System32"},
+        env=_windows_process_env(),
         uid=None,
         gid=None,
         timeout_ms=config.timeout_ms,
@@ -3229,7 +3223,7 @@ def _install_windows_task(config: HelperConfig, job_id: str, schedule: dict[str,
     task_xml = _render_windows_task_xml(config, job_id, schedule)
 
     if dry_run:
-        return {"taskName": task_name, "xml": task_xml.decode("utf-8")}
+        return {"taskName": task_name, "xml": task_xml.decode("utf-16")}
 
     with tempfile.NamedTemporaryFile("wb", suffix=".xml", delete=False) as file:
         file.write(task_xml)
@@ -3268,7 +3262,7 @@ def _crontab_read_plan(config: HelperConfig) -> ProcessPlan:
         executable=config.crontab,
         args=["-l"],
         cwd=config.working_directory,
-        env={"LANG": "C", "LC_ALL": "C", "PATH": "/usr/bin:/bin"},
+        env=_posix_process_env(),
         uid=target_user.uid,
         gid=target_user.gid,
         timeout_ms=config.timeout_ms,
@@ -3286,7 +3280,7 @@ def _crontab_write_plan(config: HelperConfig, crontab: str) -> ProcessPlan:
         args=["-"],
         stdin=crontab,
         cwd=config.working_directory,
-        env={"LANG": "C", "LC_ALL": "C", "PATH": "/usr/bin:/bin"},
+        env=_posix_process_env(),
         uid=target_user.uid,
         gid=target_user.gid,
         timeout_ms=config.timeout_ms,
