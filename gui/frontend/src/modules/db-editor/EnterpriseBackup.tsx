@@ -966,7 +966,12 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
                 <AdministrationPageHeading
                     className="enterpriseBackupIntro enterpriseBackupNotConfigured"
                     heading="MEB support not configured"
-                    subtitle="Manage local MySQL Enterprise Backup jobs and schedules."
+                    subtitle={<span className="enterpriseBackupPageSubtitle">
+                        <span>Manage local MySQL Enterprise Backup jobs and schedules.</span>
+                        <span className="enterpriseBackupPreviewNote">
+                            Note: MEB support is currently a preview feature.
+                        </span>
+                    </span>}
                     actions={
                         <Button onClick={startWizard} disabled={backupCommandsDisabled}>
                             Configure
@@ -1001,7 +1006,12 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
                     className="enterpriseBackupHeader"
                     heading="MySQL Enterprise Backup"
                     icon={<Icon src={Assets.documents.adminBackupIcon} className="enterpriseBackupIcon" />}
-                    subtitle="Manage local MySQL Enterprise Backup jobs and schedules"
+                    subtitle={<span className="enterpriseBackupPageSubtitle">
+                        <span>Manage local MySQL Enterprise Backup jobs and schedules</span>
+                        <span className="enterpriseBackupPreviewNote">
+                            Note: MEB support is currently a preview feature.
+                        </span>
+                    </span>}
                     actions={
                         <Button onClick={() => {
                             setConfigurationDialogOpen(true);

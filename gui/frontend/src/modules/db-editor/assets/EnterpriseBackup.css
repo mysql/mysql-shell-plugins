@@ -93,6 +93,16 @@
     line-height: 1.25;
 }
 
+.msg.enterpriseBackupHost .enterpriseBackupPageSubtitle {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupPreviewNote {
+    color: var(--errorForeground);
+}
+
 .msg.enterpriseBackupHost h2 {
     font-size: 15px;
     font-weight: 600;

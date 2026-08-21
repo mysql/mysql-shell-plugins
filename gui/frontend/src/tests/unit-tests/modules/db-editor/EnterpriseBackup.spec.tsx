@@ -93,6 +93,30 @@ afterEach(() => {
 });
 
 describe("EnterpriseBackup", () => {
+    it("shows the preview notice on the configured MEB page", async () => {
+        vi.spyOn(ShellInterface.meb, "getSetupState").mockResolvedValue(setupState);
+        vi.spyOn(ShellInterface.meb, "getStatus").mockResolvedValue(status);
+
+        render(<EnterpriseBackup connection={connection} />);
+
+        expect(await screen.findByText("Note: MEB support is currently a preview feature.")).toBeTruthy();
+    });
+
+    it("shows the preview notice on the not-configured MEB page", async () => {
+        const notConfiguredSetupState = {
+            ...setupState,
+            configured: false,
+            needsSetup: false,
+            status: null,
+        };
+        vi.spyOn(ShellInterface.meb, "getSetupState").mockResolvedValue(notConfiguredSetupState);
+
+        render(<EnterpriseBackup connection={connection} />);
+
+        expect(await screen.findByText("MEB support not configured")).toBeTruthy();
+        expect(screen.getByText("Note: MEB support is currently a preview feature.")).toBeTruthy();
+    });
+
     it("restores the resolved configuration when the page is remounted", async () => {
         const savedState: IEnterpriseBackupSavedState = {};
         const onStateChange = vi.fn((data: Partial<IEnterpriseBackupSavedState>) => {
