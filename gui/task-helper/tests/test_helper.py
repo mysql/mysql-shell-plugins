@@ -14,6 +14,7 @@ import json
 import os
 import plistlib
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -2188,6 +2189,38 @@ class HelperTests(unittest.TestCase):
             response["result"]["generatedManagedBlock"],
         )
 
+    def test_cron_quotes_job_runner_path_with_spaces(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        job_runner = "/opt/MySQL Workbench/resources/app/helpers/task-helper"
+        cron_config = copy_config(config, job_runner=job_runner)
+
+        with mock.patch.object(helper, "validate_executable_reference"):
+            response = handle_request({
+                "operation": "cron.installManagedJob",
+                "dryRun": True,
+                "params": {
+                    "jobId": "nightly",
+                    "schedule": {
+                        "minute": "0",
+                        "hour": "2",
+                        "dayOfMonth": "*",
+                        "month": "*",
+                        "dayOfWeek": "*",
+                    },
+                },
+            }, cron_config, allow_dry_run=True)
+
+        self.assertTrue(response["ok"], response)
+        cron_line = response["result"]["generatedManagedBlock"].splitlines()[2]
+        command = cron_line.split(maxsplit=5)[5]
+        self.assertEqual(shlex.split(command), [
+            job_runner,
+            "--backup-home",
+            cron_config.backup_home,
+            "run-job",
+            "nightly",
+        ])
+
     def test_launchd_dry_run_generates_managed_plist(self) -> None:
         _, config, _, _ = self.make_fixture()
         launchd_config = copy_config(config, scheduler_backend="launchd")
@@ -2214,6 +2247,35 @@ class HelperTests(unittest.TestCase):
         self.assertIn(f"<string>{launchd_config.backup_home}</string>", response["result"]["plist"])
         self.assertIn("<string>run-job</string>", response["result"]["plist"])
         self.assertIn("<string>nightly</string>", response["result"]["plist"])
+
+    def test_launchd_preserves_job_runner_path_with_spaces(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        job_runner = "/Applications/MySQL Workbench.app/Contents/Resources/app/helpers/task-helper"
+        launchd_config = copy_config(
+            config,
+            scheduler_backend="launchd",
+            job_runner=job_runner,
+        )
+
+        with mock.patch.object(helper, "validate_executable_reference"):
+            response = handle_request({
+                "operation": "cron.installManagedJob",
+                "dryRun": True,
+                "params": {
+                    "jobId": "nightly",
+                    "schedule": {
+                        "minute": "0",
+                        "hour": "2",
+                        "dayOfMonth": "*",
+                        "month": "*",
+                        "dayOfWeek": "*",
+                    },
+                },
+            }, launchd_config, allow_dry_run=True)
+
+        self.assertTrue(response["ok"], response)
+        plist = plistlib.loads(response["result"]["plist"].encode("utf-8"))
+        self.assertEqual(plist["ProgramArguments"][0], job_runner)
 
     def test_launchd_monthly_schedule_expands_selected_days(self) -> None:
         _, config, _, _ = self.make_fixture()
@@ -3070,25 +3132,33 @@ class HelperTests(unittest.TestCase):
 
     def test_cron_rejects_job_runner_paths_that_are_unsafe_for_crontab(self) -> None:
         _, config, _, _ = self.make_fixture()
-        unsafe_config = copy_config(config, job_runner="/opt/mysql-workbench-helper/bin/run-job;evil")
+        unsafe_paths = (
+            "/opt/mysql-workbench-helper/bin/run-job;evil",
+            "/opt/mysql-workbench-helper/bin/run-job%evil",
+            "/opt/mysql-workbench-helper/bin/run-job\tevil",
+            "/opt/mysql-workbench-helper/bin/run-job\nevil",
+        )
 
-        response = handle_request({
-            "operation": "cron.installManagedJob",
-            "dryRun": True,
-            "params": {
-                "jobId": "nightly",
-                "schedule": {
-                    "minute": "0",
-                    "hour": "2",
-                    "dayOfMonth": "*",
-                    "month": "*",
-                    "dayOfWeek": "*",
-                },
-            },
-        }, unsafe_config, allow_dry_run=True)
+        for job_runner in unsafe_paths:
+            with self.subTest(job_runner=job_runner):
+                unsafe_config = copy_config(config, job_runner=job_runner)
+                response = handle_request({
+                    "operation": "cron.installManagedJob",
+                    "dryRun": True,
+                    "params": {
+                        "jobId": "nightly",
+                        "schedule": {
+                            "minute": "0",
+                            "hour": "2",
+                            "dayOfMonth": "*",
+                            "month": "*",
+                            "dayOfWeek": "*",
+                        },
+                    },
+                }, unsafe_config, allow_dry_run=True)
 
-        self.assertFalse(response["ok"])
-        self.assertEqual(response["error"]["code"], "invalid_config")
+                self.assertFalse(response["ok"])
+                self.assertEqual(response["error"]["code"], "invalid_config")
 
     def test_managed_cron_block_replacement_preserves_unmanaged_lines(self) -> None:
         config = make_config(Path("/tmp"))

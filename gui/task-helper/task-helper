@@ -2903,13 +2903,10 @@ def remove_managed_job_block(existing_crontab: str, job_id: str) -> str:
     return compacted.rstrip()
 
 
-def _cron_command_path(path: str) -> str:
+def _posix_command_path(path: str) -> str:
     candidate = path
-    if re.search(r"\s", candidate):
-        raise HelperError("invalid_config", "config.jobRunner must not contain whitespace.")
-
-    if re.fullmatch(r"/[A-Za-z0-9._/+@:-]+", candidate) is None:
-        raise HelperError("invalid_config", "config.jobRunner is not safe to embed in crontab.")
+    if re.fullmatch(r"/[A-Za-z0-9._/+@:\- ]+", candidate) is None:
+        raise HelperError("invalid_config", "config.jobRunner is not a safe POSIX command path.")
 
     try:
         validate_executable_reference(candidate)
@@ -2947,7 +2944,7 @@ def _scheduled_job_arguments(config: HelperConfig, job_id: str) -> list[str]:
 
 
 def render_managed_job_block(config: HelperConfig, job_id: str, schedule: dict[str, str]) -> str:
-    job_runner = _cron_command_path(config.job_runner)
+    job_runner = shlex.quote(_posix_command_path(config.job_runner))
     backup_home = shlex.quote(_scheduled_backup_home(config))
     cron_line = " ".join([
         schedule["minute"],
@@ -3031,7 +3028,7 @@ def _launchd_calendar_intervals(schedule: dict[str, str]) -> list[dict[str, int]
 def _render_launchd_plist(config: HelperConfig, job_id: str, schedule: dict[str, str]) -> bytes:
     target_user = resolve_target_user(config)
     account = target_user.account or config.target_user_name
-    job_runner = _cron_command_path(config.job_runner)
+    job_runner = _posix_command_path(config.job_runner)
 
     return plistlib.dumps({
         "Label": _launchd_label(job_id),
