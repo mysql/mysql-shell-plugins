@@ -987,7 +987,7 @@ def _manager_config_values(
         "backup_root": backup_home_path,
         "option_file_root": backup_home_path,
         "working_directory": backup_home_path,
-        "timeout_ms": "3600000",
+        "timeout_ms": "0",
         "max_output_bytes": "1048576",
         "scheduler_backend": _scheduler_backend(context),
         "launchd_plist_dir": os.path.join(backup_home_path, "launchd"),

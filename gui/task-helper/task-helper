@@ -292,6 +292,26 @@ def _config_get_int(parser: configparser.RawConfigParser, section: str, key: str
     return value
 
 
+def _config_get_nonnegative_int(
+    parser: configparser.RawConfigParser,
+    section: str,
+    key: str,
+    default: int,
+) -> int:
+    if not parser.has_option(section, key):
+        return default
+
+    try:
+        value = parser.getint(section, key)
+    except ValueError:
+        raise HelperError("invalid_config", f"{key} must be an integer.")
+
+    if value < 0:
+        raise HelperError("invalid_config", f"{key} must not be negative.")
+
+    return value
+
+
 def _config_get_path(parser: configparser.RawConfigParser, section: str, key: str) -> str:
     path = _config_get(parser, section, key)
     if not Path(path).is_absolute():
@@ -360,7 +380,7 @@ def helper_config(backup_home: Path | None = None) -> HelperConfig:
         backup_roots=[_config_get_path(parser, section, "backup_root")],
         option_file_roots=[_config_get_path(parser, section, "option_file_root")],
         working_directory=_config_get_path(parser, section, "working_directory"),
-        timeout_ms=_config_get_int(parser, section, "timeout_ms", DEFAULT_TIMEOUT_MS),
+        timeout_ms=_config_get_nonnegative_int(parser, section, "timeout_ms", DEFAULT_TIMEOUT_MS),
         max_output_bytes=_config_get_int(parser, section, "max_output_bytes", DEFAULT_MAX_OUTPUT_BYTES),
         backup_home=selected_backup_home.as_posix(),
         launchctl=_config_get_path(parser, section, "launchctl"),
@@ -492,8 +512,8 @@ def validate_process_plan(plan: ProcessPlan) -> None:
     if (plan.uid is None) != (plan.gid is None):
         raise HelperError("invalid_plan", "uid and gid must be set together.")
 
-    if plan.timeout_ms < 1:
-        raise HelperError("invalid_plan", "timeoutMs must be positive.")
+    if plan.timeout_ms < 0:
+        raise HelperError("invalid_plan", "timeoutMs must not be negative.")
 
     if plan.max_output_bytes < 1:
         raise HelperError("invalid_plan", "maxOutputBytes must be positive.")
@@ -875,7 +895,8 @@ def run_process_plan(plan: ProcessPlan) -> dict[str, Any]:
     timed_out = False
 
     try:
-        process.wait(timeout=plan.timeout_ms / 1000)
+        timeout = None if plan.timeout_ms == 0 else plan.timeout_ms / 1000
+        process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         timed_out = True
         _terminate_process(process)

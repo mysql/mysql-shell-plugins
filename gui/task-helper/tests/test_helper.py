@@ -505,6 +505,48 @@ class HelperTests(unittest.TestCase):
 
         self.assertEqual(values["windows_logon_type"], "S4U")
 
+    def test_backup_home_setup_accepts_infinite_process_timeout(self) -> None:
+        root, _config, backup_home, data_dir, _config_file = self.make_backup_home_fixture()
+        helper_path = root / "task-helper"
+        user = {"name": "backup-user", "uid": 1, "gid": 1}
+
+        with mock.patch.object(
+            setup_helper,
+            "_setup_executable",
+            side_effect=lambda value, _name, default: str(value or f"/usr/bin/{default}"),
+        ):
+            values = setup_helper._config_values(
+                {"timeoutMs": 0},
+                backup_home,
+                data_dir,
+                helper_path,
+                user,
+            )
+
+        self.assertEqual(values["timeout_ms"], "0")
+
+    def test_backup_home_setup_rejects_negative_process_timeout(self) -> None:
+        root, _config, backup_home, data_dir, _config_file = self.make_backup_home_fixture()
+        helper_path = root / "task-helper"
+        user = {"name": "backup-user", "uid": 1, "gid": 1}
+
+        with mock.patch.object(
+            setup_helper,
+            "_setup_executable",
+            side_effect=lambda value, _name, default: str(value or f"/usr/bin/{default}"),
+        ):
+            with self.assertRaisesRegex(
+                setup_helper.HelperError,
+                r"timeoutMs must not be negative\.",
+            ):
+                setup_helper._config_values(
+                    {"timeoutMs": -1},
+                    backup_home,
+                    data_dir,
+                    helper_path,
+                    user,
+                )
+
     def test_backup_home_setup_rejects_unsupported_windows_logon_type(self) -> None:
         root, _config, backup_home, data_dir, _config_file = self.make_backup_home_fixture()
         helper_path = root / "task-helper"
@@ -2384,6 +2426,7 @@ class HelperTests(unittest.TestCase):
             response["result"]["xml"],
         )
         self.assertIn("<MultipleInstancesPolicy>Queue</MultipleInstancesPolicy>", response["result"]["xml"])
+        self.assertIn("<ExecutionTimeLimit>PT24H</ExecutionTimeLimit>", response["result"]["xml"])
         self.assertIn("NT AUTHORITY\\SYSTEM", response["result"]["xml"])
         self.assertIn("<LogonType>S4U</LogonType>", response["result"]["xml"])
         self.assertNotIn("<Repetition>", response["result"]["xml"])
@@ -2461,6 +2504,55 @@ class HelperTests(unittest.TestCase):
                 config = helper.helper_config(backup_home)
 
             self.assertEqual(config.target_user.windows_logon_type, "S4U")
+
+    def test_helper_config_accepts_infinite_process_timeout(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="task-helper-config-", dir=HELPER_ROOT) as temporary:
+            root = Path(temporary)
+            backup_home = root / "backup-home"
+            data_dir = root / "mysql-data"
+            backup_home.mkdir()
+            data_dir.mkdir()
+            write_runtime_config(root, backup_home, data_dir)
+            parser = configparser.RawConfigParser()
+            parser.read(backup_home / "backups.cnf", encoding="utf-8")
+            parser.set("meb", "timeout_ms", "0")
+
+            with mock.patch.object(helper, "_read_helper_config_file", return_value=parser):
+                config = helper.helper_config(backup_home)
+
+            self.assertEqual(config.timeout_ms, 0)
+
+    def test_helper_config_rejects_negative_process_timeout(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="task-helper-config-", dir=HELPER_ROOT) as temporary:
+            root = Path(temporary)
+            backup_home = root / "backup-home"
+            data_dir = root / "mysql-data"
+            backup_home.mkdir()
+            data_dir.mkdir()
+            write_runtime_config(root, backup_home, data_dir)
+            parser = configparser.RawConfigParser()
+            parser.read(backup_home / "backups.cnf", encoding="utf-8")
+            parser.set("meb", "timeout_ms", "-1")
+
+            with mock.patch.object(helper, "_read_helper_config_file", return_value=parser):
+                with self.assertRaisesRegex(HelperError, r"timeout_ms must not be negative\."):
+                    helper.helper_config(backup_home)
+
+    def test_helper_config_rejects_zero_maximum_output_size(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="task-helper-config-", dir=HELPER_ROOT) as temporary:
+            root = Path(temporary)
+            backup_home = root / "backup-home"
+            data_dir = root / "mysql-data"
+            backup_home.mkdir()
+            data_dir.mkdir()
+            write_runtime_config(root, backup_home, data_dir)
+            parser = configparser.RawConfigParser()
+            parser.read(backup_home / "backups.cnf", encoding="utf-8")
+            parser.set("meb", "max_output_bytes", "0")
+
+            with mock.patch.object(helper, "_read_helper_config_file", return_value=parser):
+                with self.assertRaisesRegex(HelperError, r"max_output_bytes must be positive\."):
+                    helper.helper_config(backup_home)
 
     def test_windows_task_scheduler_reports_unsupported_logon_type(self) -> None:
         _, config, _, _ = self.make_fixture()
@@ -3136,6 +3228,43 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(result["stdout"], "1234")
         self.assertEqual(result["output"], "1234")
         self.assertTrue(result["stdoutTruncated"])
+
+    def test_process_runner_accepts_infinite_timeout(self) -> None:
+        root = Path(tempfile.mkdtemp(prefix="task-helper-runner-")).resolve()
+        executable = root / "delayed-output.sh"
+        executable.write_text("#!/bin/sh\nsleep 0.1\nprintf done\n", encoding="utf-8")
+        executable.chmod(0o700)
+
+        with mock.patch.object(helper, "validate_executable_reference"):
+            result = run_process_plan(ProcessPlan(
+                executable=executable.as_posix(),
+                args=[],
+                cwd="/",
+                env={"PATH": "/usr/bin:/bin"},
+                uid=os.getuid(),
+                gid=os.getgid(),
+                timeout_ms=0,
+                max_output_bytes=32,
+                audit_name="test.infinite-timeout",
+            ))
+
+        self.assertEqual(result["exitCode"], 0)
+        self.assertEqual(result["stdout"], "done")
+        self.assertFalse(result["timedOut"])
+
+    def test_process_plan_rejects_negative_timeout(self) -> None:
+        with self.assertRaisesRegex(HelperError, r"timeoutMs must not be negative\."):
+            validate_process_plan(ProcessPlan(
+                executable="/usr/bin/true",
+                args=[],
+                cwd="/",
+                env={"PATH": "/usr/bin:/bin"},
+                uid=os.getuid(),
+                gid=os.getgid(),
+                timeout_ms=-1,
+                max_output_bytes=32,
+                audit_name="test.negative-timeout",
+            ))
 
     def test_process_output_is_captured_when_log_file_is_used(self) -> None:
         root = Path(tempfile.mkdtemp(prefix="task-helper-runner-")).resolve()

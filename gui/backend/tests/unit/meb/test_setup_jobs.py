@@ -1173,6 +1173,7 @@ class MebSetupJobTests(unittest.TestCase):
         )
 
         self.assertEqual(values["windows_logon_type"], "S4U")
+        self.assertEqual(values["timeout_ms"], "0")
 
     def test_delete_profile_removes_deleted_profile_jobs_from_cron(self) -> None:
         calls = []

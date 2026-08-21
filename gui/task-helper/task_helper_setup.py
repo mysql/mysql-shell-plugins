@@ -460,8 +460,11 @@ def _config_values(request: dict[str, Any], backup_home: Path, data_dir: Path, h
 
     timeout_ms = require_int(request.get("timeoutMs", DEFAULT_TIMEOUT_MS), "timeoutMs")
     max_output_bytes = require_int(request.get("maxOutputBytes", DEFAULT_MAX_OUTPUT_BYTES), "maxOutputBytes")
-    if timeout_ms < 1 or max_output_bytes < 1:
-        raise HelperError("invalid_request", "timeoutMs and maxOutputBytes must be positive.")
+    if timeout_ms < 0:
+        raise HelperError("invalid_request", "timeoutMs must not be negative.")
+
+    if max_output_bytes < 1:
+        raise HelperError("invalid_request", "maxOutputBytes must be positive.")
 
     backup_home_path = backup_home.resolve(strict=True).as_posix()
     data_dir_path = data_dir.resolve(strict=True).as_posix()
