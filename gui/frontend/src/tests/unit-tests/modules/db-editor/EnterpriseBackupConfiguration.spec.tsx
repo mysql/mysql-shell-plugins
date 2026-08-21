@@ -34,6 +34,13 @@ const setupState = {
     status: null,
 } as IMebSetupState;
 
+const configuredSetupState = {
+    ...setupState,
+    configured: true,
+    needsSetup: false,
+    message: "MEB support is configured.",
+} as IMebSetupState;
+
 const defaultProps = (): IEnterpriseBackupConfigurationProps => {
     return {
         active: true,
@@ -96,7 +103,7 @@ describe("EnterpriseBackupConfiguration", () => {
             status: { message: "Backup user valid", tone: "ok" },
             valid: true,
         } as IMebMysqlBackupUserValidation);
-        vi.spyOn(ShellInterface.meb, "applySetup").mockResolvedValue(setupState);
+        vi.spyOn(ShellInterface.meb, "applySetup").mockResolvedValue(configuredSetupState);
 
         render(<EnterpriseBackupConfiguration {...props} />);
         fireEvent.click(screen.getByText("Next"));
@@ -116,8 +123,57 @@ describe("EnterpriseBackupConfiguration", () => {
 
         fireEvent.click(screen.getByText("Finish"));
         await waitFor(() => {
-            expect(props.onApplied).toHaveBeenCalledWith(props.configuration, setupState);
+            expect(props.onApplied).toHaveBeenCalledWith(props.configuration, configuredSetupState);
         });
+    });
+
+    it("reports an unconfigured setup result without closing the wizard", async () => {
+        const props = defaultProps();
+        const failedSetupState = {
+            ...setupState,
+            configured: false,
+            message: "The MEB task helper could not load backups.cnf.",
+        } as IMebSetupState;
+        vi.spyOn(ShellInterface.meb, "validateLocalBackupAccess").mockResolvedValue({
+            mysqlbackupStatus: { message: "mysqlbackup found", tone: "ok" },
+            valid: true,
+        } as IMebPrerequisitesValidation);
+        vi.spyOn(ShellInterface.meb, "validateBackupHome").mockResolvedValue({
+            accessStatus: { message: "Access valid", tone: "ok" },
+            ownershipStatus: { message: "Ownership valid", tone: "ok" },
+            permissionsStatus: { message: "Permissions valid", tone: "ok" },
+            reuseStatus: { message: "Instance valid", tone: "ok" },
+            status: { message: "Backup home valid", tone: "ok" },
+            valid: true,
+        } as IMebBackupHomeValidation);
+        vi.spyOn(ShellInterface.meb, "validateBackupMysqlUser").mockResolvedValue({
+            exists: true,
+            missingGrants: [],
+            passwordStatus: { message: "Password stored", tone: "ok" },
+            passwordStored: true,
+            status: { message: "Backup user valid", tone: "ok" },
+            valid: true,
+        } as IMebMysqlBackupUserValidation);
+        vi.spyOn(ShellInterface.meb, "applySetup").mockResolvedValue(failedSetupState);
+        const showErrorMessage = vi.spyOn(ui, "showErrorMessage").mockResolvedValue(undefined);
+
+        render(<EnterpriseBackupConfiguration {...props} />);
+        fireEvent.click(screen.getByText("Next"));
+        await screen.findByText("Read Access to MySQL Data Directory");
+        fireEvent.click(screen.getByText("Next"));
+        await screen.findByText("Backup Home Directory");
+        fireEvent.click(screen.getByText("Next"));
+        await screen.findByRole("heading", { name: "MySQL User for Backups" });
+        fireEvent.click(screen.getByText("Finish"));
+
+        await waitFor(() => {
+            expect(showErrorMessage).toHaveBeenCalledWith(
+                "Cannot save MySQL Enterprise Backup configuration: The MEB task helper could not load backups.cnf.",
+                {},
+            );
+        });
+        expect(props.onApplied).not.toHaveBeenCalled();
+        expect(screen.getByText("Finish")).toBeTruthy();
     });
 
     it("opens the configuration dialog with the applied values", async () => {

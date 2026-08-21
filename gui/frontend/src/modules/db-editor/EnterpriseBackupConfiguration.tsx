@@ -238,6 +238,11 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
                 nextConfiguration.backupHomePath,
                 nextConfiguration.backupUser,
             );
+
+            if (!nextSetupState.configured) {
+                throw new Error(nextSetupState.message);
+            }
+
             const storedConfiguration = normalizeMebConfiguration({
                 mysqlbackupPath: nextSetupState.mysqlbackupPath ?? nextConfiguration.mysqlbackupPath,
                 backupHomePath: nextSetupState.backupHomePath ?? nextConfiguration.backupHomePath,
