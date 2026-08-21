@@ -992,7 +992,7 @@ def _manager_config_values(
         "scheduler_backend": _scheduler_backend(context),
         "launchd_plist_dir": os.path.join(backup_home_path, "launchd"),
         "windows_task_folder": r"\MySQLWorkbench",
-        "windows_logon_type": "ServiceAccount",
+        "windows_logon_type": "S4U",
     }
 
     if context.target.basedir:
@@ -1493,7 +1493,8 @@ def _sync_profile_jobs(
     status: MebStatus,
     scheduled_only: bool,
     extra_job_ids_to_remove: set[str] | None = None,
-) -> None:
+) -> bool:
+    manager_config_changed = False
     jobs = _profile_jobs(status.profiles, scheduled_only=scheduled_only)
     scheduled_job_ids = {
         job["id"] for job in jobs
@@ -1507,6 +1508,15 @@ def _sync_profile_jobs(
                 "schedule": job["schedule"],
             })
             _require_scheduler_success(result, {"installed"}, "install", job_id)
+            logon_type = result.get("logonType")
+            if (
+                logon_type in {"InteractiveToken", "S4U"}
+                and logon_type != manager_values.get("windows_logon_type")
+            ):
+                manager_values["windows_logon_type"] = logon_type
+                _write_manager_config(_manager_config_path(backup_home_path), manager_values)
+                manager_config_changed = True
+
     job_ids_to_remove = _profile_job_ids(status.profiles)
     if extra_job_ids_to_remove is not None:
         job_ids_to_remove.update(extra_job_ids_to_remove)
@@ -1517,6 +1527,8 @@ def _sync_profile_jobs(
                 "jobId": job_id,
             })
             _require_scheduler_success(result, {"removed", "notFound"}, "remove", job_id)
+
+    return manager_config_changed
 
 
 def save_profile(
@@ -1567,7 +1579,17 @@ def save_profile(
         raise ValueError(state.message or "Unable to refresh MEB status after saving the profile.")
 
     _remove_legacy_mysqlbackup_metadata_options(context, state.status.profiles)
-    _sync_profile_jobs(context, backup_home_path, manager_values, state.status, scheduled_only=True)
+    manager_config_changed = _sync_profile_jobs(
+        context,
+        backup_home_path,
+        manager_values,
+        state.status,
+        scheduled_only=True,
+    )
+    if manager_config_changed:
+        state = get_setup_state(session, backup_home_path)
+        if state.status is None:
+            raise ValueError(state.message or "Unable to refresh MEB status after saving the profile.")
 
     return state.status
 
@@ -1601,7 +1623,7 @@ def delete_profile(
     if state.status is None:
         raise ValueError(state.message or "Unable to refresh MEB status after deleting the profile.")
 
-    _sync_profile_jobs(
+    manager_config_changed = _sync_profile_jobs(
         context,
         backup_home_path,
         manager_values,
@@ -1609,6 +1631,10 @@ def delete_profile(
         scheduled_only=True,
         extra_job_ids_to_remove=old_profile_job_ids - _profile_job_ids(state.status.profiles),
     )
+    if manager_config_changed:
+        state = get_setup_state(session, backup_home_path)
+        if state.status is None:
+            raise ValueError(state.message or "Unable to refresh MEB status after deleting the profile.")
 
     return state.status
 

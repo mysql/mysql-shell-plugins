@@ -1735,7 +1735,35 @@ def _profile_template(
     )
 
 
+def _scheduler_login_requirement(
+    manager_values: dict[str, str],
+) -> Literal["required", "notRequired"] | None:
+    scheduler_backend = manager_values.get("scheduler_backend")
+    if scheduler_backend == "cron":
+        return "notRequired"
+
+    if scheduler_backend == "launchd":
+        return "required"
+
+    if scheduler_backend == "schtasks":
+        windows_logon_type = manager_values.get("windows_logon_type", "S4U")
+        if windows_logon_type == "S4U":
+            return "notRequired"
+
+        if windows_logon_type == "InteractiveToken":
+            return "required"
+
+    return None
+
+
 def build_status(backup_home_path: str, manager_values: dict[str, str], profiles: list[MebBackupProfileInfo]) -> MebStatus:
+    scheduler_login_requirement = _scheduler_login_requirement(manager_values)
+    for profile in profiles:
+        if profile.fullSchedule.enabled or profile.incSchedule.enabled:
+            profile.schedulerLoginRequirement = scheduler_login_requirement
+        else:
+            profile.schedulerLoginRequirement = None
+
     profile_paths = [
         profile.destination
         for profile in profiles

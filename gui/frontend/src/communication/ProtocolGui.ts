@@ -524,6 +524,7 @@ export interface IMebBackupProfileInfo {
     nextFull: string,
     nextIncremental: string,
     status: string,
+    schedulerLoginRequirement: "required" | "notRequired" | null,
     command: string | null,
     user: string | null,
     configPath: string | null,

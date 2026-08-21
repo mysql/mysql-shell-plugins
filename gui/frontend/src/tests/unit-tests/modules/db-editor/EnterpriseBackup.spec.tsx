@@ -32,7 +32,11 @@ import {
     type IEnterpriseBackupSavedState,
 } from "../../../../modules/db-editor/EnterpriseBackup.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
-import type { IMebSetupState, IMebStatus } from "../../../../supplement/ShellInterface/ShellInterfaceMeb.js";
+import type {
+    IMebBackupProfileInfo,
+    IMebSetupState,
+    IMebStatus,
+} from "../../../../supplement/ShellInterface/ShellInterfaceMeb.js";
 
 const status = {
     configured: true,
@@ -62,6 +66,26 @@ const connection = {
     },
     isOffline: false,
 } as ICdmConnectionEntry;
+
+const statusWithLoginRequirement = (
+    schedulerLoginRequirement: IMebBackupProfileInfo["schedulerLoginRequirement"],
+): IMebStatus => {
+    return {
+        ...status,
+        profiles: [{
+            uuid: "profile-1",
+            label: "Nightly Backup",
+            type: "Full Data",
+            destination: "/actual/backups/nightly",
+            latest: "No backups",
+            nextFull: "Daily at 02:00",
+            nextIncremental: "Manual",
+            status: "Configured",
+            partial: false,
+            schedulerLoginRequirement,
+        } as unknown as IMebBackupProfileInfo],
+    };
+};
 
 afterEach(() => {
     cleanup();
@@ -93,5 +117,30 @@ describe("EnterpriseBackup", () => {
                 },
             }));
         });
+    });
+
+    it("notes when a scheduled backup requires the user to be logged in", async () => {
+        const profileStatus = statusWithLoginRequirement("required");
+        const profileSetupState = { ...setupState, status: profileStatus };
+        vi.spyOn(ShellInterface.meb, "getSetupState").mockResolvedValue(profileSetupState);
+        vi.spyOn(ShellInterface.meb, "getStatus").mockResolvedValue(profileStatus);
+
+        render(<EnterpriseBackup connection={connection} />);
+
+        expect(await screen.findByText("Note: Scheduled backup requires the user to be logged in.")).toBeTruthy();
+        expect(screen.queryByText("Operating-system login")).toBeNull();
+    });
+
+    it.each(["notRequired", null] as const)("omits the login note when the requirement is %s", async (requirement) => {
+        const profileStatus = statusWithLoginRequirement(requirement);
+        const profileSetupState = { ...setupState, status: profileStatus };
+        vi.spyOn(ShellInterface.meb, "getSetupState").mockResolvedValue(profileSetupState);
+        vi.spyOn(ShellInterface.meb, "getStatus").mockResolvedValue(profileStatus);
+
+        render(<EnterpriseBackup connection={connection} />);
+
+        await screen.findAllByText("Nightly Backup");
+        expect(screen.queryByText("Note: Scheduled backup requires the user to be logged in.")).toBeNull();
+        expect(screen.queryByText("Operating-system login")).toBeNull();
     });
 });

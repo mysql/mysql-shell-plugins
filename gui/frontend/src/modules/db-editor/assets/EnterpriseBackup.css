@@ -612,7 +612,7 @@
     grid-template-columns: minmax(520px, 1fr) minmax(280px, 360px);
     align-items: stretch;
     min-height: 100px;
-    max-height: 280px;
+    max-height: 300px;
 }
 
 .msg.enterpriseBackupHost .enterpriseBackupLower {
@@ -736,6 +736,13 @@
 .msg.enterpriseBackupHost .enterpriseBackupInspector dd {
     margin: 4px 0 0;
     font-size: 13px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupInspector .enterpriseBackupLoginNote {
+    padding: 0 24px 14px;
+    color: var(--descriptionForeground);
+    font-size: 12px;
+    line-height: 1.35;
 }
 
 .msg.enterpriseBackupHost .enterpriseBackupTimeline {

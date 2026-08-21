@@ -32,6 +32,7 @@ DEFAULT_TIMEOUT_MS = 900000
 DEFAULT_MAX_OUTPUT_BYTES = 1024 * 1024
 MAX_REQUEST_BYTES = 1024 * 1024
 CAPABILITIES = ["backupHome.setup"]
+WINDOWS_LOGON_TYPES = frozenset({"InteractiveToken", "S4U"})
 
 SAFE_CONFIG_KEYS = {
     "datadir": "dataDir",
@@ -447,6 +448,15 @@ def _config_values(request: dict[str, Any], backup_home: Path, data_dir: Path, h
     scheduler_backend = require_string(request.get("schedulerBackend", "platform"), "schedulerBackend")
     if scheduler_backend not in {"platform", "cron", "launchd", "schtasks"}:
         raise HelperError("invalid_request", "schedulerBackend is not supported.")
+    windows_logon_type = require_string(
+        request.get("windowsLogonType", "S4U"),
+        "windowsLogonType",
+    )
+    if windows_logon_type not in WINDOWS_LOGON_TYPES:
+        raise HelperError(
+            "invalid_request",
+            f"Windows logon type {windows_logon_type} is not supported.",
+        )
 
     timeout_ms = require_int(request.get("timeoutMs", DEFAULT_TIMEOUT_MS), "timeoutMs")
     max_output_bytes = require_int(request.get("maxOutputBytes", DEFAULT_MAX_OUTPUT_BYTES), "maxOutputBytes")
@@ -482,7 +492,7 @@ def _config_values(request: dict[str, Any], backup_home: Path, data_dir: Path, h
         "scheduler_backend": scheduler_backend,
         "launchd_plist_dir": (backup_home / "launchd").resolve(strict=False).as_posix(),
         "windows_task_folder": require_string(request.get("windowsTaskFolder", r"\MySQLWorkbench"), "windowsTaskFolder"),
-        "windows_logon_type": require_string(request.get("windowsLogonType", "ServiceAccount"), "windowsLogonType"),
+        "windows_logon_type": windows_logon_type,
     }
     if user.get("uid") is not None and user.get("gid") is not None:
         values["backup_os_uid"] = str(user["uid"])

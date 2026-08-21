@@ -1171,6 +1171,10 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
                                     <dd>{selectedJob.nextIncremental}</dd>
                                 </div>
                             </dl>
+                            {selectedProfile?.schedulerLoginRequirement === "required"
+                                && <p className="enterpriseBackupLoginNote">
+                                    Note: Scheduled backup requires the user to be logged in.
+                                </p>}
                             <div className="enterpriseBackupInspectorActions">
                                 <Button
                                     onClick={() => {

@@ -64,7 +64,7 @@ class TargetUser:
     uid: int | None = None
     gid: int | None = None
     account: str | None = None
-    windows_logon_type: str = "ServiceAccount"
+    windows_logon_type: str = "S4U"
 
 
 @dataclass(frozen=True)
@@ -192,6 +192,8 @@ TTS_MODES = {
 DEFAULT_TIMEOUT_MS = 900000
 DEFAULT_MAX_OUTPUT_BYTES = 1024 * 1024
 MAX_CONFIG_BYTES = 65536
+WINDOWS_LOGON_TYPES = frozenset({"InteractiveToken", "S4U"})
+WINDOWS_ACCESS_DENIED = 0x80070005
 
 
 def _entrypoint_path() -> str:
@@ -335,6 +337,12 @@ def helper_config(backup_home: Path | None = None) -> HelperConfig:
     scheduler_backend = _config_get(parser, section, "scheduler_backend")
     if scheduler_backend not in {"platform", "cron", "launchd", "schtasks"}:
         raise HelperError("invalid_config", "scheduler_backend is not supported.")
+    windows_logon_type = parser.get(section, "windows_logon_type", fallback="S4U")
+    if windows_logon_type not in WINDOWS_LOGON_TYPES:
+        raise HelperError(
+            "invalid_config",
+            f"Windows logon type {windows_logon_type} is not supported.",
+        )
 
     return HelperConfig(
         target_user_name=target_user_name,
@@ -342,7 +350,7 @@ def helper_config(backup_home: Path | None = None) -> HelperConfig:
             uid=uid,
             gid=gid,
             account=target_user_name,
-            windows_logon_type=parser.get(section, "windows_logon_type", fallback="ServiceAccount"),
+            windows_logon_type=windows_logon_type,
         ),
         mysqlbackup=_config_get_path(parser, section, "mysqlbackup"),
         login_file=_config_get_path(parser, section, "login_file"),
@@ -3159,6 +3167,11 @@ def _render_windows_task_xml(config: HelperConfig, job_id: str, schedule: dict[s
     target_user = resolve_target_user(config)
     if target_user.account is None:
         raise HelperError("invalid_config", "Windows scheduled tasks require a configured target account.")
+    if target_user.windows_logon_type not in WINDOWS_LOGON_TYPES:
+        raise HelperError(
+            "invalid_config",
+            f"Windows logon type {target_user.windows_logon_type} is not supported.",
+        )
 
     minute = _single_windows_schedule_value(schedule, "minute", 0, 59)
     hourly_interval = _windows_hourly_interval(schedule)
@@ -3244,24 +3257,73 @@ def _schtasks_plan(config: HelperConfig, args: list[str]) -> ProcessPlan:
 
 
 def _install_windows_task(config: HelperConfig, job_id: str, schedule: dict[str, str], dry_run: bool) -> Any:
-    task_name = _windows_task_name(config, job_id)
-    task_xml = _render_windows_task_xml(config, job_id, schedule)
+    logon_type = config.target_user.windows_logon_type
 
     if dry_run:
-        return {"taskName": task_name, "xml": task_xml.decode("utf-16")}
+        task_name = _windows_task_name(config, job_id)
+        task_xml = _render_windows_task_xml(config, job_id, schedule)
 
-    with tempfile.NamedTemporaryFile("wb", suffix=".xml", delete=False) as file:
-        file.write(task_xml)
-        task_xml_path = file.name
+        return {
+            "taskName": task_name,
+            "xml": task_xml.decode("utf-16"),
+            "logonType": logon_type,
+        }
 
+    result = _install_windows_task_attempt(config, job_id, schedule, logon_type)
+    fallback_attempted = False
+    if logon_type == "S4U" and _windows_s4u_access_denied(result):
+        logon_type = "InteractiveToken"
+        fallback_attempted = True
+        result = _install_windows_task_attempt(config, job_id, schedule, logon_type)
+
+    status = scheduler_status(result, "installed", "Installing the scheduled backup job")
+    status["logonType"] = logon_type
+    if fallback_attempted and status["status"] != "installed":
+        status["message"] = (
+            "S4U registration was denied; InteractiveToken fallback failed: "
+            f"{status.get('message') or 'unknown scheduler error.'}"
+        )
+
+    return status
+
+
+def _windows_s4u_access_denied(result: dict[str, Any]) -> bool:
+    exit_code = result.get("exitCode")
+
+    return (
+        isinstance(exit_code, int)
+        and not result.get("timedOut")
+        and not result.get("stdoutTruncated")
+        and not result.get("stderrTruncated")
+        and exit_code & 0xFFFFFFFF == WINDOWS_ACCESS_DENIED
+    )
+
+
+def _install_windows_task_attempt(
+    config: HelperConfig,
+    job_id: str,
+    schedule: dict[str, str],
+    logon_type: str,
+) -> dict[str, Any]:
+    attempt_config = replace(
+        config,
+        target_user=replace(config.target_user, windows_logon_type=logon_type),
+    )
+    task_name = _windows_task_name(attempt_config, job_id)
+    task_xml = _render_windows_task_xml(attempt_config, job_id, schedule)
+
+    task_xml_path = None
     try:
-        result = run_process_plan(_schtasks_plan(config, [
-            "/Create", "/TN", task_name, "/XML", task_xml_path, "/F",
-        ]))
+        with tempfile.NamedTemporaryFile("wb", suffix=".xml", delete=False) as file:
+            task_xml_path = file.name
+            file.write(task_xml)
 
-        return scheduler_status(result, "installed", "Installing the scheduled backup job")
+        return run_process_plan(_schtasks_plan(attempt_config, [
+            "/Create", "/TN", task_name, "/XML", task_xml_path, "/F", "/HRESULT",
+        ]))
     finally:
-        Path(task_xml_path).unlink(missing_ok=True)
+        if task_xml_path is not None:
+            Path(task_xml_path).unlink(missing_ok=True)
 
 
 def _remove_windows_task(config: HelperConfig, job_id: str, dry_run: bool) -> Any:

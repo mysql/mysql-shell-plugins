@@ -109,7 +109,7 @@ def write_runtime_config(root: Path, backup_home: Path, data_dir: Path) -> None:
         "scheduler_backend": "cron",
         "launchd_plist_dir": (backup_home / "launchd").as_posix(),
         "windows_task_folder": r"\MySQLWorkbench",
-        "windows_logon_type": "ServiceAccount",
+        "windows_logon_type": "InteractiveToken",
     }
     for key, value in values.items():
         parser.set("meb", key, value)
@@ -490,6 +490,42 @@ class HelperTests(unittest.TestCase):
         self.assertTrue(payload["configLoaded"])
         self.assertEqual(payload["targetUser"], result["effectiveUser"]["name"])
         self.assertEqual(payload["jobRunner"], helper_path.as_posix())
+
+    def test_backup_home_setup_defaults_windows_logon_type_to_s4u(self) -> None:
+        root, _config, backup_home, data_dir, _config_file = self.make_backup_home_fixture()
+        helper_path = root / "task-helper"
+        user = {"name": "backup-user", "uid": 1, "gid": 1}
+
+        with mock.patch.object(
+            setup_helper,
+            "_setup_executable",
+            side_effect=lambda value, _name, default: str(value or f"/usr/bin/{default}"),
+        ):
+            values = setup_helper._config_values({}, backup_home, data_dir, helper_path, user)
+
+        self.assertEqual(values["windows_logon_type"], "S4U")
+
+    def test_backup_home_setup_rejects_unsupported_windows_logon_type(self) -> None:
+        root, _config, backup_home, data_dir, _config_file = self.make_backup_home_fixture()
+        helper_path = root / "task-helper"
+        user = {"name": "backup-user", "uid": 1, "gid": 1}
+
+        with mock.patch.object(
+            setup_helper,
+            "_setup_executable",
+            side_effect=lambda value, _name, default: str(value or f"/usr/bin/{default}"),
+        ):
+            with self.assertRaisesRegex(
+                setup_helper.HelperError,
+                "Windows logon type Password is not supported\\.",
+            ):
+                setup_helper._config_values(
+                    {"windowsLogonType": "Password"},
+                    backup_home,
+                    data_dir,
+                    helper_path,
+                    user,
+                )
 
     def test_backup_home_setup_rejects_executable_from_writable_directory(self) -> None:
         root, _config, backup_home, data_dir, config_file = self.make_backup_home_fixture()
@@ -2315,7 +2351,7 @@ class HelperTests(unittest.TestCase):
         self.assertFalse(response["ok"])
         self.assertEqual(response["error"]["code"], "invalid_request")
 
-    def test_windows_task_scheduler_dry_run_generates_task_xml(self) -> None:
+    def test_windows_task_scheduler_dry_run_uses_default_s4u(self) -> None:
         _, config, _, _ = self.make_fixture()
         windows_config = copy_config(
             config,
@@ -2349,7 +2385,393 @@ class HelperTests(unittest.TestCase):
         )
         self.assertIn("<MultipleInstancesPolicy>Queue</MultipleInstancesPolicy>", response["result"]["xml"])
         self.assertIn("NT AUTHORITY\\SYSTEM", response["result"]["xml"])
+        self.assertIn("<LogonType>S4U</LogonType>", response["result"]["xml"])
         self.assertNotIn("<Repetition>", response["result"]["xml"])
+
+    def test_windows_task_scheduler_dry_run_accepts_explicit_s4u(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        windows_config = copy_config(
+            config,
+            scheduler_backend="schtasks",
+            target_user=TargetUser(
+                uid=1,
+                gid=1,
+                account=r"DOMAIN\backup-user",
+                windows_logon_type="S4U",
+            ),
+            job_runner=r"C:\Windows\System32\cmd.exe",
+            schtasks=r"C:\Windows\System32\schtasks.exe",
+        )
+
+        response = handle_request({
+            "operation": "cron.installManagedJob",
+            "dryRun": True,
+            "params": {
+                "jobId": "nightly",
+                "schedule": {
+                    "minute": "0",
+                    "hour": "2",
+                    "dayOfMonth": "*",
+                    "month": "*",
+                    "dayOfWeek": "*",
+                },
+            },
+        }, windows_config, allow_dry_run=True)
+
+        self.assertTrue(response["ok"], response)
+        self.assertEqual(response["result"]["logonType"], "S4U")
+        self.assertIn("<LogonType>S4U</LogonType>", response["result"]["xml"])
+
+    def test_helper_config_rejects_unsupported_windows_logon_type(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="task-helper-config-", dir=HELPER_ROOT) as temporary:
+            root = Path(temporary)
+            backup_home = root / "backup-home"
+            data_dir = root / "mysql-data"
+            backup_home.mkdir()
+            data_dir.mkdir()
+            write_runtime_config(root, backup_home, data_dir)
+            config_file = backup_home / "backups.cnf"
+            parser = configparser.RawConfigParser()
+            parser.read(config_file, encoding="utf-8")
+            parser.set("meb", "windows_logon_type", "Password")
+            with config_file.open("w", encoding="utf-8") as output:
+                parser.write(output)
+
+            with mock.patch.object(helper, "_read_helper_config_file", return_value=parser):
+                with self.assertRaisesRegex(
+                    HelperError,
+                    "Windows logon type Password is not supported\\.",
+                ):
+                    helper.helper_config(backup_home)
+
+    def test_helper_config_defaults_windows_logon_type_to_s4u(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="task-helper-config-", dir=HELPER_ROOT) as temporary:
+            root = Path(temporary)
+            backup_home = root / "backup-home"
+            data_dir = root / "mysql-data"
+            backup_home.mkdir()
+            data_dir.mkdir()
+            write_runtime_config(root, backup_home, data_dir)
+            config_file = backup_home / "backups.cnf"
+            parser = configparser.RawConfigParser()
+            parser.read(config_file, encoding="utf-8")
+            parser.remove_option("meb", "windows_logon_type")
+
+            with mock.patch.object(helper, "_read_helper_config_file", return_value=parser):
+                config = helper.helper_config(backup_home)
+
+            self.assertEqual(config.target_user.windows_logon_type, "S4U")
+
+    def test_windows_task_scheduler_reports_unsupported_logon_type(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        windows_config = copy_config(
+            config,
+            scheduler_backend="schtasks",
+            target_user=TargetUser(
+                uid=1,
+                gid=1,
+                account=r"DOMAIN\backup-user",
+                windows_logon_type="Password",
+            ),
+            job_runner=r"C:\Windows\System32\cmd.exe",
+            schtasks=r"C:\Windows\System32\schtasks.exe",
+        )
+
+        response = handle_request({
+            "operation": "cron.installManagedJob",
+            "dryRun": True,
+            "params": {
+                "jobId": "nightly",
+                "schedule": {
+                    "minute": "0",
+                    "hour": "2",
+                    "dayOfMonth": "*",
+                    "month": "*",
+                    "dayOfWeek": "*",
+                },
+            },
+        }, windows_config, allow_dry_run=True)
+
+        self.assertFalse(response["ok"])
+        self.assertEqual(
+            response["error"]["message"],
+            "Windows logon type Password is not supported.",
+        )
+
+    def test_windows_task_scheduler_reports_successful_logon_type(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        schedule = {
+            "minute": "0",
+            "hour": "2",
+            "dayOfMonth": "*",
+            "month": "*",
+            "dayOfWeek": "*",
+        }
+
+        for logon_type in ("InteractiveToken", "S4U"):
+            with self.subTest(logon_type=logon_type):
+                windows_config = copy_config(
+                    config,
+                    scheduler_backend="schtasks",
+                    target_user=TargetUser(
+                        uid=1,
+                        gid=1,
+                        account=r"DOMAIN\backup-user",
+                        windows_logon_type=logon_type,
+                    ),
+                    job_runner=r"C:\Windows\System32\cmd.exe",
+                    schtasks=r"C:\Windows\System32\schtasks.exe",
+                )
+                xml_paths: list[Path] = []
+                xml_values: list[str] = []
+
+                def install(plan: ProcessPlan) -> dict[str, object]:
+                    self.assertIn("/HRESULT", plan.args)
+                    xml_path = Path(plan.args[plan.args.index("/XML") + 1])
+                    xml_paths.append(xml_path)
+                    xml_values.append(xml_path.read_bytes().decode("utf-16"))
+
+                    return {
+                        "exitCode": 0,
+                        "stdout": "",
+                        "stderr": "",
+                        "timedOut": False,
+                        "stdoutTruncated": False,
+                        "stderrTruncated": False,
+                    }
+
+                with mock.patch.object(helper, "run_process_plan", side_effect=install):
+                    result = helper._install_windows_task(windows_config, "nightly", schedule, False)
+
+                self.assertEqual(result["status"], "installed")
+                self.assertEqual(result["logonType"], logon_type)
+                self.assertEqual(len(xml_values), 1)
+                self.assertIn(f"<LogonType>{logon_type}</LogonType>", xml_values[0])
+                self.assertTrue(all(not path.exists() for path in xml_paths))
+
+    def test_windows_task_scheduler_retries_s4u_access_denied(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        windows_config = copy_config(
+            config,
+            scheduler_backend="schtasks",
+            target_user=TargetUser(
+                uid=1,
+                gid=1,
+                account=r"DOMAIN\backup-user",
+                windows_logon_type="S4U",
+            ),
+            job_runner=r"C:\Windows\System32\cmd.exe",
+            schtasks=r"C:\Windows\System32\schtasks.exe",
+        )
+        schedule = {
+            "minute": "0",
+            "hour": "2",
+            "dayOfMonth": "*",
+            "month": "*",
+            "dayOfWeek": "*",
+        }
+
+        for access_denied in (0x80070005, -2147024891):
+            with self.subTest(access_denied=access_denied):
+                results = [
+                    {
+                        "exitCode": access_denied,
+                        "stdout": "",
+                        "stderr": "ERROR: Access is denied.",
+                        "timedOut": False,
+                        "stdoutTruncated": False,
+                        "stderrTruncated": False,
+                    },
+                    {
+                        "exitCode": 0,
+                        "stdout": "",
+                        "stderr": "",
+                        "timedOut": False,
+                        "stdoutTruncated": False,
+                        "stderrTruncated": False,
+                    },
+                ]
+                xml_paths: list[Path] = []
+                xml_values: list[str] = []
+
+                def install(plan: ProcessPlan) -> dict[str, object]:
+                    self.assertIn("/HRESULT", plan.args)
+                    xml_path = Path(plan.args[plan.args.index("/XML") + 1])
+                    xml_paths.append(xml_path)
+                    xml_values.append(xml_path.read_bytes().decode("utf-16"))
+
+                    return results[len(xml_values) - 1]
+
+                with mock.patch.object(helper, "run_process_plan", side_effect=install):
+                    result = helper._install_windows_task(windows_config, "nightly", schedule, False)
+
+                self.assertEqual(result["status"], "installed")
+                self.assertEqual(result["logonType"], "InteractiveToken")
+                self.assertEqual(len(xml_values), 2)
+                self.assertIn("<LogonType>S4U</LogonType>", xml_values[0])
+                self.assertIn("<LogonType>InteractiveToken</LogonType>", xml_values[1])
+                self.assertTrue(all(not path.exists() for path in xml_paths))
+
+    def test_windows_task_scheduler_does_not_retry_other_failures(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        schedule = {
+            "minute": "0",
+            "hour": "2",
+            "dayOfMonth": "*",
+            "month": "*",
+            "dayOfWeek": "*",
+        }
+        cases = (
+            ("S4U", 0x80070002, False, False, False),
+            ("S4U", 0x80070005, True, False, False),
+            ("S4U", 0x80070005, False, True, False),
+            ("S4U", 0x80070005, False, False, True),
+            ("InteractiveToken", 0x80070005, False, False, False),
+        )
+
+        for logon_type, exit_code, timed_out, stdout_truncated, stderr_truncated in cases:
+            with self.subTest(
+                logon_type=logon_type,
+                exit_code=exit_code,
+                timed_out=timed_out,
+                stdout_truncated=stdout_truncated,
+                stderr_truncated=stderr_truncated,
+            ):
+                windows_config = copy_config(
+                    config,
+                    scheduler_backend="schtasks",
+                    target_user=TargetUser(
+                        uid=1,
+                        gid=1,
+                        account=r"DOMAIN\backup-user",
+                        windows_logon_type=logon_type,
+                    ),
+                    job_runner=r"C:\Windows\System32\cmd.exe",
+                    schtasks=r"C:\Windows\System32\schtasks.exe",
+                )
+                attempts = 0
+
+                def install(_plan: ProcessPlan) -> dict[str, object]:
+                    nonlocal attempts
+                    attempts += 1
+
+                    return {
+                        "exitCode": exit_code,
+                        "stdout": "",
+                        "stderr": "ERROR: Registration failed.",
+                        "timedOut": timed_out,
+                        "stdoutTruncated": stdout_truncated,
+                        "stderrTruncated": stderr_truncated,
+                    }
+
+                with mock.patch.object(helper, "run_process_plan", side_effect=install):
+                    result = helper._install_windows_task(windows_config, "nightly", schedule, False)
+
+                self.assertEqual(attempts, 1)
+                self.assertEqual(result["status"], "failed")
+                self.assertEqual(result["logonType"], logon_type)
+
+    def test_windows_task_scheduler_reports_s4u_fallback_failure(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        windows_config = copy_config(
+            config,
+            scheduler_backend="schtasks",
+            target_user=TargetUser(
+                uid=1,
+                gid=1,
+                account=r"DOMAIN\backup-user",
+                windows_logon_type="S4U",
+            ),
+            job_runner=r"C:\Windows\System32\cmd.exe",
+            schtasks=r"C:\Windows\System32\schtasks.exe",
+        )
+        results = [
+            {
+                "exitCode": 0x80070005,
+                "stdout": "",
+                "stderr": "ERROR: Access is denied.",
+                "timedOut": False,
+                "stdoutTruncated": False,
+                "stderrTruncated": False,
+            },
+            {
+                "exitCode": 0x80070002,
+                "stdout": "",
+                "stderr": "ERROR: The system cannot find the file specified.",
+                "timedOut": False,
+                "stdoutTruncated": False,
+                "stderrTruncated": False,
+            },
+        ]
+        attempts = 0
+
+        def install(_plan: ProcessPlan) -> dict[str, object]:
+            nonlocal attempts
+            result = results[attempts]
+            attempts += 1
+
+            return result
+
+        with mock.patch.object(helper, "run_process_plan", side_effect=install):
+            result = helper._install_windows_task(
+                windows_config,
+                "nightly",
+                {
+                    "minute": "0",
+                    "hour": "2",
+                    "dayOfMonth": "*",
+                    "month": "*",
+                    "dayOfWeek": "*",
+                },
+                False,
+            )
+
+        self.assertEqual(attempts, 2)
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(result["logonType"], "InteractiveToken")
+        self.assertIn("S4U registration was denied", result["message"])
+        self.assertIn("cannot find the file specified", result["message"])
+
+    def test_windows_task_scheduler_removes_xml_after_write_failure(self) -> None:
+        root, config, _, _ = self.make_fixture()
+        task_xml_path = root / "task.xml"
+        windows_config = copy_config(
+            config,
+            scheduler_backend="schtasks",
+            target_user=TargetUser(uid=1, gid=1, account=r"DOMAIN\backup-user"),
+            job_runner=r"C:\Windows\System32\cmd.exe",
+            schtasks=r"C:\Windows\System32\schtasks.exe",
+        )
+
+        class FailingTemporaryFile:
+            name = task_xml_path.as_posix()
+
+            def __enter__(self) -> "FailingTemporaryFile":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def write(self, content: bytes) -> None:
+                task_xml_path.write_bytes(content[:16])
+                raise OSError("simulated XML write failure")
+
+        with mock.patch.object(helper.tempfile, "NamedTemporaryFile", return_value=FailingTemporaryFile()):
+            with self.assertRaisesRegex(OSError, "simulated XML write failure"):
+                helper._install_windows_task(
+                    windows_config,
+                    "nightly",
+                    {
+                        "minute": "0",
+                        "hour": "2",
+                        "dayOfMonth": "*",
+                        "month": "*",
+                        "dayOfWeek": "*",
+                    },
+                    False,
+                )
+
+        self.assertFalse(task_xml_path.exists())
 
     def test_windows_task_scheduler_generates_hourly_repetition(self) -> None:
         _, config, _, _ = self.make_fixture()

@@ -102,6 +102,7 @@ class MebBackupProfileInfo:
     nextFull: str = "Manual"
     nextIncremental: str = "Manual"
     status: str = "New"
+    schedulerLoginRequirement: Optional[Literal["required", "notRequired"]] = None
     command: Optional[str] = None
     user: Optional[str] = None
     configPath: Optional[str] = None

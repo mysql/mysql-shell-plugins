@@ -1132,6 +1132,48 @@ class MebSetupJobTests(unittest.TestCase):
             ("sync", "/backup-home/task-helper"),
         ])
 
+    def test_save_profile_refreshes_status_after_logon_mode_fallback(self) -> None:
+        context = FakeContext()
+        context.backend = FakeBackend({})
+        context.backend.create_directory_recursive = lambda _path: None  # type: ignore[attr-defined]
+        profile = MebBackupProfile(label="nightly", destination="/backup-home/nightly")
+        initial_status = MebStatus(profiles=[])
+        refreshed_status = MebStatus(
+            profiles=[MebBackupProfileInfo(schedulerLoginRequirement="required")],
+        )
+        states = [
+            MebSetupState(status=initial_status),
+            MebSetupState(status=refreshed_status),
+        ]
+
+        with patched_setup(
+            create_local_backup_context=lambda session: context,
+            _manager_values=lambda backup_home_path: {},
+            validate_backup_home=lambda session, backup_home_path: MebBackupHomeValidation(valid=True),
+            _install_runtime_helper=lambda ctx, backup_home_path: "/backup-home/task-helper",
+            _save_profile=lambda *args, **kwargs: None,
+            get_setup_state=lambda session, backup_home_path: states.pop(0),
+            _sync_profile_jobs=lambda *args, **kwargs: True,
+        ):
+            status = save_profile(object(), "/backup-home", profile)
+
+        self.assertIs(status, refreshed_status)
+        self.assertEqual(states, [])
+
+    def test_windows_manager_config_defaults_to_s4u(self) -> None:
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+
+        values = setup._manager_config_values(
+            context,
+            r"C:\Users\backup-user\backups",
+            "mysqlbackup@localhost",
+            r"C:\Users\backup-user\backups\task-helper.cmd",
+        )
+
+        self.assertEqual(values["windows_logon_type"], "S4U")
+
     def test_delete_profile_removes_deleted_profile_jobs_from_cron(self) -> None:
         calls = []
         context = FakeContext()
@@ -1182,6 +1224,33 @@ class MebSetupJobTests(unittest.TestCase):
                 "jobId": "profile-1-backup-incremental",
             }),
         ])
+
+    def test_delete_profile_refreshes_status_after_logon_mode_fallback(self) -> None:
+        context = FakeContext()
+        old_profile = MebBackupProfileInfo(uuid="profile-1")
+        initial_status = MebStatus(profiles=[])
+        refreshed_status = MebStatus(
+            profiles=[MebBackupProfileInfo(schedulerLoginRequirement="required")],
+        )
+        states = [
+            MebSetupState(status=initial_status),
+            MebSetupState(status=refreshed_status),
+        ]
+
+        with patched_setup(
+            create_local_backup_context=lambda session: context,
+            _manager_values=lambda backup_home_path: {},
+            validate_backup_home=lambda session, backup_home_path: MebBackupHomeValidation(valid=True),
+            _install_runtime_helper=lambda ctx, backup_home_path: "/backup-home/task-helper",
+            _read_profiles=lambda backup_home_path: [old_profile],
+            _delete_profile=lambda *args, **kwargs: None,
+            get_setup_state=lambda session, backup_home_path: states.pop(0),
+            _sync_profile_jobs=lambda *args, **kwargs: True,
+        ):
+            status = delete_profile(object(), "/backup-home", "profile-1")
+
+        self.assertIs(status, refreshed_status)
+        self.assertEqual(states, [])
 
     def test_start_profile_execution_returns_running_progress_status(self) -> None:
         calls = []
@@ -2339,6 +2408,62 @@ class MebSetupJobTests(unittest.TestCase):
             setup._runtime_helper_request = original_runtime_helper_request
 
         self.assertEqual(len(calls), 2)
+
+    def test_sync_profile_jobs_persists_interactive_fallback_before_next_install(self) -> None:
+        profile = MebBackupProfileInfo(
+            uuid="profile-1",
+            label="nightly",
+            destination="/backup-home/nightly",
+            configPath="/backup-home/profile-1.cnf",
+            fullSchedule=daily_schedule("1", "00"),
+            incSchedule=daily_schedule("2", "00"),
+        )
+        manager_values = {
+            "scheduler_backend": "schtasks",
+            "windows_logon_type": "S4U",
+        }
+        events: list[tuple[object, ...]] = []
+
+        def request(
+            _context: object,
+            _backup_home_path: str,
+            values: dict[str, str],
+            operation: str,
+            params: dict[str, str],
+        ) -> dict[str, object]:
+            events.append(("install", params["jobId"], values["windows_logon_type"]))
+
+            return {
+                "status": "installed",
+                "exitCode": 0,
+                "timedOut": False,
+                "stdoutTruncated": False,
+                "stderrTruncated": False,
+                "logonType": "InteractiveToken",
+            }
+
+        def write_config(path: str, values: dict[str, str]) -> None:
+            events.append(("write", path, values["windows_logon_type"]))
+
+        with patched_setup(
+            _runtime_helper_request=request,
+            _write_manager_config=write_config,
+        ):
+            changed = _sync_profile_jobs(
+                FakeContext(),
+                "/backup-home",
+                manager_values,
+                MebStatus(profiles=[profile]),
+                scheduled_only=True,
+            )
+
+        self.assertTrue(changed)
+        self.assertEqual(manager_values["windows_logon_type"], "InteractiveToken")
+        self.assertEqual(events, [
+            ("install", "profile-1-backup-full", "S4U"),
+            ("write", "/backup-home/backups.cnf", "InteractiveToken"),
+            ("install", "profile-1-backup-incremental", "InteractiveToken"),
+        ])
 
     def test_sync_profile_jobs_reports_scheduler_removal_failure_details(self) -> None:
         profile = MebBackupProfileInfo(

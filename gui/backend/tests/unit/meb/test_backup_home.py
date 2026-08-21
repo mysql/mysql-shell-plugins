@@ -15,7 +15,7 @@ import importlib.util
 import sys
 import types
 from datetime import datetime, timezone
-from typing import Literal, get_type_hints
+from typing import Literal, Optional, get_type_hints
 from unittest import mock
 from pathlib import Path
 
@@ -145,6 +145,48 @@ class MebBackupHomeTests(unittest.TestCase):
         self.assertIs(get_type_hints(MebBackupProfile)["partial"], bool)
         self.assertFalse(MebBackupProfileInfo().partial)
         self.assertFalse(MebBackupProfile().partial)
+
+    def test_profile_scheduler_login_requirement_contract_is_platform_neutral(self) -> None:
+        expected = Optional[Literal["required", "notRequired"]]
+        self.assertEqual(
+            get_type_hints(MebBackupProfileInfo)["schedulerLoginRequirement"],
+            expected,
+        )
+        self.assertIsNone(MebBackupProfileInfo().schedulerLoginRequirement)
+
+    def test_build_status_maps_scheduler_login_requirements(self) -> None:
+        cases = (
+            ({"scheduler_backend": "cron"}, "notRequired"),
+            ({"scheduler_backend": "launchd"}, "required"),
+            ({"scheduler_backend": "schtasks"}, "notRequired"),
+            ({"scheduler_backend": "schtasks", "windows_logon_type": "S4U"}, "notRequired"),
+            (
+                {"scheduler_backend": "schtasks", "windows_logon_type": "InteractiveToken"},
+                "required",
+            ),
+        )
+
+        for manager_values, expected in cases:
+            with self.subTest(manager_values=manager_values):
+                configured_profile = MebBackupProfileInfo(
+                    uuid="profile-1",
+                    fullSchedule=MebProfileSchedule(enabled=True),
+                )
+
+                status = build_status("/backup-home", manager_values, [configured_profile])
+
+                self.assertEqual(status.profiles[0].schedulerLoginRequirement, expected)
+
+    def test_build_status_omits_login_requirement_for_unscheduled_profiles(self) -> None:
+        configured_profile = MebBackupProfileInfo(uuid="profile-1")
+
+        status = build_status(
+            "/backup-home",
+            {"scheduler_backend": "schtasks", "windows_logon_type": "InteractiveToken"},
+            [configured_profile],
+        )
+
+        self.assertIsNone(status.profiles[0].schedulerLoginRequirement)
 
     def test_profile_tts_mode_round_trips_through_config_value(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
