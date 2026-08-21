@@ -193,12 +193,14 @@ class HelperTests(unittest.TestCase):
         cloud_service: str | None = None,
         incremental_base: str = "history:last_backup",
         full_schedule: bool = False,
+        manager_options: dict[str, str] | None = None,
     ) -> Path:
         profile_path = backup_home / f"{profile_id}.cnf"
         profile_path.write_text("\n".join([
             "[meb_manager]",
             f"uuid = {profile_id}",
             f"storage_type = {storage_type}",
+            *([f"{key} = {value}" for key, value in manager_options.items()] if manager_options else []),
             *([
                 "full_backups_enabled = 1",
                 "full_backups_frequency = 1",
@@ -845,7 +847,7 @@ class HelperTests(unittest.TestCase):
 
     def test_jobs_execute_dry_run_emits_fixed_argv_process_plan(self) -> None:
         _, config, backup_home, output_dir, option_file = self.make_job_fixture()
-        self.create_single_profile(backup_home, output_dir)
+        self.write_profile_config(backup_home, output_dir, manager_options={"apply_log": "True"})
 
         response = handle_request({
             "operation": "jobs.execute",
@@ -897,7 +899,69 @@ class HelperTests(unittest.TestCase):
         self.assertTrue(response["ok"], response)
         args = response["result"]["plan"]["args"]
         self.assertIn(f"--defaults-file={profile_path.as_posix()}", args)
-        self.assertEqual(args[-1], "backup-and-apply-log")
+        self.assertEqual(args[-1], "backup")
+
+    def test_local_full_job_uses_profile_backup_options(self) -> None:
+        _, config, backup_home, output_dir, _option_file = self.make_job_fixture()
+        self.write_profile_config(backup_home, output_dir, manager_options={
+            "apply_log": "False",
+            "compress": "True",
+            "compress_method": "zlib",
+            "compress_level": "7",
+            "skip_unused_pages": "True",
+            "using_tts": "2",
+        })
+
+        response = handle_request({
+            "operation": "jobs.execute",
+            "dryRun": True,
+            "params": {
+                "backupHome": backup_home.as_posix(),
+                "jobId": "nightly-backup-full",
+            },
+        }, config, allow_dry_run=True)
+
+        self.assertTrue(response["ok"], response)
+        args = response["result"]["plan"]["args"]
+        self.assertIn("--compress-method=zlib", args)
+        self.assertIn("--compress-level=7", args)
+        self.assertIn("--skip-unused-pages", args)
+        self.assertIn("--use-tts=with-full-locking", args)
+        self.assertIn(f"--backup-dir={output_dir.as_posix()}", args)
+        self.assertEqual(args[-1], "backup")
+
+    def test_redo_only_incremental_job_uses_supported_process_plan(self) -> None:
+        _, config, backup_home, output_dir, _option_file = self.make_job_fixture()
+        profile_path = self.write_profile_config(backup_home, output_dir, manager_options={
+            "compress": "True",
+            "compress_method": "zlib",
+            "compress_level": "7",
+            "incremental_with_redo_log_only": "True",
+            "using_tts": "1",
+        })
+
+        response = handle_request({
+            "operation": "jobs.execute",
+            "dryRun": True,
+            "params": {
+                "backupHome": backup_home.as_posix(),
+                "jobId": "nightly-backup-incremental",
+            },
+        }, config, allow_dry_run=True)
+
+        self.assertTrue(response["ok"], response)
+        args = response["result"]["plan"]["args"]
+        self.assertEqual(args, [
+            f"--defaults-file={profile_path.as_posix()}",
+            "--login-path=mysql_workbench_meb_test",
+            "--with-timestamp",
+            "--incremental-with-redo-log-only",
+            "--incremental-base=history:last_backup",
+            f"--incremental-backup-dir={output_dir.as_posix()}",
+            f"--show-progress=file:{backup_home / '.backup-progress'}",
+            "--progress-interval=1",
+            "backup",
+        ])
 
     def test_cloud_full_job_uses_backup_image_plan(self) -> None:
         _, config, backup_home, output_dir, _option_file = self.make_job_fixture()
@@ -932,6 +996,7 @@ class HelperTests(unittest.TestCase):
             "cloud",
             "OCI",
             "history:last_full_backup",
+            manager_options={"incremental_with_redo_log_only": "True"},
         )
 
         response = handle_request({
@@ -951,7 +1016,7 @@ class HelperTests(unittest.TestCase):
             re.fullmatch(r"--cloud-object=\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}", arg)
             for arg in args
         ))
-        self.assertIn("--incremental", args)
+        self.assertIn("--incremental-with-redo-log-only", args)
         self.assertIn("--incremental-base=history:last_full_backup", args)
         self.assertEqual(args[-1], "backup-to-image")
         self.assertFalse(any(arg.startswith("--incremental-backup-dir=") for arg in args))

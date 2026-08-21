@@ -624,12 +624,6 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
             return;
         }
 
-        if (profile.partial && profile.usingTts !== "0" && profile.incSchedule.enabled) {
-            void ui.showErrorMessage("Transportable Tablespaces cannot be used on incremental backups.", {});
-
-            return;
-        }
-
         const scheduleChanged = profileSchedulesChanged(profileScheduleBaselineRef.current, profile);
         setSavingProfile(true);
         try {

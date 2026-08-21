@@ -206,7 +206,8 @@ export const EnterpriseBackupProfileEditor = (props: IEnterpriseBackupProfileEdi
             </select>
             <p>Non-TTS table-level restores require matching target tables to already exist. Enable TTS
                 when selected tables must be restored into a target where those tables do not already
-                exist. <LearnMore url="https://dev.mysql.com/doc/mysql-enterprise-backup/en/restore-use-tts.html" /></p>
+                exist. TTS applies only to full backups; incremental backups run without TTS. <LearnMore
+                url="https://dev.mysql.com/doc/mysql-enterprise-backup/en/restore-use-tts.html" /></p>
         </label></section>
     </>;
     const storagePath = backupStorageRelativePath(backupHomePath, draft.destination);
@@ -227,7 +228,7 @@ export const EnterpriseBackupProfileEditor = (props: IEnterpriseBackupProfileEdi
             timestamped subdirectory is created for each backup.</p>
     </section>;
     const compression = <>
-        <Checkbox caption="Compress backup (non-incremental InnoDB backups only)"
+        <Checkbox caption="Compress backup"
             checkState={draft.compress ? CheckState.Checked : CheckState.Unchecked}
             onChange={(state) => {
                 onChange({ compress: state === CheckState.Checked });
@@ -249,6 +250,8 @@ export const EnterpriseBackupProfileEditor = (props: IEnterpriseBackupProfileEdi
                 })}
             </select></label>
         </div></Frame>
+        <p className="enterpriseBackupOptionHelp">Compression applies to full and regular incremental backups.
+            Redo-log-only incremental backups run without compression.</p>
     </>;
     const options = <>{compression}<hr className="enterpriseBackupOptionsSeparator" />
         <section className="enterpriseBackupOptionsGroup">

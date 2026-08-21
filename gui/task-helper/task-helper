@@ -158,6 +158,12 @@ CLOUD_OBJECT_OPTION_BY_SERVICE = {
     "openstack": "--cloud-object",
     "s3": "--cloud-object-key",
 }
+COMPRESS_METHODS = {"lz4", "lzma", "zlib"}
+TTS_MODES = {
+    "0": None,
+    "1": "with-minimum-locking",
+    "2": "with-full-locking",
+}
 DEFAULT_TIMEOUT_MS = 900000
 DEFAULT_MAX_OUTPUT_BYTES = 1024 * 1024
 MAX_CONFIG_BYTES = 65536
@@ -1379,6 +1385,26 @@ def _profile_options(parser: configparser.RawConfigParser, section: str) -> dict
     return {key: value.strip() for key, value in parser.items(section)}
 
 
+def _profile_compression_options(manager: dict[str, str]) -> tuple[str, str]:
+    method = manager.get("compress_method", "lz4").lower()
+    if method not in COMPRESS_METHODS:
+        raise HelperError("invalid_config", "profile compression method is not supported.")
+
+    level = manager.get("compress_level", "1")
+    if re.fullmatch(r"[1-9]", level) is None:
+        raise HelperError("invalid_config", "profile compression level must be from 1 to 9.")
+
+    return method, level
+
+
+def _profile_tts_mode(manager: dict[str, str]) -> str:
+    mode = manager.get("using_tts", "0")
+    if mode not in TTS_MODES:
+        raise HelperError("invalid_config", "profile TTS mode is not supported.")
+
+    return mode
+
+
 def _derived_profile_jobs(backup_home: Path, config: HelperConfig) -> dict[str, dict[str, Any]]:
     target_user = resolve_target_user(config)
     jobs: dict[str, dict[str, Any]] = {}
@@ -1410,10 +1436,17 @@ def _derived_profile_jobs(backup_home: Path, config: HelperConfig) -> dict[str, 
 
         profile_id = require_safe_identifier(manager.get("uuid") or profile_path.stem, "profile uuid")
         storage_type = manager.get("storage_type") or ("cloud" if mysqlbackup.get("cloud_service") else "local")
+        compression_method, compression_level = _profile_compression_options(manager)
         base_job = {
             "outputDirectory": output_directory,
             "storageType": storage_type,
             "defaultsFile": profile_path.as_posix(),
+            "applyLog": _profile_truthy(manager.get("apply_log")),
+            "compress": _profile_truthy(manager.get("compress")),
+            "compressMethod": compression_method,
+            "compressLevel": compression_level,
+            "skipUnusedPages": _profile_truthy(manager.get("skip_unused_pages")),
+            "usingTts": _profile_tts_mode(manager),
         }
         candidates = [
             {
@@ -1427,6 +1460,9 @@ def _derived_profile_jobs(backup_home: Path, config: HelperConfig) -> dict[str, 
                 "id": f"{profile_id}-backup-incremental",
                 "backupMode": "incremental",
                 "incrementalBase": mysqlbackup.get("incremental_base", "history:last_backup"),
+                "incrementalWithRedoLogOnly": _profile_truthy(
+                    manager.get("incremental_with_redo_log_only"),
+                ),
                 **({"schedule": schedule} if (schedule := _profile_schedule(manager, "inc")) else {}),
             },
         ]
@@ -1593,8 +1629,15 @@ def _require_job_definition(value: Any, config: HelperConfig, target_user: Targe
         "storageType",
         "baseBackupDirectory",
         "incrementalBase",
+        "incrementalWithRedoLogOnly",
         "defaultsFile",
+        "applyLog",
+        "compress",
+        "compressMethod",
+        "compressLevel",
         "schedule",
+        "skipUnusedPages",
+        "usingTts",
     }, "job")
 
     job_id = require_safe_identifier(job.get("id"), "job.id")
@@ -1625,6 +1668,27 @@ def _require_job_definition(value: Any, config: HelperConfig, target_user: Targe
         "outputDirectory": output_directory,
         "defaultsFile": defaults_file,
     }
+
+    for field in ("applyLog", "compress", "incrementalWithRedoLogOnly", "skipUnusedPages"):
+        field_value = job.get(field, False)
+        if not isinstance(field_value, bool):
+            raise HelperError("invalid_request", f"job.{field} must be a boolean.")
+        result[field] = field_value
+
+    compress_method = job.get("compressMethod", "lz4")
+    if not isinstance(compress_method, str) or compress_method not in COMPRESS_METHODS:
+        raise HelperError("invalid_request", "job.compressMethod is not supported.")
+    result["compressMethod"] = compress_method
+
+    compress_level = job.get("compressLevel", "1")
+    if not isinstance(compress_level, str) or re.fullmatch(r"[1-9]", compress_level) is None:
+        raise HelperError("invalid_request", "job.compressLevel must be from 1 to 9.")
+    result["compressLevel"] = compress_level
+
+    using_tts = job.get("usingTts", "0")
+    if not isinstance(using_tts, str) or using_tts not in TTS_MODES:
+        raise HelperError("invalid_request", "job.usingTts is not supported.")
+    result["usingTts"] = using_tts
 
     if backup_mode == "full":
         if job.get("baseBackupDirectory") is not None:
@@ -1678,21 +1742,39 @@ def _mysqlbackup_plan_for_job(job: dict[str, Any], config: HelperConfig) -> Proc
         "--with-timestamp",
     ]
 
+    apply_log = job["storageType"] == "local" and job["backupMode"] == "full" and job["applyLog"]
+    redo_only_incremental = job["backupMode"] == "incremental" and job["incrementalWithRedoLogOnly"]
+    # MEB does not support compression for redo-log-only incremental backups.
+    if job["compress"] and not apply_log and not redo_only_incremental:
+        if job["compressMethod"] == "lz4":
+            args.append("--compress")
+        else:
+            args.append(f"--compress-method={job['compressMethod']}")
+            if job["compressLevel"] != "1":
+                args.append(f"--compress-level={job['compressLevel']}")
+    if job["backupMode"] == "full" and job["skipUnusedPages"]:
+        args.append("--skip-unused-pages")
+    tts_mode = TTS_MODES[job["usingTts"]]
+    # MEB does not support transportable tablespaces for incremental backups.
+    if job["backupMode"] == "full" and tts_mode is not None:
+        args.append(f"--use-tts={tts_mode}")
+
     if job["storageType"] == "cloud":
         args.append(f"--backup-dir={job['outputDirectory']}")
         args.append("--backup-image=-")
         args.append(f"{_cloud_object_option(job['defaultsFile'])}={_cloud_object_name()}")
         if job["backupMode"] == "incremental":
             args.extend([
-                "--incremental",
+                "--incremental-with-redo-log-only" if job["incrementalWithRedoLogOnly"] else "--incremental",
                 f"--incremental-base={job['incrementalBase']}",
             ])
         args.append("backup-to-image")
     elif job["backupMode"] == "full":
-        args.extend([f"--backup-dir={job['outputDirectory']}", "backup-and-apply-log"])
+        args.append(f"--backup-dir={job['outputDirectory']}")
+        args.append("backup-and-apply-log" if job["applyLog"] else "backup")
     else:
         args.extend([
-            "--incremental",
+            "--incremental-with-redo-log-only" if job["incrementalWithRedoLogOnly"] else "--incremental",
             f"--incremental-base={job['incrementalBase']}",
             f"--incremental-backup-dir={job['outputDirectory']}",
             "backup",
