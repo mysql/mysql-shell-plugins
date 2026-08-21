@@ -415,7 +415,7 @@ test.describe("Electron desktop shell", () => {
         });
 
         expect(nativeWindowState).toEqual({
-            menuBarVisible: false,
+            menuBarVisible: process.platform === "darwin",
         });
 
         const bridgeState = await fileViewerPage.evaluate(() => {
