@@ -3105,6 +3105,22 @@ def _single_windows_schedule_value(schedule: dict[str, str], key: str, minimum: 
     return values[0]
 
 
+def _windows_hourly_interval(schedule: dict[str, str]) -> int | None:
+    if any(schedule[key] != "*" for key in ("dayOfMonth", "month", "dayOfWeek")):
+        return None
+
+    hour = schedule["hour"]
+    if hour == "*":
+        return 1
+
+    match = re.fullmatch(r"\*/([0-9]+)", hour)
+    if match is None:
+        return None
+
+    interval = int(match.group(1))
+    return interval if 1 <= interval <= 23 else None
+
+
 def _windows_task_name(config: HelperConfig, job_id: str) -> str:
     return f"{config.windows_task_folder}\\{job_id}"
 
@@ -3145,7 +3161,12 @@ def _render_windows_task_xml(config: HelperConfig, job_id: str, schedule: dict[s
         raise HelperError("invalid_config", "Windows scheduled tasks require a configured target account.")
 
     minute = _single_windows_schedule_value(schedule, "minute", 0, 59)
-    hour = _single_windows_schedule_value(schedule, "hour", 0, 23)
+    hourly_interval = _windows_hourly_interval(schedule)
+    hour = (
+        0
+        if hourly_interval is not None
+        else _single_windows_schedule_value(schedule, "hour", 0, 23)
+    )
 
     root = ET.Element("Task", {
         "version": "1.4",
@@ -3161,6 +3182,10 @@ def _render_windows_task_xml(config: HelperConfig, job_id: str, schedule: dict[s
     trigger = ET.SubElement(triggers, "CalendarTrigger")
     ET.SubElement(trigger, "StartBoundary").text = start_boundary
     ET.SubElement(trigger, "Enabled").text = "true"
+    if hourly_interval is not None:
+        repetition = ET.SubElement(trigger, "Repetition")
+        ET.SubElement(repetition, "Interval").text = f"PT{hourly_interval}H"
+        ET.SubElement(repetition, "Duration").text = "PT23H59M"
 
     days_of_month = _expand_cron_field(schedule["dayOfMonth"], 1, 31)
     months = _expand_cron_field(schedule["month"], 1, 12)

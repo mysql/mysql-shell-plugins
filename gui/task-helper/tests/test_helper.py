@@ -2349,6 +2349,43 @@ class HelperTests(unittest.TestCase):
         )
         self.assertIn("<MultipleInstancesPolicy>Queue</MultipleInstancesPolicy>", response["result"]["xml"])
         self.assertIn("NT AUTHORITY\\SYSTEM", response["result"]["xml"])
+        self.assertNotIn("<Repetition>", response["result"]["xml"])
+
+    def test_windows_task_scheduler_generates_hourly_repetition(self) -> None:
+        _, config, _, _ = self.make_fixture()
+        windows_config = copy_config(
+            config,
+            scheduler_backend="schtasks",
+            target_user=TargetUser(uid=1, gid=1, account=r"NT AUTHORITY\SYSTEM"),
+            job_runner=r"C:\Windows\System32\cmd.exe",
+            schtasks=r"C:\Windows\System32\schtasks.exe",
+        )
+
+        for hour, interval in (("*", "PT1H"), ("*/4", "PT4H"), ("*/5", "PT5H")):
+            with self.subTest(hour=hour):
+                response = handle_request({
+                    "operation": "cron.installManagedJob",
+                    "dryRun": True,
+                    "params": {
+                        "jobId": "hourly",
+                        "schedule": {
+                            "minute": "17",
+                            "hour": hour,
+                            "dayOfMonth": "*",
+                            "month": "*",
+                            "dayOfWeek": "*",
+                        },
+                    },
+                }, windows_config, allow_dry_run=True)
+
+                self.assertTrue(response["ok"], response)
+                xml = response["result"]["xml"]
+                self.assertEqual(xml.count("<CalendarTrigger>"), 1)
+                self.assertIn("<StartBoundary>2026-01-01T00:17:00</StartBoundary>", xml)
+                self.assertIn(f"<Interval>{interval}</Interval>", xml)
+                self.assertIn("<Duration>PT23H59M</Duration>", xml)
+                self.assertNotIn("<StopAtDurationEnd>", xml)
+                self.assertIn("<ScheduleByDay><DaysInterval>1</DaysInterval></ScheduleByDay>", xml)
 
     def test_windows_task_scheduler_xml_uses_utf16_encoding(self) -> None:
         _, config, _, _ = self.make_fixture()
