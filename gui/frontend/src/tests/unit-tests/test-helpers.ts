@@ -270,6 +270,23 @@ export const nextRunLoop = async (): Promise<void> => {
     });
 };
 
+export const deferred = <T,>(): {
+    promise: Promise<T>;
+    resolve: (value: T) => void;
+} => {
+    let resolvePromise: ((value: T) => void) | undefined;
+    const promise = new Promise<T>((resolve) => {
+        resolvePromise = resolve;
+    });
+
+    return {
+        promise,
+        resolve: (value: T) => {
+            resolvePromise?.(value);
+        },
+    };
+};
+
 /**
  * Waits for an element with the given class to appear in the container.
  * This is useful to wait for elements that are added dynamically.

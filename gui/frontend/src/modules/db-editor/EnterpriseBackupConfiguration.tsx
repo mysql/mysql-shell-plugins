@@ -11,34 +11,31 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import { ui } from "../../app-logic/UILayer.js";
 import { Button } from "../../components/ui/Button/Button.js";
-import { Codicon } from "../../components/ui/Codicon.js";
 import { Dialog } from "../../components/ui/Dialog/Dialog.js";
-import { FileSelector } from "../../components/ui/FileSelector/FileSelector.js";
-import { Icon } from "../../components/ui/Icon/Icon.js";
-import { Input } from "../../components/ui/Input/Input.js";
 import type { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import {
-    type IMebBackupHomeValidation,
-    type IMebMysqlBackupUserValidation,
     type IMebPrerequisitesValidation,
     type IMebSetupState,
     type IMebValidationStatus,
 } from "../../supplement/ShellInterface/ShellInterfaceMeb.js";
 import { webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
+import {
+    EnterpriseBackupAccount,
+    type IMebBackupAccountState,
+} from "./EnterpriseBackupAccount.js";
+import {
+    EnterpriseBackupHome,
+    type IMebBackupHomeState,
+} from "./EnterpriseBackupHome.js";
+import { type MebOperationRunner, useMebOperation } from "./EnterpriseBackupOperation.js";
+import { EnterpriseBackupValidationStatus } from "./EnterpriseBackupValidationStatus.js";
 
 export interface IMebConfiguration {
     mysqlbackupPath: string;
     backupHomePath: string;
     backupUser: string;
-}
-
-interface IMebConfigurationValidation {
-    mysqlbackupPath: IMebValidationStatus;
-    backupHomePath: IMebValidationStatus;
-    backupUser: IMebValidationStatus;
-    backupPassword: IMebValidationStatus;
 }
 
 export interface IMebConfigurationServerInfo {
@@ -66,23 +63,12 @@ export interface IEnterpriseBackupConfigurationProps {
 
 type MebWizardPage = 0 | 1 | 2 | 3;
 
-const initialValidation: IMebConfigurationValidation = {
-    mysqlbackupPath: { tone: "info", message: "Waiting for validation." },
-    backupHomePath: { tone: "info", message: "Waiting for validation." },
-    backupUser: { tone: "info", message: "Waiting for validation." },
-    backupPassword: { tone: "info", message: "Waiting for validation." },
-};
-
 export const normalizeMebConfiguration = (configuration: IMebConfiguration): IMebConfiguration => {
     return {
         mysqlbackupPath: configuration.mysqlbackupPath.trim(),
         backupHomePath: configuration.backupHomePath.trim(),
         backupUser: configuration.backupUser.trim(),
     };
-};
-
-const validationIcon = (tone: IMebValidationStatus["tone"]): Codicon => {
-    return tone === "ok" ? Codicon.PassFilled : tone === "warn" ? Codicon.Warning : Codicon.Info;
 };
 
 export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurationProps): ComponentChild => {
@@ -103,122 +89,110 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
     } = props;
     const configurationDialogRef = useRef<Dialog>(null);
     const activeRef = useRef(false);
-    const [backupAccountExists, setBackupAccountExists] = useState<boolean>();
-    const [backupPasswordKnown, setBackupPasswordKnown] = useState(false);
-    const [applyingConfiguration, setApplyingConfiguration] = useState(false);
-    const [checkingLocalAccess, setCheckingLocalAccess] = useState(false);
-    const [creatingBackupHome, setCreatingBackupHome] = useState(false);
-    const [fixingBackupAccount, setFixingBackupAccount] = useState(false);
+    const dialogOpenRef = useRef(false);
+    const dialogLifecycleGeneration = useRef(0);
+    const wizardActiveRef = useRef(active);
+    const wizardLocalAccessGeneration = useRef(0);
+    const wizardLocalAccessRetryGeneration = useRef<number>();
+    const wizardModuleSessionIdRef = useRef(moduleSessionId);
+    const wizardPageRef = useRef<MebWizardPage>(0);
+    const { activeOperation: wizardActiveOperation, runOperation: runWizardOperation } = useMebOperation();
+    const {
+        activeOperation: dialogActiveOperation,
+        resetOperation: resetDialogOperation,
+        runOperation: runDialogOperation,
+    } = useMebOperation();
     const [localAccessValidation, setLocalAccessValidation] = useState<IMebPrerequisitesValidation>();
-    const [backupHomeValidation, setBackupHomeValidation] = useState<IMebBackupHomeValidation>();
-    const [backupMysqlUserValidation, setBackupMysqlUserValidation] = useState<IMebMysqlBackupUserValidation>();
-    const [validation, setValidation] = useState<IMebConfigurationValidation>(initialValidation);
+    const [wizardLocalAccessValidatedGeneration, setWizardLocalAccessValidatedGeneration] = useState<number>();
+    const [wizardLocalAccessValidatedSessionId, setWizardLocalAccessValidatedSessionId] = useState<string>();
+    const [wizardLocalAccessStatus, setWizardLocalAccessStatus] = useState<IMebValidationStatus>();
     const [draftConfiguration, setDraftConfiguration] = useState<IMebConfiguration>(configuration);
+    const [dialogEntitiesActive, setDialogEntitiesActive] = useState(false);
+    const [dialogLifecycleId, setDialogLifecycleId] = useState(0);
+    const [dialogBackupHomeState, setDialogBackupHomeState] = useState<IMebBackupHomeState>({
+        moduleSessionId,
+        path: configuration.backupHomePath,
+        valid: false,
+    });
+    const [dialogBackupAccountState, setDialogBackupAccountState] = useState<IMebBackupAccountState>({
+        moduleSessionId,
+        username: configuration.backupUser.trim(),
+        valid: false,
+    });
+    const [wizardBackupHomeState, setWizardBackupHomeState] = useState<IMebBackupHomeState>({
+        moduleSessionId,
+        path: configuration.backupHomePath,
+        valid: false,
+    });
+    const [wizardBackupAccountState, setWizardBackupAccountState] = useState<IMebBackupAccountState>({
+        moduleSessionId,
+        username: configuration.backupUser.trim(),
+        valid: false,
+    });
     const [wizardPage, setWizardPage] = useState<MebWizardPage>(0);
 
-    const updateValidation = useCallback((patch: Partial<IMebConfigurationValidation>): void => {
-        setValidation((current) => {
-            return { ...current, ...patch };
-        });
-    }, []);
+    wizardActiveRef.current = active;
+    wizardModuleSessionIdRef.current = moduleSessionId;
+    wizardPageRef.current = wizardPage;
 
-    const resetBackupAccountValidation = useCallback((): void => {
-        setBackupAccountExists(undefined);
-        setBackupPasswordKnown(false);
-        setBackupMysqlUserValidation(undefined);
-    }, []);
+    const wizardBusy = wizardActiveOperation !== undefined;
+    const wizardDisabled = backupCommandsDisabled || wizardBusy;
+    const wizardLocalAccessValid = localAccessValidation?.valid === true
+        && wizardLocalAccessValidatedGeneration === wizardLocalAccessGeneration.current
+        && wizardLocalAccessValidatedSessionId === moduleSessionId;
+    const wizardBackupHomeValid = wizardBackupHomeState.valid
+        && wizardBackupHomeState.path === draftConfiguration.backupHomePath
+        && wizardBackupHomeState.validatedPath === draftConfiguration.backupHomePath
+        && wizardBackupHomeState.moduleSessionId === moduleSessionId;
+    const wizardBackupAccountValid = wizardBackupAccountState.valid
+        && wizardBackupAccountState.backupHomePath === wizardBackupHomeState.validatedPath
+        && wizardBackupAccountState.username === draftConfiguration.backupUser.trim()
+        && wizardBackupAccountState.moduleSessionId === moduleSessionId;
+    const normalizedDraftConfiguration = normalizeMebConfiguration(draftConfiguration);
+    const normalizedStoredConfiguration = normalizeMebConfiguration(configuration);
+    const dialogConfigurationChanged = normalizedDraftConfiguration.backupHomePath
+        !== normalizedStoredConfiguration.backupHomePath
+        || normalizedDraftConfiguration.backupUser !== normalizedStoredConfiguration.backupUser;
+    const dialogSurfaceActive = dialogOpen && dialogEntitiesActive;
+    const dialogBusy = dialogActiveOperation !== undefined;
+    const dialogBackupHomeValid = dialogSurfaceActive && dialogBackupHomeState.valid
+        && dialogBackupHomeState.path === normalizedDraftConfiguration.backupHomePath
+        && dialogBackupHomeState.validatedPath === normalizedDraftConfiguration.backupHomePath
+        && dialogBackupHomeState.moduleSessionId === moduleSessionId;
+    const dialogBackupAccountValid = dialogSurfaceActive && dialogBackupAccountState.valid
+        && dialogBackupAccountState.backupHomePath === dialogBackupHomeState.validatedPath
+        && dialogBackupAccountState.username === normalizedDraftConfiguration.backupUser
+        && dialogBackupAccountState.moduleSessionId === moduleSessionId;
+    const disableDialogApply = backupCommandsDisabled || dialogBusy || !dialogConfigurationChanged
+        || !dialogBackupHomeValid || !dialogBackupAccountValid;
+
+    const resetWizardEntities = (path: string, username: string): void => {
+        setWizardBackupHomeState({ moduleSessionId, path, valid: false });
+        setWizardBackupAccountState({ moduleSessionId, username: username.trim(), valid: false });
+    };
+
+    const resetDialogEntities = (path: string, username: string): void => {
+        setDialogBackupHomeState({ moduleSessionId, path, valid: false });
+        setDialogBackupAccountState({ moduleSessionId, username: username.trim(), valid: false });
+    };
 
     const cancelWizard = (): void => {
+        if (wizardBusy) {
+            return;
+        }
+
+        ++wizardLocalAccessGeneration.current;
+        wizardLocalAccessRetryGeneration.current = undefined;
+        setLocalAccessValidation(undefined);
+        setWizardLocalAccessValidatedGeneration(undefined);
+        setWizardLocalAccessValidatedSessionId(undefined);
+        setWizardLocalAccessStatus(undefined);
+        resetWizardEntities(draftConfiguration.backupHomePath, draftConfiguration.backupUser);
         setWizardPage(0);
         onCancel();
     };
 
-    const renderValidation = (validation: IMebValidationStatus): ComponentChild => {
-        return (
-            <div className={`enterpriseBackupValidation ${validation.tone}`}>
-                <Icon src={validationIcon(validation.tone)} />
-                <span>{validation.message}</span>
-            </div>
-        );
-    };
-
-    const backupAccountPasswordDisplayStatus = (): IMebValidationStatus => {
-        if (backupPasswordKnown || backupMysqlUserValidation?.passwordStored) {
-            return { tone: "ok", message: "Password valid." };
-        }
-
-        if (backupAccountExists === false) {
-            return { tone: "warn", message: "Password not set." };
-        }
-
-        if (backupAccountExists === true) {
-            const message = validation.backupPassword.message.toLowerCase();
-            if (message.includes("not found") || message.includes("not set")) {
-                return { tone: "warn", message: "Password not set." };
-            }
-
-            if (validation.backupPassword.tone === "warn") {
-                return { tone: "warn", message: "Password invalid." };
-            }
-        }
-
-        return { tone: "info", message: "Password status not checked." };
-    };
-
-    const refreshConfigurationPathValidation = async (nextConfiguration: IMebConfiguration): Promise<void> => {
-        if (!moduleSessionId) {
-            updateValidation({
-                mysqlbackupPath: { tone: "warn", message: "Open a MySQL connection before validating paths." },
-                backupHomePath: { tone: "warn", message: "Open a MySQL connection before validating paths." },
-            });
-
-            return;
-        }
-
-        updateValidation({
-            mysqlbackupPath: { tone: "info", message: "Checking mysqlbackup path." },
-            backupHomePath: { tone: "info", message: "Checking backup home directory." },
-        });
-
-        try {
-            const localAccess = await ShellInterface.meb.validateLocalBackupAccess(moduleSessionId);
-            setLocalAccessValidation(localAccess);
-            updateValidation({
-                mysqlbackupPath: localAccess.mysqlbackupStatus,
-            });
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            updateValidation({
-                mysqlbackupPath: { tone: "warn", message },
-            });
-        }
-
-        if (!nextConfiguration.backupHomePath.trim()) {
-            updateValidation({
-                backupHomePath: { tone: "warn", message: "Enter the backup home directory." },
-            });
-
-            return;
-        }
-
-        try {
-            const result = await ShellInterface.meb.validateBackupHome(
-                moduleSessionId,
-                nextConfiguration.backupHomePath,
-            );
-            setBackupHomeValidation(result);
-            updateValidation({
-                backupHomePath: result.status,
-            });
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            updateValidation({
-                backupHomePath: { tone: "warn", message },
-            });
-        }
-    };
-
-    const applyConfiguration = async (): Promise<void> => {
+    const applyConfiguration = async (operationRunner: MebOperationRunner): Promise<void> => {
         if (backupCommandsDisabled) {
             return;
         }
@@ -231,47 +205,48 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
             return;
         }
 
-        setApplyingConfiguration(true);
-        try {
-            const nextSetupState = await ShellInterface.meb.applySetup(
-                moduleSessionId,
-                nextConfiguration.backupHomePath,
-                nextConfiguration.backupUser,
-            );
+        const apply = async (): Promise<void> => {
+            try {
+                const nextSetupState = await ShellInterface.meb.applySetup(
+                    moduleSessionId,
+                    nextConfiguration.backupHomePath,
+                    nextConfiguration.backupUser,
+                );
 
-            if (!nextSetupState.configured) {
-                throw new Error(nextSetupState.message);
+                if (!nextSetupState.configured) {
+                    throw new Error(nextSetupState.message);
+                }
+
+                const storedConfiguration = normalizeMebConfiguration({
+                    mysqlbackupPath: nextSetupState.mysqlbackupPath ?? nextConfiguration.mysqlbackupPath,
+                    backupHomePath: nextSetupState.backupHomePath ?? nextConfiguration.backupHomePath,
+                    backupUser: nextSetupState.mysqlBackupUser || nextConfiguration.backupUser,
+                });
+
+                if (connection) {
+                    const nextSettings = {
+                        ...connection.details.settings,
+                        enterpriseBackup: storedConfiguration,
+                    };
+                    const nextDetails = {
+                        ...connection.details,
+                        settings: nextSettings,
+                    };
+
+                    await ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, nextDetails);
+                    connection.details.settings = nextSettings;
+                }
+
+                onApplied(storedConfiguration, nextSetupState);
+                setDraftConfiguration(storedConfiguration);
+                configurationDialogRef.current?.close(false);
+            } catch (reason: unknown) {
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Cannot save MySQL Enterprise Backup configuration: ${message}`, {});
             }
+        };
 
-            const storedConfiguration = normalizeMebConfiguration({
-                mysqlbackupPath: nextSetupState.mysqlbackupPath ?? nextConfiguration.mysqlbackupPath,
-                backupHomePath: nextSetupState.backupHomePath ?? nextConfiguration.backupHomePath,
-                backupUser: nextSetupState.mysqlBackupUser || nextConfiguration.backupUser,
-            });
-
-            if (connection) {
-                const nextSettings = {
-                    ...connection.details.settings,
-                    enterpriseBackup: storedConfiguration,
-                };
-                const nextDetails = {
-                    ...connection.details,
-                    settings: nextSettings,
-                };
-
-                await ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, nextDetails);
-                connection.details.settings = nextSettings;
-            }
-
-            onApplied(storedConfiguration, nextSetupState);
-            setDraftConfiguration(storedConfiguration);
-            configurationDialogRef.current?.close(false);
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            void ui.showErrorMessage(`Cannot save MySQL Enterprise Backup configuration: ${message}`, {});
-        } finally {
-            setApplyingConfiguration(false);
-        }
+        await operationRunner("applyConfiguration", apply);
     };
 
     const updateConfiguration = (values: Partial<IMebConfiguration>): void => {
@@ -283,561 +258,158 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
         });
     };
 
-    const refreshLocalAccess = async (): Promise<IMebPrerequisitesValidation | undefined> => {
-        setCheckingLocalAccess(true);
-        try {
-            if (!moduleSessionId) {
-                throw new Error("Open a MySQL connection before checking local access.");
-            }
+    const wizardLocalAccessRequestIsCurrent = useCallback((generation: number,
+        requestedModuleSessionId: string): boolean => {
+        return wizardLocalAccessGeneration.current === generation && wizardActiveRef.current
+            && wizardPageRef.current === 1 && wizardModuleSessionIdRef.current === requestedModuleSessionId;
+    }, []);
 
-            const nextValidation = await ShellInterface.meb.validateLocalBackupAccess(moduleSessionId);
-            setLocalAccessValidation(nextValidation);
-            updateValidation({
-                mysqlbackupPath: nextValidation.mysqlbackupStatus,
+    const refreshWizardLocalAccess = useCallback(async (): Promise<void> => {
+        if (!wizardActiveRef.current || wizardPageRef.current !== 1) {
+            return;
+        }
+
+        const requestedModuleSessionId = wizardModuleSessionIdRef.current;
+        if (!requestedModuleSessionId) {
+            ++wizardLocalAccessGeneration.current;
+            wizardLocalAccessRetryGeneration.current = undefined;
+            setLocalAccessValidation(undefined);
+            setWizardLocalAccessValidatedGeneration(undefined);
+            setWizardLocalAccessValidatedSessionId(undefined);
+            setWizardLocalAccessStatus({
+                message: "Open a MySQL connection before checking local access.",
+                tone: "warn",
             });
 
-            return nextValidation;
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            void ui.showErrorMessage(`Cannot check MySQL Enterprise Backup local access: ${message}`, {});
-
-            return undefined;
-        } finally {
-            setCheckingLocalAccess(false);
+            return;
         }
-    };
+
+        let generation: number | undefined;
+        try {
+            const nextValidation = await runWizardOperation("validateLocalAccess", async () => {
+                generation = ++wizardLocalAccessGeneration.current;
+                wizardLocalAccessRetryGeneration.current = undefined;
+                setLocalAccessValidation(undefined);
+                setWizardLocalAccessValidatedGeneration(undefined);
+                setWizardLocalAccessValidatedSessionId(undefined);
+                setWizardLocalAccessStatus({
+                    message: "Checking current-user access to the MySQL data directory.",
+                    tone: "info",
+                });
+
+                return ShellInterface.meb.validateLocalBackupAccess(requestedModuleSessionId);
+            });
+
+            if (generation === undefined) {
+                wizardLocalAccessRetryGeneration.current = wizardLocalAccessGeneration.current;
+
+                return;
+            }
+
+            if (nextValidation !== undefined
+                && wizardLocalAccessRequestIsCurrent(generation, requestedModuleSessionId)) {
+                setLocalAccessValidation(nextValidation);
+                setWizardLocalAccessValidatedGeneration(generation);
+                setWizardLocalAccessValidatedSessionId(requestedModuleSessionId);
+                setWizardLocalAccessStatus(undefined);
+            }
+        } catch (reason: unknown) {
+            if (generation !== undefined
+                && wizardLocalAccessRequestIsCurrent(generation, requestedModuleSessionId)) {
+                setWizardLocalAccessStatus({ message: convertErrorToString(reason), tone: "warn" });
+            }
+        }
+    }, [runWizardOperation, wizardLocalAccessRequestIsCurrent]);
 
     useEffect(() => {
-        if (!active || wizardPage !== 1 || !moduleSessionId) {
+        return () => {
+            ++wizardLocalAccessGeneration.current;
+            wizardLocalAccessRetryGeneration.current = undefined;
+        };
+    }, [active, moduleSessionId, wizardPage]);
+
+    useEffect(() => {
+        if (!active || wizardPage !== 1) {
             return;
         }
 
-        void refreshLocalAccess();
-    }, [moduleSessionId, active, wizardPage]);
+        setLocalAccessValidation(undefined);
+        setWizardLocalAccessValidatedGeneration(undefined);
+        setWizardLocalAccessValidatedSessionId(undefined);
+        setWizardLocalAccessStatus(undefined);
+        void refreshWizardLocalAccess();
+    }, [active, moduleSessionId, refreshWizardLocalAccess, wizardPage]);
 
-    const refreshBackupHomeValidation = async (): Promise<IMebBackupHomeValidation | undefined> => {
-        try {
-            if (!moduleSessionId) {
-                throw new Error("Open a MySQL connection before checking the backup home.");
-            }
-
-            const result = await ShellInterface.meb.validateBackupHome(
-                moduleSessionId,
-                draftConfiguration.backupHomePath,
-            );
-            setBackupHomeValidation(result);
-            updateValidation({
-                backupHomePath: result.status,
-            });
-
-            return result;
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            updateValidation({
-                backupHomePath: { tone: "warn", message },
-            });
-
-            return undefined;
-        }
-    };
-
-    const createBackupHomeDirectory = async (): Promise<void> => {
-        if (backupCommandsDisabled) {
+    useEffect(() => {
+        if (wizardActiveOperation !== undefined || wizardLocalAccessRetryGeneration.current === undefined
+            || !active || wizardPage !== 1) {
             return;
         }
 
-        const backupHomePath = draftConfiguration.backupHomePath.trim();
-
-        if (!backupHomePath) {
-            updateValidation({
-                backupHomePath: { tone: "warn", message: "Enter a backup home directory to create." },
-            });
-
-            return;
-        }
-
-        if (!moduleSessionId) {
-            updateValidation({
-                backupHomePath: {
-                    tone: "warn",
-                    message: "Open a MySQL connection before creating the backup home.",
-                },
-            });
-            void ui.showErrorMessage("Open a MySQL connection before creating the backup home.", {});
-
-            return;
-        }
-
-        updateValidation({
-            backupHomePath: { tone: "info", message: "Creating backup home directory." },
-        });
-        setCreatingBackupHome(true);
-        try {
-            const result = await ShellInterface.meb.createBackupHome(moduleSessionId, backupHomePath);
-            setBackupHomeValidation(result);
-            resetBackupAccountValidation();
-            if (result.backupHomePath) {
-                updateConfiguration({ backupHomePath: result.backupHomePath });
-            }
-            updateValidation({
-                backupHomePath: result.status,
-            });
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            updateValidation({
-                backupHomePath: { tone: "warn", message },
-            });
-        } finally {
-            setCreatingBackupHome(false);
-        }
-    };
-
-    const refreshBackupMysqlUserValidation = async (): Promise<IMebMysqlBackupUserValidation | undefined> => {
-        const backupUser = draftConfiguration.backupUser.trim();
-
-        if (!moduleSessionId) {
-            void ui.showErrorMessage("Open a MySQL connection before validating the backup account.", {});
-
-            return undefined;
-        }
-
-        if (!backupUser) {
-            updateValidation({
-                backupUser: { tone: "warn", message: "Enter the backup MySQL username." },
-            });
-
-            return undefined;
-        }
-
-        try {
-            const result = await ShellInterface.meb.validateBackupMysqlUser(
-                moduleSessionId,
-                draftConfiguration.backupHomePath,
-                backupUser,
-                undefined,
-            );
-            setBackupMysqlUserValidation(result);
-            setBackupAccountExists(result.exists);
-            updateValidation({
-                backupUser: result.status,
-                backupPassword: result.passwordStatus,
-            });
-            setBackupPasswordKnown(result.passwordStored);
-
-            return result;
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            updateValidation({
-                backupUser: { tone: "warn", message },
-            });
-
-            return undefined;
-        }
-    };
-
-    const ensureBackupAccountReady = async (): Promise<boolean> => {
-        if (backupMysqlUserValidation !== undefined) {
-            return backupMysqlUserValidation.valid;
-        }
-
-        const result = await refreshBackupMysqlUserValidation();
-        if (result !== undefined) {
-            return result.valid;
-        }
-
-        if (backupAccountExists) {
-            updateValidation({
-                backupPassword: {
-                    tone: "warn",
-                    message: "Input or reset the backup account password before finishing setup.",
-                },
-            });
-
-            return false;
-        }
-
-        updateValidation({
-            backupPassword: {
-                tone: "warn",
-                message: "Create the backup MySQL account before finishing setup.",
-            },
-        });
-
-        return false;
-    };
+        wizardLocalAccessRetryGeneration.current = undefined;
+        void refreshWizardLocalAccess();
+    }, [active, refreshWizardLocalAccess, wizardActiveOperation, wizardPage]);
 
     const continueWizard = async (): Promise<void> => {
-        if (wizardPage === 0) {
-            if (setupState?.mysqlbackupExists !== true) {
-                return;
+        if (wizardDisabled || (wizardPage === 0 && setupState?.mysqlbackupExists !== true)
+            || (wizardPage === 1 && !wizardLocalAccessValid)
+            || (wizardPage === 2 && !wizardBackupHomeValid)
+            || (wizardPage === 3 && !wizardBackupAccountValid)) {
+            return;
+        }
+
+        if (wizardPage < 3) {
+            if (wizardPage === 0) {
+                ++wizardLocalAccessGeneration.current;
+                wizardLocalAccessRetryGeneration.current = undefined;
+                setLocalAccessValidation(undefined);
+                setWizardLocalAccessValidatedGeneration(undefined);
+                setWizardLocalAccessValidatedSessionId(undefined);
+                setWizardLocalAccessStatus(undefined);
+            } else if (wizardPage === 1) {
+                resetWizardEntities(draftConfiguration.backupHomePath, draftConfiguration.backupUser);
+            } else if (wizardPage === 2) {
+                setWizardBackupAccountState({
+                    backupHomePath: wizardBackupHomeState.validatedPath,
+                    moduleSessionId,
+                    username: draftConfiguration.backupUser.trim(),
+                    valid: false,
+                });
             }
 
-            setWizardPage(1);
+            setWizardPage((wizardPage + 1) as MebWizardPage);
 
             return;
         }
 
-        if (wizardPage === 1) {
-            const result = await refreshLocalAccess();
-            if (!result?.valid) {
-                return;
-            }
+        await applyConfiguration(runWizardOperation);
+    };
 
-            setWizardPage(2);
-
+    const backWizard = (): void => {
+        if (wizardBusy) {
             return;
         }
 
         if (wizardPage === 2) {
-            const result = await refreshBackupHomeValidation();
-            if (!result?.valid) {
-                return;
-            }
-
-            resetBackupAccountValidation();
-            setWizardPage(3);
-
-            return;
+            ++wizardLocalAccessGeneration.current;
+            wizardLocalAccessRetryGeneration.current = undefined;
+            setLocalAccessValidation(undefined);
+            setWizardLocalAccessValidatedGeneration(undefined);
+            setWizardLocalAccessValidatedSessionId(undefined);
+            setWizardLocalAccessStatus(undefined);
+        } else if (wizardPage === 3) {
+            resetWizardEntities(draftConfiguration.backupHomePath, draftConfiguration.backupUser);
         }
 
-        const accountReady = await ensureBackupAccountReady();
-        if (!accountReady) {
-            return;
-        }
-
-        await applyConfiguration();
-    };
-
-    const backWizard = (): void => {
         setWizardPage((Math.max(0, wizardPage - 1)) as MebWizardPage);
     };
 
-    const setBackupAccountActionStatus = (status: IMebValidationStatus): void => {
-        updateValidation({
-            backupPassword: status,
-        });
-    };
-
-    const setBackupMysqlUserValidationResult = (result: IMebMysqlBackupUserValidation): void => {
-        setBackupMysqlUserValidation(result);
-        setBackupAccountExists(result.exists);
-        setBackupPasswordKnown(result.passwordStored);
-        updateValidation({
-            backupUser: result.status,
-            backupPassword: result.passwordStatus,
-        });
-    };
-
-    const validateAndStoreBackupAccountPassword = async (password: string): Promise<boolean> => {
-        const backupUser = draftConfiguration.backupUser.trim();
-
-        if (!moduleSessionId) {
-            void ui.showErrorMessage("Open a MySQL connection before validating the backup account.", {});
-
-            return false;
-        }
-
-        try {
-            const result = await ShellInterface.meb.validateBackupMysqlUser(
-                moduleSessionId,
-                draftConfiguration.backupHomePath,
-                backupUser,
-                password,
-            );
-            setBackupMysqlUserValidationResult(result);
-            if (result.passwordStored) {
-                void ui.showInformationMessage("Backup account password was validated and stored.", {});
-            }
-
-            return result.passwordStored;
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            void ui.showErrorMessage(`Cannot validate backup account: ${message}`, {});
-
-            return false;
-        }
-    };
-
-    const requireCheckedBackupAccount = (): boolean => {
-        if (backupAccountExists !== undefined) {
-            return true;
-        }
-
-        setBackupAccountActionStatus({
-            tone: "info",
-            message: "Click Finish to check the backup account before choosing an account action.",
-        });
-
-        return false;
-    };
-
-    const inputBackupAccountPassword = async (): Promise<boolean> => {
-        const backupUser = draftConfiguration.backupUser.trim();
-
-        if (!requireCheckedBackupAccount()) {
-            return false;
-        }
-
-        if (!backupAccountExists) {
-            setBackupAccountActionStatus({
-                tone: "warn",
-                message: "Use Create User to create and store backup account credentials.",
-            });
-
-            return false;
-        }
-
-        setBackupAccountActionStatus({
-            tone: "info",
-            message: "Opening password prompt.",
-        });
-        const password = await ui.requestPassword({
-            requestId: "mebInputBackupPassword",
-            caption: "Store Backup User Password",
-            description: [`Enter the existing password for ${backupUser}.`],
-            user: backupUser,
-            passwordLabel: "Existing password",
-            passwordRequired: true,
-            confirmPassword: false,
-            submitCaption: "Store",
-        });
-
-        if (password !== undefined) {
-            return await validateAndStoreBackupAccountPassword(password);
-        }
-
-        setBackupAccountActionStatus({
-            tone: "warn",
-            message: "Password storage was cancelled or the password prompt could not be opened.",
-        });
-
-        return false;
-    };
-
-    const createBackupAccount = async (): Promise<boolean> => {
-        const backupUser = draftConfiguration.backupUser.trim();
-
-        if (!requireCheckedBackupAccount()) {
-            return false;
-        }
-
-        if (backupAccountExists) {
-            setBackupAccountActionStatus({
-                tone: "warn",
-                message: "Use Input Password or Reset Password for an existing backup account.",
-            });
-
-            return false;
-        }
-
-        if (!moduleSessionId) {
-            void ui.showErrorMessage("Open a MySQL connection before creating the backup account.", {});
-
-            return false;
-        }
-
-        try {
-            const result = await ShellInterface.meb.createBackupMysqlUser(
-                moduleSessionId,
-                draftConfiguration.backupHomePath,
-                backupUser,
-            );
-            setBackupMysqlUserValidationResult(result);
-            if (result.passwordStored) {
-                void ui.showInformationMessage("Backup account was created and credentials were stored.", {});
-            }
-
-            return result.passwordStored;
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            void ui.showErrorMessage(`Cannot create backup account: ${message}`, {});
-
-            return false;
-        }
-    };
-
-    const fixBackupAccount = async (): Promise<void> => {
-        const backupUser = draftConfiguration.backupUser.trim();
-
-        if (!requireCheckedBackupAccount() || !backupAccountExists || !moduleSessionId || fixingBackupAccount) {
-            return;
-        }
-
-        setFixingBackupAccount(true);
-        try {
-            const result = await ShellInterface.meb.fixBackupMysqlUser(
-                moduleSessionId,
-                draftConfiguration.backupHomePath,
-                backupUser,
-            );
-            setBackupMysqlUserValidationResult(result);
-            if (result.missingGrants.length === 0) {
-                void ui.showInformationMessage("Backup account grants were fixed.", {});
-            }
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            void ui.showErrorMessage(`Cannot fix backup account: ${message}`, {});
-        } finally {
-            setFixingBackupAccount(false);
-        }
-    };
-
-    const handleBackupAccountAction = async (): Promise<void> => {
-        if (backupCommandsDisabled) {
-            return;
-        }
-
-        if ((backupMysqlUserValidation?.missingGrants.length ?? 0) > 0) {
-            await fixBackupAccount();
-
-            return;
-        }
-
-        if (backupPasswordKnown || backupMysqlUserValidation?.passwordStored) {
-            return;
-        }
-
-        if (backupAccountExists === undefined) {
-            await refreshBackupMysqlUserValidation();
-
-            return;
-        }
-
-        if (backupAccountExists) {
-            await inputBackupAccountPassword();
-
-            return;
-        }
-
-        await createBackupAccount();
-    };
-
-    const resetBackupAccountPassword = async (password?: string): Promise<boolean> => {
-        const backupUser = draftConfiguration.backupUser.trim();
-
-        if (!requireCheckedBackupAccount()) {
-            return false;
-        }
-
-        if (!backupAccountExists) {
-            setBackupAccountActionStatus({
-                tone: "warn",
-                message: "Use Create User to create and store backup account credentials.",
-            });
-
-            return false;
-        }
-
-        if (!moduleSessionId) {
-            void ui.showErrorMessage("Open a MySQL connection before resetting the backup account password.", {});
-
-            return false;
-        }
-
-        if (!backupUser) {
-            updateValidation({
-                backupUser: { tone: "warn", message: "Enter the backup MySQL username." },
-            });
-
-            return false;
-        }
-
-        updateValidation({
-            backupPassword: { tone: "info", message: "Resetting backup account password." },
-        });
-
-        try {
-            const result = await ShellInterface.meb.resetBackupMysqlUserPassword(
-                moduleSessionId,
-                draftConfiguration.backupHomePath,
-                backupUser,
-                password,
-            );
-            setBackupMysqlUserValidationResult(result);
-            if (result.passwordStored) {
-                void ui.showInformationMessage("Backup account password was reset and stored.", {});
-            }
-
-            return result.passwordStored;
-        } catch (reason: unknown) {
-            const message = convertErrorToString(reason);
-            void ui.showErrorMessage(`Cannot reset backup account password: ${message}`, {});
-
-            return false;
-        }
-    };
-
-    const promptBackupAccountPasswordReset = async (): Promise<void> => {
-        const backupUser = draftConfiguration.backupUser.trim();
-
-        if (!requireCheckedBackupAccount()) {
-            return;
-        }
-
-        if (!backupAccountExists) {
-            setBackupAccountActionStatus({
-                tone: "warn",
-                message: "Use Create User to create and store backup account credentials.",
-            });
-
-            return;
-        }
-
-        const password = await ui.requestPassword({
-            requestId: "mebResetBackupPassword",
-            caption: "Reset Backup User Password",
-            description: [`Enter a new password for ${backupUser}.`],
-            user: backupUser,
-            passwordLabel: "New password",
-            confirmPasswordLabel: "Confirm",
-            confirmPassword: true,
-            submitCaption: "Reset",
-        });
-
-        if (password !== undefined) {
-            await resetBackupAccountPassword(password);
-        }
-    };
-
-    const resetBackupAccountToRandomPassword = async (): Promise<void> => {
-        await resetBackupAccountPassword();
-    };
-
-    const backupAccountPasswordValid = backupPasswordKnown || backupMysqlUserValidation?.passwordStored === true;
-    const backupAccountMissingGrants = (backupMysqlUserValidation?.missingGrants.length ?? 0) > 0;
-    const backupAccountActionCaption = backupAccountMissingGrants
-        ? fixingBackupAccount ? "Fixing..." : "Fix Account"
-        : backupAccountPasswordValid
-            ? "Check Account"
-            : backupAccountExists === undefined
-                ? "Check Account"
-                : backupAccountExists ? "Store Password..." : "Create User";
-    const disableBackupAccountAction = backupCommandsDisabled || draftConfiguration.backupUser.trim() === ""
-        || (!backupAccountMissingGrants && backupAccountPasswordValid) || fixingBackupAccount;
-    const disableConfigurationApply = backupCommandsDisabled || applyingConfiguration
-        || draftConfiguration.backupHomePath.trim() === "" || draftConfiguration.backupUser.trim() === "";
     const wizardSteps = [
         "Introduction",
         "Local Access",
         "Backup Home",
         "MySQL User for Backups",
     ];
-    const renderWizardStatus = (label: string, value: ComponentChild,
-        status?: IMebValidationStatus): ComponentChild => {
-        return (
-            <>
-                <div className="enterpriseBackupWizardStatusRow">
-                    <div>
-                        <span>{label}</span>
-                        <strong>{value}</strong>
-                    </div>
-                </div>
-                <div>
-                    {status && renderValidation(status)}
-                </div>
-            </>
-        );
-    };
 
     const renderWizardPageLayout = (
         title: string,
@@ -910,12 +482,15 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
             ? serverInfo.datadir
             : "the MySQL data directory";
 
+        if (wizardLocalAccessStatus) {
+            return wizardLocalAccessStatus;
+        }
+
         if (!localAccessValidation) {
             return {
                 tone: "info",
-                message: checkingLocalAccess
-                    ? "Checking current-user access to the MySQL data directory."
-                    : "The wizard will check that the current OS user can read and traverse the MySQL data directory.",
+                message: "The wizard automatically checks that the current OS user can read and traverse the "
+                    + "MySQL data directory.",
             };
         }
 
@@ -946,88 +521,6 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
             tone: "warn",
             message: `The current OS user must be able to read and traverse ${datadir}.`,
         };
-    };
-
-    const backupHomeCheckStatus = (): IMebValidationStatus => {
-        if (creatingBackupHome) {
-            return { tone: "info", message: "Creating backup home directory." };
-        }
-
-        if (backupHomeValidation) {
-            return backupHomeValidation.status;
-        }
-
-        if (validation.backupHomePath.tone === "warn") {
-            return validation.backupHomePath;
-        }
-
-        return draftConfiguration.backupHomePath.trim() ? {
-            tone: "info",
-            message: "Click Next to validate this backup home.",
-        } : {
-            tone: "info",
-            message: "Choose an existing directory and/or create one.",
-        };
-    };
-
-    const backupHomeWarningDetails = (): Array<{
-        label: string;
-        value: string;
-        status: IMebValidationStatus;
-    }> => {
-        return backupHomeValidation ? [{
-            label: "Owner",
-            value: backupHomeValidation.owner ?? "Unknown",
-            status: backupHomeValidation.ownershipStatus,
-        }, {
-            label: "Permissions",
-            value: "Owner-only",
-            status: backupHomeValidation.permissionsStatus,
-        }, {
-            label: "Instance",
-            value: "Current data directory",
-            status: backupHomeValidation.reuseStatus,
-        }, {
-            label: "Access",
-            value: setupState?.currentOsUser ?? localAccessValidation?.currentOsUser ?? "Current OS user",
-            status: backupHomeValidation.accessStatus,
-        }].filter((item) => {
-            return item.status.tone === "warn";
-        }) : [];
-    };
-
-    const backupMysqlUserStatus = (): IMebValidationStatus => {
-        if (draftConfiguration.backupUser.trim() === "") {
-            return { tone: "warn", message: "Enter the backup MySQL username." };
-        }
-
-        if (backupAccountPasswordValid) {
-            return {
-                tone: "ok",
-                message: "Credentials are stored in the backup home login file.",
-            };
-        }
-
-        return backupMysqlUserValidation?.passwordStatus ?? backupMysqlUserValidation?.status ?? {
-            tone: "info",
-            message: "The account will be checked when you click Finish.",
-        };
-    };
-
-    const renderBackupMysqlUserValidation = (): ComponentChild => {
-        const status = backupMysqlUserStatus();
-        const missingGrants = backupMysqlUserValidation?.missingGrants ?? [];
-        if (missingGrants.length === 0) {
-            return renderValidation(status);
-        }
-
-        return <div className="enterpriseBackupValidation warn">
-            <Icon src={validationIcon("warn")} />
-            <span>
-                Backup account is missing <span className="enterpriseBackupTooltipTarget"
-                    data-tooltip={missingGrants.join("\n")}>required grants</span>.
-            </span>
-        </div>;
     };
 
     const renderWizardLocalAccess = (): ComponentChild => {
@@ -1061,9 +554,6 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
     };
 
     const renderWizardBackupHome = (): ComponentChild => {
-        const showCreateBackupHome = creatingBackupHome
-            || (backupHomeValidation?.exists === false && backupHomeValidation.backupHomePath != null);
-
         return renderWizardPageLayout(
             "Backup Home Directory",
             <p>
@@ -1073,33 +563,30 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
             <>
                 <div className="enterpriseBackupWizardField enterpriseBackupWizardBackupHomeField">
                     <span>Backup home directory</span>
-                    <div className="enterpriseBackupWizardBackupHomeInput">
-                        <FileSelector
-                            id="enterpriseBackupWizardHome"
-                            path={draftConfiguration.backupHomePath}
-                            title="Select backup home"
-                            openLabel="Use Directory"
-                            canSelectFiles={false}
-                            canSelectFolders={true}
-                            onChange={(files) => {
-                                setBackupHomeValidation(undefined);
-                                resetBackupAccountValidation();
-                                updateValidation({
-                                    backupPassword: { tone: "info", message: "Waiting for validation." },
-                                });
-                                updateConfiguration({ backupHomePath: files[0]?.name ?? "" });
-                            }}
-                        />
-                        {showCreateBackupHome && <Button
-                            onClick={() => {
-                                void createBackupHomeDirectory();
-                            }}
-                            disabled={backupCommandsDisabled || creatingBackupHome
-                                || draftConfiguration.backupHomePath.trim() === ""}
-                        >
-                            {creatingBackupHome ? "Creating" : "Create"}
-                        </Button>}
-                    </div>
+                    <EnterpriseBackupHome
+                        active={active && wizardPage === 2}
+                        disabled={wizardDisabled}
+                        moduleSessionId={moduleSessionId}
+                        path={draftConfiguration.backupHomePath}
+                        runOperation={runWizardOperation}
+                        onPathChange={(path) => {
+                            setWizardBackupHomeState({ moduleSessionId, path, valid: false });
+                            setWizardBackupAccountState({
+                                moduleSessionId,
+                                username: draftConfiguration.backupUser.trim(),
+                                valid: false,
+                            });
+                            updateConfiguration({ backupHomePath: path });
+                        }}
+                        onStateChange={(state) => {
+                            setWizardBackupHomeState(state);
+                            setWizardBackupAccountState({
+                                moduleSessionId,
+                                username: draftConfiguration.backupUser.trim(),
+                                valid: false,
+                            });
+                        }}
+                    />
                 </div>
 
                 <div className="enterpriseBackupWizardInfoText">
@@ -1114,71 +601,36 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
     };
 
     const renderWizardBackupUser = (): ComponentChild => {
-        const renderActions = (): ComponentChild => {
-            if (backupAccountExists === undefined || backupAccountPasswordValid) {
-                return null;
-            }
-
-            if (backupAccountExists) {
-                return (
-                    <div className="enterpriseBackupWizardAccountActions">
-                        <p>
-                            The MySQL account exists, please provide its password.
-                            If you don't know it, you may reset it.
-                        </p>
-                        <Button onClick={() => {
-                            void inputBackupAccountPassword();
-                        }} disabled={disableBackupAccountAction}>
-                            Input Password
-                        </Button>
-                        <Button onClick={() => {
-                            void promptBackupAccountPasswordReset();
-                        }} disabled={disableBackupAccountAction}>
-                            Reset Password
-                        </Button>
-                        <Button onClick={() => {
-                            void resetBackupAccountToRandomPassword();
-                        }} disabled={disableBackupAccountAction}>
-                            Reset to Random Password
-                        </Button>
-                    </div>
-                );
-            }
-
-            return (
-                <div className="enterpriseBackupWizardAccountActions">
-                    <Button onClick={() => {
-                        void createBackupAccount();
-                    }} disabled={disableBackupAccountAction}>
-                        Create User
-                    </Button>
-                </div>
-            );
-        };
-
         return renderWizardPageLayout(
             "MySQL User for Backups",
             <p>
                 mysqlbackup will use this MySQL account to connect to the target server. The account should
                 have MEB backup privileges, including BACKUP_ADMIN, backup history table privileges,
-                and read privileges. Click Finish to check the account. If an account does not exist, the wizard can
-                create one. If you already have an account, you must either provide its password or reset it to a new
-                one.
+                and read privileges. The wizard automatically checks the account on this page. If an account does
+                not exist, the wizard can create one. If you already have an account, you must either provide its
+                password or reset it to a new one.
             </p>,
             <div className="enterpriseBackupWizardAccountPanel">
-                <label>
-                    <span>MySQL username for backups</span>
-                    <Input
-                        value={draftConfiguration.backupUser}
-                        spellCheck={false}
-                        onChange={(_event, data) => {
-                            resetBackupAccountValidation();
-                            updateConfiguration({ backupUser: data.value });
-                        }}
-                    />
-                </label>
-
-                {renderActions()}
+                <EnterpriseBackupAccount
+                    active={active && wizardPage === 3}
+                    backupHomePath={wizardBackupHomeValid ? wizardBackupHomeState.validatedPath : undefined}
+                    disabled={wizardDisabled}
+                    moduleSessionId={moduleSessionId}
+                    runOperation={runWizardOperation}
+                    username={draftConfiguration.backupUser}
+                    onStateChange={(state) => {
+                        setWizardBackupAccountState(state);
+                    }}
+                    onUsernameChange={(username) => {
+                        setWizardBackupAccountState({
+                            backupHomePath: wizardBackupHomeState.validatedPath,
+                            moduleSessionId,
+                            username: username.trim(),
+                            valid: false,
+                        });
+                        updateConfiguration({ backupUser: username });
+                    }}
+                />
             </div>,
         );
     };
@@ -1205,7 +657,7 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
                 return (
                     <div className="enterpriseBackupWizardStatusFooter">
                         <div className="enterpriseBackupWizardStatusList">
-                            {renderValidation(getWizardMysqlbackupStatus())}
+                            <EnterpriseBackupValidationStatus status={getWizardMysqlbackupStatus()} />
                         </div>
                     </div>
                 );
@@ -1214,43 +666,33 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
                 return (
                     <div className="enterpriseBackupWizardStatusFooter">
                         <div className="enterpriseBackupWizardResultRow">
-                            {renderValidation(localAccessCheckStatus())}
+                            <EnterpriseBackupValidationStatus status={localAccessCheckStatus()} />
                         </div>
+                        {(wizardLocalAccessStatus?.tone === "warn"
+                            || localAccessValidation?.valid === false) && (
+                            <Button
+                                disabled={wizardDisabled}
+                                onClick={() => {
+                                    void refreshWizardLocalAccess();
+                                }}
+                            >
+                                Check Again
+                            </Button>
+                        )}
                     </div>
                 );
-
-            case 2: {
-                const backupHomeDetails = backupHomeWarningDetails();
-
-                return (
-                    <div className="enterpriseBackupWizardStatusFooter">
-                        <div className="enterpriseBackupWizardResultRow">
-                            {renderValidation(backupHomeCheckStatus())}
-                        </div>
-                        {backupHomeDetails.length > 0 && <div className="enterpriseBackupWizardStatusList">
-                            {backupHomeDetails.map((item) => {
-                                return renderWizardStatus(item.label, item.value, item.status);
-                            })}
-                        </div>}
-                    </div>
-                );
-            }
 
             default:
-                return (
-                    <div className="enterpriseBackupWizardStatusFooter">
-                        {renderBackupMysqlUserValidation()}
-                    </div>
-                );
+                return null;
         }
     };
 
     const renderConfigurationWizard = (): ComponentChild => {
-        const nextDisabled = backupCommandsDisabled || applyingConfiguration || checkingLocalAccess
-            || creatingBackupHome
+        const nextDisabled = wizardDisabled
             || (wizardPage === 0 && setupState?.mysqlbackupExists !== true)
-            || (wizardPage === 2 && !draftConfiguration.backupHomePath.trim())
-            || (wizardPage === 3 && !draftConfiguration.backupUser.trim());
+            || (wizardPage === 1 && !wizardLocalAccessValid)
+            || (wizardPage === 2 && !wizardBackupHomeValid)
+            || (wizardPage === 3 && !wizardBackupAccountValid);
 
         return (
             <main className="enterpriseBackupSurface enterpriseBackupIntroSurface">
@@ -1279,16 +721,18 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
                     {renderWizardStatusFooter()}
 
                     <div className="enterpriseBackupWizardActions">
-                        <Button onClick={cancelWizard}>
+                        <Button onClick={cancelWizard} disabled={wizardBusy}>
                             Cancel
                         </Button>
-                        <Button onClick={backWizard} disabled={wizardPage === 0}>
+                        <Button onClick={backWizard} disabled={wizardPage === 0 || wizardBusy}>
                             Back
                         </Button>
                         <Button onClick={() => {
                             void continueWizard();
                         }} disabled={nextDisabled}>
-                            {wizardPage === 3 ? applyingConfiguration ? "Applying" : "Finish" : "Next"}
+                            {wizardPage === 3
+                                ? wizardActiveOperation === "applyConfiguration" ? "Applying" : "Finish"
+                                : "Next"}
                         </Button>
                     </div>
                 </section>
@@ -1298,10 +742,14 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
 
     useEffect(() => {
         if (active && !activeRef.current) {
+            ++wizardLocalAccessGeneration.current;
+            wizardLocalAccessRetryGeneration.current = undefined;
             setDraftConfiguration(configuration);
             setLocalAccessValidation(undefined);
-            setBackupHomeValidation(undefined);
-            resetBackupAccountValidation();
+            setWizardLocalAccessValidatedGeneration(undefined);
+            setWizardLocalAccessValidatedSessionId(undefined);
+            setWizardLocalAccessStatus(undefined);
+            resetWizardEntities(configuration.backupHomePath, configuration.backupUser);
             setWizardPage(0);
         } else if (active) {
             setDraftConfiguration((current) => {
@@ -1311,79 +759,38 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
                     backupUser: configuration.backupUser || current.backupUser,
                 };
             });
+        } else if (activeRef.current) {
+            ++wizardLocalAccessGeneration.current;
+            wizardLocalAccessRetryGeneration.current = undefined;
+            setLocalAccessValidation(undefined);
+            setWizardLocalAccessValidatedGeneration(undefined);
+            setWizardLocalAccessValidatedSessionId(undefined);
+            setWizardLocalAccessStatus(undefined);
+            resetWizardEntities(configuration.backupHomePath, configuration.backupUser);
+            setWizardPage(0);
         }
         activeRef.current = active;
-    }, [active, configuration, resetBackupAccountValidation]);
+    }, [active, configuration]);
 
     useEffect(() => {
-        if (!dialogOpen) {
-            return;
+        if (dialogOpen && !dialogOpenRef.current) {
+            const nextConfiguration = normalizeMebConfiguration(configuration);
+            const nextLifecycleId = ++dialogLifecycleGeneration.current;
+            setDraftConfiguration(nextConfiguration);
+            setDialogLifecycleId(nextLifecycleId);
+            resetDialogEntities(nextConfiguration.backupHomePath, nextConfiguration.backupUser);
+            setDialogEntitiesActive(true);
+            configurationDialogRef.current?.open();
+        } else if (!dialogOpen && dialogOpenRef.current) {
+            ++dialogLifecycleGeneration.current;
+            resetDialogOperation();
+            setDialogEntitiesActive(false);
+            resetDialogEntities(configuration.backupHomePath.trim(), configuration.backupUser);
+            configurationDialogRef.current?.close(false);
         }
 
-        const nextConfiguration = normalizeMebConfiguration(configuration);
-        setDraftConfiguration(nextConfiguration);
-        setBackupHomeValidation(undefined);
-        resetBackupAccountValidation();
-        void refreshConfigurationPathValidation(nextConfiguration);
-        configurationDialogRef.current?.open();
-    }, [configuration, dialogOpen, resetBackupAccountValidation]);
-
-    useEffect(() => {
-        let cancelled = false;
-        if (active) {
-            return () => {
-                cancelled = true;
-            };
-        }
-
-        resetBackupAccountValidation();
-
-        const timeout = setTimeout(() => {
-            if (!moduleSessionId || !draftConfiguration.backupHomePath.trim()
-                || !draftConfiguration.backupUser.trim()) {
-                updateValidation({
-                    backupUser: { tone: "warn", message: "Enter the backup MySQL username." },
-                });
-
-                return;
-            }
-
-            void ShellInterface.meb.validateBackupMysqlUser(
-                moduleSessionId,
-                draftConfiguration.backupHomePath,
-                draftConfiguration.backupUser,
-                undefined,
-            ).then((result) => {
-                if (!cancelled) {
-                    setBackupMysqlUserValidation(result);
-                    setBackupAccountExists(result.exists);
-                    updateValidation({
-                        backupUser: result.status,
-                        backupPassword: result.passwordStatus,
-                    });
-                }
-            }).catch((reason: unknown) => {
-                if (!cancelled) {
-                    const message = convertErrorToString(reason);
-                    updateValidation({
-                        backupUser: { tone: "warn", message },
-                    });
-                }
-            });
-        }, 200);
-
-        return () => {
-            cancelled = true;
-            clearTimeout(timeout);
-        };
-    }, [
-        draftConfiguration.backupHomePath,
-        draftConfiguration.backupUser,
-        moduleSessionId,
-        resetBackupAccountValidation,
-        updateValidation,
-        active,
-    ]);
+        dialogOpenRef.current = dialogOpen;
+    }, [configuration, dialogOpen, resetDialogOperation]);
 
     return (
         <>
@@ -1392,6 +799,7 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
                 ref={configurationDialogRef}
                 className="enterpriseBackupConfigurationDialog"
                 caption="Configure MySQL Enterprise Backup"
+                disabled={dialogBusy}
                 content={
                     <div className="enterpriseBackupConfigurationContent">
                         <section className="enterpriseBackupServerFacts" aria-label="MySQL server information">
@@ -1412,83 +820,95 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
                             <div className="enterpriseBackupServerFactRow">
                                 <span>Workbench OS user</span>
                                 <strong>
-                                    {setupState?.currentOsUser ?? localAccessValidation?.currentOsUser ?? "Unknown"}
+                                    {setupState?.currentOsUser ?? "Unknown"}
                                 </strong>
                             </div>
                         </section>
 
                         <section className="enterpriseBackupConfigurationFields" aria-label="MEB configuration fields">
-                            <label>
+                            <div className="enterpriseBackupConfigurationField">
                                 <span>Backup home directory</span>
-                                <FileSelector
-                                    id="enterpriseBackupHome"
-                                    path={draftConfiguration.backupHomePath}
-                                    title="Select backup home"
-                                    openLabel="Use Directory"
-                                    canSelectFiles={false}
-                                    canSelectFolders={true}
-                                    onChange={(files) => {
-                                        setBackupHomeValidation(undefined);
-                                        resetBackupAccountValidation();
-                                        updateValidation({
-                                            backupPassword: {
-                                                tone: "info",
-                                                message: "Waiting for validation.",
-                                            },
+                                <EnterpriseBackupHome
+                                    key={`dialog-home-${dialogLifecycleId}`}
+                                    active={dialogSurfaceActive}
+                                    disabled={dialogBusy}
+                                    moduleSessionId={moduleSessionId}
+                                    path={normalizedDraftConfiguration.backupHomePath}
+                                    runOperation={runDialogOperation}
+                                    onPathChange={(path) => {
+                                        const normalizedPath = path.trim();
+                                        setDialogBackupHomeState({
+                                            moduleSessionId,
+                                            path: normalizedPath,
+                                            valid: false,
                                         });
-                                        updateConfiguration({ backupHomePath: files[0]?.name ?? "" });
+                                        setDialogBackupAccountState({
+                                            moduleSessionId,
+                                            username: normalizedDraftConfiguration.backupUser,
+                                            valid: false,
+                                        });
+                                        updateConfiguration({ backupHomePath: normalizedPath });
+                                    }}
+                                    onStateChange={(state) => {
+                                        setDialogBackupHomeState(state);
+                                        setDialogBackupAccountState({
+                                            moduleSessionId,
+                                            username: normalizedDraftConfiguration.backupUser,
+                                            valid: false,
+                                        });
                                     }}
                                 />
-                                {renderValidation(validation.backupHomePath)}
-                            </label>
-
-                            <div className="enterpriseBackupAccountFields">
-                                <label>
-                                    <span>MySQL user for backups</span>
-                                    <Input
-                                        value={draftConfiguration.backupUser}
-                                        spellCheck={false}
-                                        onChange={(_event, data) => {
-                                            resetBackupAccountValidation();
-                                            updateValidation({
-                                                backupPassword: {
-                                                    tone: "info",
-                                                    message: "Waiting for validation.",
-                                                },
-                                            });
-                                            updateConfiguration({ backupUser: data.value });
-                                        }}
-                                    />
-                                    {renderBackupMysqlUserValidation()}
-                                </label>
-
-                                <Button onClick={() => {
-                                    void handleBackupAccountAction();
-                                }} disabled={disableBackupAccountAction}>
-                                    {backupAccountActionCaption}
-                                </Button>
-                                <div className="enterpriseBackupAccountPasswordStatus">
-                                    {renderValidation(backupAccountPasswordDisplayStatus())}
-                                </div>
                             </div>
+
+                            <EnterpriseBackupAccount
+                                key={`dialog-account-${dialogLifecycleId}`}
+                                active={dialogSurfaceActive}
+                                backupHomePath={dialogBackupHomeValid
+                                    ? dialogBackupHomeState.validatedPath
+                                    : undefined}
+                                disabled={dialogBusy}
+                                moduleSessionId={moduleSessionId}
+                                runOperation={runDialogOperation}
+                                username={draftConfiguration.backupUser}
+                                onStateChange={(state) => {
+                                    setDialogBackupAccountState(state);
+                                }}
+                                onUsernameChange={(username) => {
+                                    setDialogBackupAccountState({
+                                        backupHomePath: dialogBackupHomeState.validatedPath,
+                                        moduleSessionId,
+                                        username: username.trim(),
+                                        valid: false,
+                                    });
+                                    updateConfiguration({ backupUser: username });
+                                }}
+                            />
                         </section>
                     </div>
                 }
                 actions={{
                     end: [
                         <Button key="apply" onClick={() => {
-                            void applyConfiguration();
-                        }} disabled={disableConfigurationApply}>
-                            {applyingConfiguration ? "Applying" : "Apply"}
+                            if (!disableDialogApply) {
+                                void applyConfiguration(runDialogOperation);
+                            }
+                        }} disabled={disableDialogApply}>
+                            {dialogActiveOperation === "applyConfiguration" ? "Applying" : "Apply"}
                         </Button>,
                         <Button key="cancel" onClick={() => {
-                            configurationDialogRef.current?.close(true);
-                        }}>
+                            if (!dialogBusy) {
+                                configurationDialogRef.current?.close(true);
+                            }
+                        }} disabled={dialogBusy}>
                             Cancel
                         </Button>,
                     ],
                 }}
                 onClose={() => {
+                    ++dialogLifecycleGeneration.current;
+                    resetDialogOperation();
+                    setDialogEntitiesActive(false);
+                    resetDialogEntities(configuration.backupHomePath.trim(), configuration.backupUser);
                     onDialogOpenChange(false);
                 }}
             />

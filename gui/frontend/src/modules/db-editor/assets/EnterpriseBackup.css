@@ -541,20 +541,67 @@
     width: 100%;
 }
 
-.msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeInput {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    min-width: 0;
-}
-
 .msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeField .fileSelector {
     flex: 0 1 520px;
     width: min(520px, 100%);
 }
 
-.msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeInput>.button {
-    flex: 0 0 auto;
+.msg.enterpriseBackupHost .enterpriseBackupHomeInput,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupHomeInput {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+}
+
+.msg .enterpriseBackupHomeInput > .fileSelector {
+    flex: 1 1 auto;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupAccount,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccount {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupAccountField,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountField {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupAccountField > span,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountField > span {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupAccountField > .input,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountField > .input {
+    width: 100%;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupAccountActions,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupAccountActions > p,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountActions > p {
+    flex: 0 0 100%;
+    margin: 0;
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupAccountStatus,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountStatus {
+    display: grid;
+    gap: 4px;
 }
 
 .msg.enterpriseBackupHost .enterpriseBackupWizardResultRow {
@@ -571,20 +618,6 @@
 
 .msg.enterpriseBackupHost .enterpriseBackupWizardAccountPanel>label {
     width: min(360px, 100%);
-}
-
-.msg.enterpriseBackupHost .enterpriseBackupWizardAccountActions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 10px;
-    width: 100%;
-    max-width: 860px;
-    padding-top: 4px;
-}
-
-.msg.enterpriseBackupHost .enterpriseBackupWizardAccountActions p {
-    flex: 0 0 100%;
-    margin: 0;
 }
 
 .msg.enterpriseBackupHost .enterpriseBackupWizardResultRow>.msg.button {
@@ -609,7 +642,7 @@
 
 .msg.enterpriseBackupHost .enterpriseBackupJobRow span,
 .msg.enterpriseBackupConfigurationDialog .enterpriseBackupServerFacts span,
-.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationFields label>span,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationField>span,
 .msg.enterpriseBackupHost dt {
     color: var(--descriptionForeground);
     font-size: 12px;
@@ -917,38 +950,14 @@
     gap: 12px;
 }
 
-.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationFields label,
-.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields {
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationField {
     display: grid;
     gap: 6px;
     min-width: 0;
 }
 
-.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationFields .input,
-.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationFields .fileSelector {
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationField>.enterpriseBackupHome {
     width: 100%;
-}
-
-.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields {
-    grid-template-columns: minmax(0, 1fr) max-content;
-    align-items: start;
-}
-
-.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields>.button {
-    margin-top: 22px;
-}
-
-.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountPasswordStatus {
-    display: flex;
-    align-items: center;
-    grid-column: 1 / -1;
-    gap: 8px;
-}
-
-.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountPasswordStatus>span {
-    flex: 0 0 auto;
-    color: var(--descriptionForeground);
-    font-size: 12px;
 }
 
 .msg.enterpriseBackupHost .enterpriseBackupValidation {
@@ -1693,16 +1702,10 @@
     }
 
     .msg.enterpriseBackupConfigurationDialog .enterpriseBackupServerFacts,
-    .msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields,
     .msg.enterpriseBackupProfileDialog .enterpriseBackupProfileHeaderFields,
     .msg.enterpriseBackupProfileDialog .enterpriseBackupProfileSummaries,
     .msg.enterpriseBackupProfileDialog .enterpriseBackupOptionPair {
         grid-template-columns: 1fr;
-    }
-
-    .msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeInput {
-        flex-direction: column;
-        align-items: stretch;
     }
 
     .msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeField .fileSelector {
@@ -1711,9 +1714,5 @@
 
     .msg.enterpriseBackupContentDialog .enterpriseBackupContentFacts {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields>.button {
-        margin-top: 0;
     }
 }

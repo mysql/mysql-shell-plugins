@@ -57,7 +57,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
     public constructor(props: IDialogContentProperties) {
         super(props);
 
-        this.addHandledProperties("content", "header", "caption", "actions", "onCloseClick", "draggable");
+        this.addHandledProperties("content", "header", "caption", "actions", "onCloseClick", "draggable", "disabled");
 
         if (props.draggable) {
             this.connectEvents("onPointerDown", "onPointerMove", "onPointerUp");
@@ -85,7 +85,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, content, header, caption, actions } = this.props;
+        const { children, content, header, caption, actions, disabled } = this.props;
         const className = this.getEffectiveClassNames(["dialog", "visible"]);
 
         let dialogContent;
@@ -97,6 +97,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
                     {caption && <div className="title verticalCenterContent">
                         {caption}
                         <Button id="closeButton"
+                            disabled={disabled}
                             imageOnly
                             onClick={this.handleCloseClick}
                         >

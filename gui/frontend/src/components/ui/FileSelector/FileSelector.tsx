@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -51,6 +51,9 @@ interface IFileSelectorEntry {
 export interface IFileSelectorProperties extends IComponentProperties {
     // Must represent a file system object. Other schemes are not supported.
     path: string;
+
+    // If true, manual path entry is disabled while the picker remains usable.
+    readOnly?: boolean;
 
     // If true, actually read the file. In that case, its path cannot be
     // specified manually, but the file must be selected from a separate dialog.
@@ -113,7 +116,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
 
         this.addHandledProperties("value", "placeholder", "title", "openLabel", "filters", "canSelectFiles",
             "canSelectFolder", "canCreateNew", "multiSelection", "content",
-            "onChange", "onConfirm", "onSelect");
+            "onChange", "onConfirm", "onSelect", "readOnly", "disabled");
     }
 
     public override componentDidMount(): void {
@@ -125,7 +128,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
     }
 
     public render(): ComponentChild {
-        const { path, placeholder, id, canSelectFolders, doRead } = this.props;
+        const { path, placeholder, id, canSelectFolders, disabled, doRead, readOnly } = this.props;
 
         const className = this.getEffectiveClassNames(["fileSelector"]);
 
@@ -142,12 +145,15 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
                     onChange={this.handleInputChange}
                     onConfirm={this.handleInputConfirm}
                     onCancel={this.handleInputCancel}
-                    readOnly={doRead === true} // disable input field when actual File reading is necessary
+                    // Disable input field when actual File reading is necessary.
+                    readOnly={doRead === true || readOnly === true}
+                    disabled={disabled}
                 />
                 {(!canSelectFolders || appParameters.embedded) && <Button
                     id={id && `${id}Btn`}
                     caption="..."
                     onClick={this.handleButtonClick}
+                    disabled={disabled}
                 />}
             </Container>
         );

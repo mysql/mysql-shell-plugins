@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -59,15 +59,24 @@ export class Dialog extends ComponentBase<IDialogProperties> {
     };
 
     private portalRef = createRef<Portal>();
+    private closeOnEscape = true;
 
     public constructor(props: IDialogProperties) {
         super(props);
 
-        this.addHandledProperties("content", "header", "caption", "container", "actions");
+        this.addHandledProperties("content", "header", "caption", "container", "actions", "disabled");
+    }
+
+    public override componentDidUpdate(previousProps: IDialogProperties): void {
+        if (previousProps.disabled !== this.props.disabled) {
+            this.portalRef.current?.updateOptions({
+                closeOnEscape: this.closeOnEscape && !this.props.disabled,
+            });
+        }
     }
 
     public render(): ComponentChild {
-        const { children, caption, header, content, actions, container } = this.props;
+        const { children, caption, header, content, actions, container, disabled } = this.props;
 
         const className = this.getEffectiveClassNames([]); // Dialog class name is handled in the DialogContent class.
 
@@ -88,6 +97,7 @@ export class Dialog extends ComponentBase<IDialogProperties> {
                     content={content}
                     actions={actions}
                     draggable
+                    disabled={disabled}
                     onCloseClick={this.handleCloseClick}
                 >
                     {children}
@@ -97,9 +107,11 @@ export class Dialog extends ComponentBase<IDialogProperties> {
     }
 
     public open(options?: IPortalOptions): void {
+        this.closeOnEscape = options?.closeOnEscape ?? true;
         this.portalRef.current?.open({
             backgroundOpacity: 0.5,
             ...options,
+            closeOnEscape: this.closeOnEscape && !this.props.disabled,
         });
     }
 
