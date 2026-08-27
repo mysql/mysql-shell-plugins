@@ -23,6 +23,7 @@
 
 from mysqlsh.plugin_manager import plugin, plugin_function
 import mysqlsh
+import typing
 
 
 @plugin
@@ -76,3 +77,20 @@ def do_prompt_password(prompt):
     result = shell.prompt(prompt, {"type": "password"})
 
     print(result)
+
+
+@plugin_function("guitest.doSendGuiMessage")
+def do_send_gui_message(**kwargs: object) -> None:
+    """Sends a message through the GUI callback.
+
+    Args:
+      **kwargs: Additional options
+
+    Keyword Args:
+      send_gui_message (object): The function used to send a message to the GUI.
+    """
+    send_gui_message = typing.cast(
+        typing.Callable[[str, typing.Dict[str, object]], None],
+        kwargs["send_gui_message"],
+    )
+    send_gui_message("data", {"info": "Callback invoked."})

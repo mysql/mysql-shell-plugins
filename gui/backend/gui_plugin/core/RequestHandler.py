@@ -22,12 +22,30 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import threading
+import typing
 from threading import Event, Thread
 from dataclasses import is_dataclass, asdict
 
 import mysqlsh
 
 from gui_plugin.core.Protocols import Response
+
+
+class _GuiMessageCallback:
+    """Wraps a GUI message function in a Shell-compatible object.
+
+    Shell extension functions declare send_gui_message as an object. Passing a
+    bound Python method directly converts it to a Shell Function and fails
+    validation before the plugin function is called.
+    """
+
+    def __init__(
+        self, callback: typing.Callable[[str, typing.Any], None]
+    ) -> None:
+        self._callback = callback
+
+    def __call__(self, message_type: str, message: typing.Any) -> None:
+        self._callback(message_type, message)
 
 
 class RequestHandler(Thread):
@@ -65,7 +83,9 @@ class RequestHandler(Thread):
         self._confirm_complete = True
 
         if "send_gui_message" in self._kwargs:
-            self._kwargs.update({"send_gui_message": self.handle_gui_message})
+            self._kwargs.update(
+                {"send_gui_message": _GuiMessageCallback(self.handle_gui_message)}
+            )
 
     def get_context(self):
         return self._thread_context

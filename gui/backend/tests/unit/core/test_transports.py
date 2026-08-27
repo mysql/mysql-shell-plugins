@@ -29,6 +29,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import typing
 from types import SimpleNamespace
 
 import pytest
@@ -38,6 +39,7 @@ import gui_plugin.core.ShellGuiStdioBridge as StdioBridgeModule
 
 from gui_plugin.core.BackendDbLogger import BackendDbLogger
 from gui_plugin.core.Protocols import Response
+from gui_plugin.core.RequestHandler import RequestHandler
 from gui_plugin.core.ShellGuiStdioBridge import ShellGuiStdioBridge
 from gui_plugin.core.dbms.DbSession import DbSession
 from gui_plugin.sql_editor.SqlEditorModuleSession import SqlEditorModuleSession
@@ -563,6 +565,55 @@ def test_stdio_transport_execute_bypasses_backend_command_privileges(monkeypatch
 
     assert len(started_requests) == 1
     assert started_requests[0].request_id == "stdio-bypass"
+
+
+def test_request_handler_passes_gui_callback_through_plugin_validation() -> None:
+    class RecordingWebHandler:
+        def __init__(self) -> None:
+            self.pending_messages: list[
+                tuple[str, str, dict[str, typing.Any]]
+            ] = []
+            self.command_responses: list[
+                tuple[tuple[typing.Any, ...], dict[str, typing.Any]]
+            ] = []
+            self.completed_requests: list[str] = []
+
+        def send_response_message(
+            self, state: str, message: str, **kwargs: typing.Any
+        ) -> None:
+            self.pending_messages.append((state, message, kwargs))
+
+        def send_command_response(
+            self, *args: typing.Any, **kwargs: typing.Any
+        ) -> None:
+            self.command_responses.append((args, kwargs))
+
+        def send_command_done(self, request_id: str) -> None:
+            self.completed_requests.append(request_id)
+
+    web_handler = RecordingWebHandler()
+    handler = RequestHandler(
+        "gui-message",
+        mysqlsh.globals.guitest.do_send_gui_message,
+        {"send_gui_message": True},
+        web_handler,
+    )
+
+    handler._do_execute()
+
+    assert web_handler.pending_messages == [
+        (
+            "PENDING",
+            "",
+            {
+                "request_id": "gui-message",
+                "values": {"data": {"info": "Callback invoked."}},
+                "api": True,
+            },
+        )
+    ]
+    assert web_handler.command_responses == []
+    assert web_handler.completed_requests == ["gui-message"]
 
 
 @pytest.mark.parametrize(
