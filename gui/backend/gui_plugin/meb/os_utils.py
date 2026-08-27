@@ -29,6 +29,50 @@ import subprocess
 from typing import Callable, Optional
 
 
+def windows_short_path(path: str) -> str:
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    get_short_path_name = kernel32.GetShortPathNameW
+    get_short_path_name.argtypes = (
+        wintypes.LPCWSTR,
+        wintypes.LPWSTR,
+        wintypes.DWORD,
+    )
+    get_short_path_name.restype = wintypes.DWORD
+
+    buffer_size = get_short_path_name(path, None, 0)
+    if buffer_size == 0:
+        raise ctypes.WinError(ctypes.get_last_error())
+
+    while True:
+        buffer = ctypes.create_unicode_buffer(buffer_size)
+        length = get_short_path_name(path, buffer, buffer_size)
+
+        if length == 0:
+            raise ctypes.WinError(ctypes.get_last_error())
+
+        if length < buffer_size:
+            return buffer.value
+
+        buffer_size = length
+
+
+def windows_ascii_directory_path(path: str) -> str:
+    if path.isascii():
+        return path
+
+    short_path = windows_short_path(path)
+    if not short_path.isascii():
+        raise OSError("Directory does not have a usable ASCII short path")
+
+    if not os.path.samefile(path, short_path):
+        raise OSError("ASCII short path does not identify the directory")
+
+    return short_path
+
+
 def get_current_os_user() -> Optional[str]:
     try:
         import getpass

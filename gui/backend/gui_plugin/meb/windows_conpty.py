@@ -23,6 +23,7 @@
 
 from __future__ import annotations
 
+import argparse
 import ctypes
 import os
 import subprocess
@@ -304,6 +305,31 @@ def _close_pseudoconsole(
         pseudoconsole.value = None
 
 
+def _create_process(
+    kernel32: Kernel32,
+    argv: Sequence[str],
+    startup: STARTUPINFOEXW,
+    process_information: PROCESS_INFORMATION,
+) -> None:
+    command_line = ctypes.create_unicode_buffer(
+        subprocess.list2cmdline(list(argv))
+    )
+
+    if not kernel32.dll.CreateProcessW(
+        argv[0],
+        command_line,
+        None,
+        None,
+        False,
+        EXTENDED_STARTUPINFO_PRESENT,
+        None,
+        None,
+        ctypes.byref(startup.StartupInfo),
+        ctypes.byref(process_information),
+    ):
+        raise _win_error("CreateProcessW")
+
+
 def run_in_pseudoconsole(
     argv: Sequence[str],
     input_data: bytes,
@@ -397,23 +423,12 @@ def run_in_pseudoconsole(
         startup = STARTUPINFOEXW()
         startup.StartupInfo.cb = ctypes.sizeof(startup)
         startup.lpAttributeList = attribute_list
-        command_line = ctypes.create_unicode_buffer(
-            subprocess.list2cmdline(list(argv))
+        _create_process(
+            kernel32,
+            argv,
+            startup,
+            process_information,
         )
-
-        if not kernel32.dll.CreateProcessW(
-            argv[0],
-            command_line,
-            None,
-            None,
-            False,
-            EXTENDED_STARTUPINFO_PRESENT,
-            None,
-            None,
-            ctypes.byref(startup.StartupInfo),
-            ctypes.byref(process_information),
-        ):
-            raise _win_error("CreateProcessW")
 
         kernel32.close_handle(input_read)
         kernel32.close_handle(output_write)
@@ -495,23 +510,27 @@ def run_in_pseudoconsole(
         kernel32.close_handle(output_read)
 
 
-def _parse_arguments(arguments: Sequence[str]) -> tuple[bool, list[str]]:
-    values = list(arguments)
-    try:
-        separator = values.index("--")
-    except ValueError as error:
-        raise ValueError("missing '--' command separator") from error
+class _ArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:
+        raise ValueError(message)
 
-    options = values[:separator]
-    unknown_options = [option for option in options if option != "--stdin"]
-    if unknown_options:
-        raise ValueError(f"unknown option: {unknown_options[0]}")
 
-    command = values[separator + 1:]
+def _parse_arguments(
+    arguments: Sequence[str],
+) -> tuple[bool, list[str]]:
+    parser = _ArgumentParser(add_help=False)
+    parser.add_argument("--stdin", action="store_true")
+    parser.add_argument("command", nargs=argparse.REMAINDER)
+    options = parser.parse_args(list(arguments))
+
+    if not options.command or options.command[0] != "--":
+        raise ValueError("missing '--' command separator")
+
+    command = options.command[1:]
     if not command:
         raise ValueError("command must not be empty")
 
-    return "--stdin" in options, command
+    return options.stdin, command
 
 
 def _read_input() -> bytes:
@@ -542,10 +561,9 @@ def main(arguments: Sequence[str] | None = None) -> int:
         return 2
 
     try:
-        result = run_in_pseudoconsole(
-            command,
-            _read_input() if forward_stdin else b"",
-        )
+        input_data = _read_input() if forward_stdin else b""
+        result = run_in_pseudoconsole(command, input_data)
+
         if result.output:
             sys.stdout.write(
                 result.output.decode("utf-8", errors="replace")

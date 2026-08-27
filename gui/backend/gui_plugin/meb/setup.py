@@ -27,6 +27,7 @@ import configparser
 import hashlib
 import io
 import json
+import ntpath
 import os
 import re
 import secrets
@@ -95,7 +96,13 @@ from .models import (
     MebStatus,
     MebValidationStatus,
 )
-from .os_utils import get_current_os_user, get_path_group, get_path_owner, write_text_private
+from .os_utils import (
+    get_current_os_user,
+    get_path_group,
+    get_path_owner,
+    windows_ascii_directory_path,
+    write_text_private,
+)
 
 
 DEFAULT_MYSQL_BACKUP_USER = "mysqlbackup"
@@ -204,6 +211,31 @@ def _login_path(datadir: str | None) -> str:
 
 def _login_file(backup_home_path: str) -> str:
     return os.path.join(backup_home_path, ".mylogin.cnf")
+
+
+def _windows_ascii_file_path(path: str) -> str:
+    directory = os.path.dirname(path)
+    filename = os.path.basename(path)
+    join_path = os.path.join
+    if not directory and ntpath.dirname(path):
+        directory = ntpath.dirname(path)
+        filename = ntpath.basename(path)
+        join_path = ntpath.join
+
+    directory = windows_ascii_directory_path(directory)
+    if not filename.isascii():
+        raise OSError("File name must contain only ASCII characters")
+
+    return join_path(directory, filename)
+
+
+def _windows_directory_uses_short_paths(path: str) -> bool:
+    if path.isascii():
+        return False
+
+    windows_ascii_directory_path(path)
+
+    return True
 
 
 def _env_command(context: Any, env_name: str, env_value: str, command: str) -> str:
@@ -518,6 +550,19 @@ def validate_backup_home(
         status = _validation("warn", "Backup home path is not a directory.")
         return MebBackupHomeValidation(backupHomePath=backup_home_path, exists=True, status=status)
 
+    if context.target.is_windows:
+        try:
+            _windows_directory_uses_short_paths(backup_home_path)
+        except OSError:
+            return MebBackupHomeValidation(
+                backupHomePath=backup_home_path,
+                exists=True,
+                status=_validation(
+                    "warn",
+                    "Backup home path contains non-ASCII characters but does not have a usable ASCII short path.",
+                ),
+            )
+
     owner = get_path_owner(backup_home_path)
     if owner and os_user and owner == os_user:
         ownership_status = _validation("ok", f"Backup home is owned by {owner}.")
@@ -684,8 +729,16 @@ def _set_login_path(
 
     output: list[str] = []
     if context.target.is_windows:
+        try:
+            process_login_file = _windows_ascii_file_path(login_file)
+        except OSError as error:
+            return _validation(
+                "warn",
+                f"MEB login directory does not have a usable ASCII path: {error}",
+            )
+
         env = os.environ.copy()
-        env["MYSQL_TEST_LOGIN_FILE"] = login_file
+        env["MYSQL_TEST_LOGIN_FILE"] = process_login_file
         worker_command = [
             str(getattr(mysqlsh, "executable", sys.executable)),
             "--disable-plugins",
@@ -720,6 +773,7 @@ def _set_login_path(
             password,
             output.append,
         )
+
     if rc != 0:
         detail = "".join(output).strip()
         failure = f"MEB mysql_config_editor failed with exit code {rc}"
@@ -791,8 +845,17 @@ def _mysql_current_user_from_client(
     ]
     env = os.environ.copy()
     env["LANG"] = "C"
+
     if login_file:
-        env["MYSQL_TEST_LOGIN_FILE"] = login_file
+        if context.target.is_windows:
+            try:
+                process_login_file = _windows_ascii_file_path(login_file)
+            except OSError as error:
+                return 1, "", f"MEB login directory does not have a usable ASCII path: {error}"
+
+            env["MYSQL_TEST_LOGIN_FILE"] = process_login_file
+        else:
+            env["MYSQL_TEST_LOGIN_FILE"] = login_file
 
     try:
         result = subprocess.run(
@@ -993,6 +1056,10 @@ def _manager_config_values(
         "launchd_plist_dir": os.path.join(backup_home_path, "launchd"),
         "windows_task_folder": r"\MySQLWorkbench",
         "windows_logon_type": "S4U",
+        "windows_use_short_paths": str(
+            context.target.is_windows
+            and _windows_directory_uses_short_paths(backup_home_path)
+        ),
     }
 
     if context.target.basedir:
@@ -1537,6 +1604,8 @@ def save_profile(
     profile: MebBackupProfile,
 ) -> MebStatus:
     context = create_local_backup_context(session=session)
+    target = getattr(context, "target", None)
+    is_windows = bool(target and target.is_windows)
     backup_home_path = _canonical_path(_clean(backup_home_path) or "")
     manager_values = _manager_values(backup_home_path)
     os_user = manager_values.get("backup_os_user")
@@ -1559,6 +1628,15 @@ def save_profile(
         config.write(stream)
         context.backend.set_file_content(path, stream.getvalue())
 
+    def directory_uses_short_paths(path: str) -> bool:
+        try:
+            return _windows_directory_uses_short_paths(path)
+        except OSError as error:
+            raise ValueError(
+                "Backup destination contains non-ASCII characters but does not "
+                "have a usable ASCII short path."
+            ) from error
+
     if profile.user:
         profile.user = _parse_mysql_account(profile.user, _local_account_host(context))[0]
 
@@ -1571,8 +1649,12 @@ def save_profile(
         read_profile_config=read_profile_config,
         path_exists=path_exists,
         create_directory_recursive=context.backend.create_directory_recursive,
+        directory_uses_short_paths=(
+            directory_uses_short_paths if is_windows else None
+        ),
         validate_directory=False,
         mysqlbackup_command=manager_values.get("mysqlbackup"),
+        windows_path_rules=is_windows,
     )
     state = get_setup_state(session, backup_home_path)
     if state.status is None:
@@ -1754,6 +1836,10 @@ def _run_activity_backup_operation(
     }
     if operation == "backups.delete":
         params["logId"] = os.path.basename(resolved.log_path)
+
+    if operation == "backups.applyLog" and resolved.profile_id:
+        params["profileId"] = resolved.profile_id
+
     result = _runtime_helper_request(context, backup_home_path, manager_values, operation, params)
     if operation == "backups.delete" and result.get("status") != "deleted":
         raise ValueError("Backup could not be deleted.")

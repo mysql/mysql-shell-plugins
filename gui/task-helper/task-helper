@@ -88,6 +88,7 @@ class HelperConfig:
     launchd_plist_dir: str = "/Library/LaunchDaemons"
     windows_task_folder: str = r"\MySQLWorkbench"
     datadir: str = ""
+    windows_use_short_paths: bool = False
 
 
 @dataclass(frozen=True)
@@ -109,6 +110,113 @@ class ProcessPlan:
     progress_context: dict[str, Any] | None = None
 
 
+def is_windows() -> bool:
+    return os.name == "nt"
+
+
+def use_windows_short_paths(config: HelperConfig) -> bool:
+    return is_windows() and config.windows_use_short_paths
+
+
+def _windows_short_path(path: str) -> str:
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    get_short_path_name = kernel32.GetShortPathNameW
+    get_short_path_name.argtypes = (
+        wintypes.LPCWSTR,
+        wintypes.LPWSTR,
+        wintypes.DWORD,
+    )
+    get_short_path_name.restype = wintypes.DWORD
+
+    buffer_size = get_short_path_name(path, None, 0)
+    if buffer_size == 0:
+        raise ctypes.WinError(ctypes.get_last_error())
+
+    while True:
+        buffer = ctypes.create_unicode_buffer(buffer_size)
+        length = get_short_path_name(path, buffer, buffer_size)
+
+        if length == 0:
+            raise ctypes.WinError(ctypes.get_last_error())
+
+        if length < buffer_size:
+            return buffer.value
+
+        buffer_size = length
+
+
+def _windows_ascii_directory_path(path: str) -> str:
+    if path.isascii():
+        return path
+
+    try:
+        short_path = _windows_short_path(path)
+        if not short_path.isascii():
+            raise OSError("Directory does not have a usable ASCII short path")
+
+        if not os.path.samefile(path, short_path):
+            raise OSError("ASCII short path does not identify the directory")
+    except OSError as error:
+        raise HelperError(
+            "invalid_config",
+            "Windows directory does not have a usable ASCII short path.",
+        ) from error
+
+    return short_path
+
+
+def _windows_ascii_file_path(path: str) -> str:
+    if path.isascii():
+        return path
+
+    try:
+        short_path = _windows_short_path(path)
+        if not short_path.isascii():
+            raise OSError("File does not have a usable ASCII short path")
+
+        if not os.path.samefile(path, short_path):
+            raise OSError("ASCII short path does not identify the file")
+    except OSError as error:
+        raise HelperError(
+            "invalid_config",
+            "Windows file does not have a usable ASCII short path.",
+        ) from error
+
+    return short_path
+
+
+def _windows_ascii_child_path(path: str, directory: str) -> str:
+    try:
+        relative_path = os.path.relpath(path, directory)
+    except ValueError:
+        return _windows_ascii_directory_path(path)
+
+    if relative_path == os.curdir:
+        return _windows_ascii_directory_path(directory)
+
+    if relative_path == os.pardir or relative_path.startswith(
+        f"{os.pardir}{os.sep}"
+    ):
+        return _windows_ascii_directory_path(path)
+
+    if not relative_path.isascii():
+        raise HelperError(
+            "invalid_config",
+            "Windows child path must contain only ASCII characters.",
+        )
+
+    process_directory = _windows_ascii_directory_path(directory)
+
+    return os.path.join(process_directory, relative_path)
+
+
+def _windows_ascii_direct_child_path(path: str) -> str:
+    return _windows_ascii_child_path(path, os.path.dirname(path))
+
+
 def _posix_process_env() -> dict[str, str]:
     return {
         "LANG": "C",
@@ -127,10 +235,27 @@ def _windows_process_env() -> dict[str, str]:
 
 
 def _mysqlbackup_process_env(config: HelperConfig) -> dict[str, str]:
-    env = _windows_process_env() if os.name == "nt" else _posix_process_env()
-    env["MYSQL_TEST_LOGIN_FILE"] = config.login_file
+    env = _windows_process_env() if is_windows() else _posix_process_env()
+    login_file = config.login_file
+    if use_windows_short_paths(config):
+        login_file = _windows_ascii_direct_child_path(login_file)
+
+    env["MYSQL_TEST_LOGIN_FILE"] = login_file
 
     return env
+
+
+def _windows_ascii_incremental_base(
+    value: str,
+    output_directory: str,
+) -> str:
+    if not value.startswith("dir:"):
+        return value
+
+    return "dir:%s" % _windows_ascii_child_path(
+        value[4:],
+        output_directory,
+    )
 
 
 # Request validation
@@ -198,7 +323,7 @@ WINDOWS_ACCESS_DENIED = 0x80070005
 
 def _entrypoint_path() -> str:
     script_path = Path(__file__).resolve()
-    if os.name == "nt" and script_path.name == "task-helper.py":
+    if is_windows() and script_path.name == "task-helper.py":
         return script_path.with_name("task-helper.cmd").as_posix()
 
     return script_path.as_posix()
@@ -312,6 +437,21 @@ def _config_get_nonnegative_int(
     return value
 
 
+def _config_get_bool(
+    parser: configparser.RawConfigParser,
+    section: str,
+    key: str,
+    default: bool,
+) -> bool:
+    if not parser.has_option(section, key):
+        return default
+
+    try:
+        return parser.getboolean(section, key)
+    except ValueError:
+        raise HelperError("invalid_config", f"{key} must be a boolean.")
+
+
 def _config_get_path(parser: configparser.RawConfigParser, section: str, key: str) -> str:
     path = _config_get(parser, section, key)
     if not Path(path).is_absolute():
@@ -384,11 +524,21 @@ def helper_config(backup_home: Path | None = None) -> HelperConfig:
         max_output_bytes=_config_get_int(parser, section, "max_output_bytes", DEFAULT_MAX_OUTPUT_BYTES),
         backup_home=selected_backup_home.as_posix(),
         launchctl=_config_get_path(parser, section, "launchctl"),
-        schtasks=_config_get_path(parser, section, "schtasks") if os.name != "nt" else _config_get(parser, section, "schtasks"),
+        schtasks=(
+            _config_get_path(parser, section, "schtasks")
+            if not is_windows()
+            else _config_get(parser, section, "schtasks")
+        ),
         scheduler_backend=scheduler_backend,
         launchd_plist_dir=_config_get_path(parser, section, "launchd_plist_dir"),
         windows_task_folder=_config_get(parser, section, "windows_task_folder"),
         datadir=_config_get_path(parser, section, "datadir"),
+        windows_use_short_paths=_config_get_bool(
+            parser,
+            section,
+            "windows_use_short_paths",
+            is_windows() and not selected_backup_home.as_posix().isascii(),
+        ),
     )
 
 
@@ -547,7 +697,7 @@ def validate_executable_reference(
     if not stat.S_ISREG(executable_stat.st_mode):
         raise HelperError("invalid_plan", "executable must be a regular file, not a symlink or directory.")
 
-    if os.name == "nt":
+    if is_windows():
         allowed_suffixes = {".exe", ".cmd"} if allow_windows_command_script else {".exe"}
         if Path(executable).suffix.lower() not in allowed_suffixes:
             expected = ".exe or .cmd" if allow_windows_command_script else ".exe"
@@ -803,7 +953,7 @@ def run_process_plan(plan: ProcessPlan) -> dict[str, Any]:
         "stderr": subprocess.PIPE,
         "shell": False,
     }
-    if os.name == "nt":
+    if is_windows():
         if plan.account is not None and not _windows_current_account_matches(plan.account):
             raise HelperError("not_authorized", "Windows direct execution cannot switch accounts.")
         popen_args["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
@@ -941,6 +1091,8 @@ MAX_BACKUPS_LISTED = 1024
 MAX_BACKUP_LIST_DEPTH = 2
 MAX_LOG_READ_BYTES = 128 * 1024
 DEFAULT_LOG_READ_BYTES = 64 * 1024
+# Preserve "apply-logs-" plus a 64-character profile ID.
+MAX_JOB_LOG_LABEL_LENGTH = 75
 RUN_LOCK_POLL_SECONDS = 0.1
 RUN_LOCK_INITIALIZATION_GRACE_SECONDS = 5.0
 RESERVED_BACKUP_HOME_NAMES = {
@@ -1115,13 +1267,26 @@ def _checked_log_dir(backup_home: Path, user: dict[str, Any], *, create: bool = 
     return log_dir
 
 
+def _safe_job_log_label(job_id: str) -> str:
+    label = re.sub(r"[^A-Za-z0-9._-]", "-", job_id)
+    if label == job_id and len(label) <= MAX_JOB_LOG_LABEL_LENGTH:
+        return label
+
+    digest = hashlib.sha256(job_id.encode("utf-8")).hexdigest()[:12]
+    prefix_length = MAX_JOB_LOG_LABEL_LENGTH - len(digest) - 1
+    label = label[:prefix_length].rstrip("._-") or "job"
+
+    return f"{label}-{digest}"
+
+
 def _new_job_log_path(backup_home: Path, job_id: str, user: dict[str, Any]) -> Path:
     log_dir = _checked_log_dir(backup_home, user, create=True)
     assert log_dir is not None
     timestamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    job_label = _safe_job_log_label(job_id)
     fd = None
     try:
-        fd, log_name = tempfile.mkstemp(prefix=f"{timestamp}-{job_id}-", suffix=".log", dir=log_dir)
+        fd, log_name = tempfile.mkstemp(prefix=f"{timestamp}-{job_label}-", suffix=".log", dir=log_dir)
         if os.name == "posix":
             os.chmod(log_name, JOB_LOG_FILE_MODE)
     except OSError:
@@ -1140,19 +1305,44 @@ def _require_request_int(value: Any, label: str) -> int:
     return value
 
 
+def _is_safe_backup_path_component(value: str) -> bool:
+    return (
+        value not in {"", ".", ".."}
+        and not value.startswith(".")
+        and not (is_windows() and value.endswith((" ", ".")))
+        and not any(
+            ord(character) < 32 or character in '<>:"/\\|?*'
+            for character in value
+        )
+    )
+
+
+def _is_reserved_backup_home_name(value: str) -> bool:
+    if is_windows():
+        value = value.casefold()
+
+        return any(value == name.casefold() for name in RESERVED_BACKUP_HOME_NAMES)
+
+    return value in RESERVED_BACKUP_HOME_NAMES
+
+
 def _require_safe_relative_path(value: Any, label: str) -> Path:
     text = require_string(value, label)
-    if text.startswith("/") or "\\" in text or "\n" in text or "\r" in text:
+    if text.startswith("/"):
         raise HelperError("invalid_request", f"{label} must be a safe relative path.")
 
     parts = text.split("/")
-    if len(parts) == 0 or any(part in {"", ".", ".."} for part in parts):
+    if len(parts) == 0:
         raise HelperError("invalid_request", f"{label} must be a safe relative path.")
 
     for index, part in enumerate(parts):
-        require_safe_identifier(part, f"{label}[{index}]")
+        if not _is_safe_backup_path_component(part):
+            raise HelperError(
+                "invalid_request",
+                f"{label}[{index}] must be a safe path component.",
+            )
 
-    if parts[0] in RESERVED_BACKUP_HOME_NAMES:
+    if _is_reserved_backup_home_name(parts[0]):
         raise HelperError("invalid_request", f"{label} names a reserved backup-home entry.")
 
     return Path(*parts)
@@ -1177,6 +1367,17 @@ def _require_backup_child_path(backup_home: Path, relative_path: Path, kind: str
     if candidate_resolved == backup_home_resolved or backup_home_resolved not in candidate_resolved.parents:
         raise HelperError("invalid_request", f"{kind} is outside the backup home.")
 
+    resolved_relative_path = candidate_resolved.relative_to(backup_home_resolved)
+    if _is_reserved_backup_home_name(resolved_relative_path.parts[0]):
+        raise HelperError("invalid_request", f"{kind} names a reserved backup-home entry.")
+
+    for index, part in enumerate(resolved_relative_path.parts):
+        if not _is_safe_backup_path_component(part):
+            raise HelperError(
+                "invalid_request",
+                f"{kind}[{index}] must be a safe path component.",
+            )
+
     return candidate_resolved, file_stat
 
 
@@ -1196,9 +1397,9 @@ def _list_backup_dirs(backup_home: Path) -> list[dict[str, Any]]:
         for entry in sorted_entries:
             if len(backups) >= MAX_BACKUPS_LISTED:
                 return
-            if depth == 1 and entry.name in RESERVED_BACKUP_HOME_NAMES:
+            if depth == 1 and _is_reserved_backup_home_name(entry.name):
                 continue
-            if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", entry.name) is None:
+            if not _is_safe_backup_path_component(entry.name):
                 continue
 
             try:
@@ -1491,10 +1692,17 @@ def _derived_profile_jobs(backup_home: Path, config: HelperConfig) -> dict[str, 
         profile_id = require_safe_identifier(manager.get("uuid") or profile_path.stem, "profile uuid")
         storage_type = manager.get("storage_type") or ("cloud" if mysqlbackup.get("cloud_service") else "local")
         compression_method, compression_level = _profile_compression_options(manager)
+        short_path_option = manager.get("windows_use_short_paths")
+        windows_use_short_paths = (
+            _profile_truthy(short_path_option)
+            if short_path_option is not None
+            else is_windows() and not output_directory.isascii()
+        )
         base_job = {
             "outputDirectory": output_directory,
             "storageType": storage_type,
             "defaultsFile": profile_path.as_posix(),
+            "windowsUseShortPaths": windows_use_short_paths,
             "applyLog": _profile_truthy(manager.get("apply_log")),
             "compress": _profile_truthy(manager.get("compress")),
             "compressMethod": compression_method,
@@ -1692,6 +1900,7 @@ def _require_job_definition(value: Any, config: HelperConfig, target_user: Targe
         "schedule",
         "skipUnusedPages",
         "usingTts",
+        "windowsUseShortPaths",
     }, "job")
 
     job_id = require_safe_identifier(job.get("id"), "job.id")
@@ -1723,7 +1932,13 @@ def _require_job_definition(value: Any, config: HelperConfig, target_user: Targe
         "defaultsFile": defaults_file,
     }
 
-    for field in ("applyLog", "compress", "incrementalWithRedoLogOnly", "skipUnusedPages"):
+    for field in (
+        "applyLog",
+        "compress",
+        "incrementalWithRedoLogOnly",
+        "skipUnusedPages",
+        "windowsUseShortPaths",
+    ):
         field_value = job.get(field, False)
         if not isinstance(field_value, bool):
             raise HelperError("invalid_request", f"job.{field} must be a boolean.")
@@ -1790,8 +2005,23 @@ def _require_job_definition(value: Any, config: HelperConfig, target_user: Targe
 
 def _mysqlbackup_plan_for_job(job: dict[str, Any], config: HelperConfig) -> ProcessPlan:
     target_user = resolve_target_user(config)
+    output_directory = job["outputDirectory"]
+    defaults_file = job["defaultsFile"]
+    incremental_base = job.get("incrementalBase", "")
+    if use_windows_short_paths(config) or (
+        is_windows() and job.get("windowsUseShortPaths", False)
+    ):
+        output_directory = _windows_ascii_directory_path(output_directory)
+        incremental_base = _windows_ascii_incremental_base(
+            incremental_base,
+            job["outputDirectory"],
+        )
+
+    if is_windows() and not defaults_file.isascii():
+        defaults_file = _windows_ascii_file_path(defaults_file)
+
     args = [
-        f"--defaults-file={job['defaultsFile']}",
+        f"--defaults-file={defaults_file}",
         f"--login-path={config.login_path}",
         "--with-timestamp",
     ]
@@ -1814,23 +2044,23 @@ def _mysqlbackup_plan_for_job(job: dict[str, Any], config: HelperConfig) -> Proc
         args.append(f"--use-tts={tts_mode}")
 
     if job["storageType"] == "cloud":
-        args.append(f"--backup-dir={job['outputDirectory']}")
+        args.append(f"--backup-dir={output_directory}")
         args.append("--backup-image=-")
         args.append(f"{_cloud_object_option(job['defaultsFile'])}={_cloud_object_name()}")
         if job["backupMode"] == "incremental":
             args.extend([
                 "--incremental-with-redo-log-only" if job["incrementalWithRedoLogOnly"] else "--incremental",
-                f"--incremental-base={job['incrementalBase']}",
+                f"--incremental-base={incremental_base}",
             ])
         args.append("backup-to-image")
     elif job["backupMode"] == "full":
-        args.append(f"--backup-dir={job['outputDirectory']}")
+        args.append(f"--backup-dir={output_directory}")
         args.append("backup-and-apply-log" if job["applyLog"] else "backup")
     else:
         args.extend([
             "--incremental-with-redo-log-only" if job["incrementalWithRedoLogOnly"] else "--incremental",
-            f"--incremental-base={job['incrementalBase']}",
-            f"--incremental-backup-dir={job['outputDirectory']}",
+            f"--incremental-base={incremental_base}",
+            f"--incremental-backup-dir={output_directory}",
             "backup",
         ])
 
@@ -1848,10 +2078,18 @@ def _mysqlbackup_plan_for_job(job: dict[str, Any], config: HelperConfig) -> Proc
     )
 
 
-def _with_mysqlbackup_progress_file(plan: ProcessPlan, progress_path: Path) -> ProcessPlan:
+def _with_mysqlbackup_progress_file(
+    plan: ProcessPlan,
+    progress_path: Path,
+    config: HelperConfig,
+) -> ProcessPlan:
+    process_progress_path = progress_path.as_posix()
+    if use_windows_short_paths(config):
+        process_progress_path = _windows_ascii_direct_child_path(process_progress_path)
+
     args = [
         *plan.args[:-1],
-        f"--show-progress=file:{progress_path.as_posix()}",
+        f"--show-progress=file:{process_progress_path}",
         "--progress-interval=1",
         plan.args[-1],
     ]
@@ -1861,12 +2099,17 @@ def _with_mysqlbackup_progress_file(plan: ProcessPlan, progress_path: Path) -> P
 
 def _mysqlbackup_validate_plan_for_backup(backup_dir: Path, config: HelperConfig) -> ProcessPlan:
     target_user = resolve_target_user(config)
+    process_backup_dir = backup_dir.as_posix()
+    if use_windows_short_paths(config) or (
+        is_windows() and not process_backup_dir.isascii()
+    ):
+        process_backup_dir = _windows_ascii_directory_path(process_backup_dir)
 
     return ProcessPlan(
         executable=config.mysqlbackup,
         args=[
             f"--login-path={config.login_path}",
-            f"--backup-dir={backup_dir.as_posix()}",
+            f"--backup-dir={process_backup_dir}",
             "validate",
         ],
         cwd=config.working_directory,
@@ -1890,7 +2133,13 @@ def _mysqlbackup_apply_log_plan_for_backup(backup_dir: Path, config: HelperConfi
         raise HelperError("invalid_request", "apply-log is not pending for this backup.")
 
     plan = _mysqlbackup_validate_plan_for_backup(backup_dir, config)
-    args = [f"--backup-dir={backup_dir.as_posix()}"]
+    process_backup_dir = backup_dir.as_posix()
+    if use_windows_short_paths(config) or (
+        is_windows() and not process_backup_dir.isascii()
+    ):
+        process_backup_dir = _windows_ascii_directory_path(process_backup_dir)
+
+    args = [f"--backup-dir={process_backup_dir}"]
 
     if variables.get("is_compressed") == "1":
         args.append("--uncompress")
@@ -1997,10 +2246,27 @@ def _mysqlbackup_restore_plan_for_backup(
     is_incremental = variables.get("is_incremental") == "1"
     is_compressed = variables.get("is_compressed") == "1"
     apply_log_done = variables.get("apply_log_done") == "1"
+    process_backup_dir = backup_dir.as_posix()
+    if use_windows_short_paths(config) or (
+        is_windows() and not process_backup_dir.isascii()
+    ):
+        process_backup_dir = _windows_ascii_directory_path(process_backup_dir)
+
+    defaults_filename = defaults_file.name
+    if is_windows() and not defaults_filename.isascii():
+        raise HelperError(
+            "invalid_config",
+            "Windows file name must contain only ASCII characters.",
+        )
+
+    process_defaults_file = os.path.join(
+        process_backup_dir,
+        defaults_filename,
+    )
     args = [
-        f"--defaults-file={defaults_file.as_posix()}",
+        f"--defaults-file={process_defaults_file}",
         f"--login-path={config.login_path}",
-        f"--backup-dir={backup_dir.as_posix()}",
+        f"--backup-dir={process_backup_dir}",
     ]
     if force:
         args.append("--force")
@@ -2065,7 +2331,7 @@ def _validate_non_overlapping_job_schedules(jobs: dict[str, dict[str, Any]]) -> 
 def _process_exists(pid: int) -> bool:
     if pid < 1:
         return False
-    if os.name == "nt":
+    if is_windows():
         return _windows_process_exists(pid)
 
     try:
@@ -2358,7 +2624,11 @@ def handle_jobs_execute(params: Any, config: HelperConfig, dry_run: bool) -> Any
     job = _require_job_definition(job, config, resolve_target_user(config))
     plan = _mysqlbackup_plan_for_job(job, config)
     mysqlbackup_progress_path = _mysqlbackup_progress_path(backup_home)
-    plan = _with_mysqlbackup_progress_file(plan, mysqlbackup_progress_path)
+    plan = _with_mysqlbackup_progress_file(
+        plan,
+        mysqlbackup_progress_path,
+        config,
+    )
 
     if dry_run:
         return {
@@ -2561,17 +2831,21 @@ def handle_backups_verify(params: Any, config: HelperConfig, dry_run: bool) -> A
 
 def handle_backups_apply_log(params: Any, config: HelperConfig, dry_run: bool) -> Any:
     request = require_dict(params, "backups.applyLog params")
-    reject_unknown_fields(request, {"backupHome", "backupId"}, "backups.applyLog params")
+    reject_unknown_fields(request, {"backupHome", "backupId", "profileId"}, "backups.applyLog params")
     user = _current_user()
     backup_home = _require_valid_backup_home(Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=True)
     relative_path = _require_safe_relative_path(request.get("backupId"), "backupId")
+    profile_id = request.get("profileId")
+    if profile_id is not None:
+        profile_id = require_safe_identifier(profile_id, "profileId")
     target_path, file_stat = _require_backup_child_path(backup_home, relative_path, "backupId")
     if not stat.S_ISDIR(file_stat.st_mode):
         raise HelperError("invalid_request", "backupId must name a backup directory.")
     plan = _mysqlbackup_apply_log_plan_for_backup(target_path, config)
     if dry_run:
         return {"backupHome": backup_home.as_posix(), "backupId": relative_path.as_posix(), "plan": redact_plan(plan)}
-    log_path = _new_job_log_path(backup_home, f"apply-logs-{relative_path.name}", user).as_posix()
+    log_id = f"apply-logs-{profile_id}" if profile_id else f"apply-logs-{relative_path.name}"
+    log_path = _new_job_log_path(backup_home, log_id, user).as_posix()
     plan = replace(plan, log_path=log_path)
     result = run_process_plan(plan)
     status = "failed" if result["exitCode"] != 0 or result["timedOut"] else "applied"
@@ -2671,7 +2945,11 @@ def handle_backups_restore(params: Any, config: HelperConfig, dry_run: bool) -> 
     try:
         plan = _mysqlbackup_restore_plan_for_backup(target_path, restore_defaults_file, config, force=force)
         mysqlbackup_progress_path = _mysqlbackup_progress_path(backup_home)
-        plan = _with_mysqlbackup_progress_file(plan, mysqlbackup_progress_path)
+        plan = _with_mysqlbackup_progress_file(
+            plan,
+            mysqlbackup_progress_path,
+            config,
+        )
         if dry_run:
             return {
                 "backupHome": backup_home.as_posix(),
@@ -2682,7 +2960,7 @@ def handle_backups_restore(params: Any, config: HelperConfig, dry_run: bool) -> 
             }
 
         start_time = int(time.time())
-        restore_log_id = f"restore-{profile_id}-{relative_path.name}" if profile_id else f"restore-{relative_path.name}"
+        restore_log_id = f"restore-{profile_id}" if profile_id else f"restore-{relative_path.name}"
         log_path = _new_job_log_path(backup_home, restore_log_id, user).as_posix()
         _prepare_private_file(restore_output_path)
         _delete_private_file(restore_abort_path)
@@ -2931,7 +3209,7 @@ def _windows_command_path(path: str) -> str:
     if "\0" in path:
         raise HelperError("invalid_config", "config.jobRunner contains a NUL byte.")
 
-    if os.name == "nt":
+    if is_windows():
         try:
             validate_executable_reference(path, allow_windows_command_script=True)
         except HelperError as error:
@@ -2997,7 +3275,7 @@ def _scheduler_backend(config: HelperConfig) -> str:
     if sys.platform == "darwin":
         return "launchd"
 
-    if os.name == "nt":
+    if is_windows():
         return "schtasks"
 
     return "cron"
@@ -3497,6 +3775,7 @@ SAFE_CONFIG_KEYS = {
     "launchd_plist_dir": "launchdPlistDir",
     "windows_task_folder": "windowsTaskFolder",
     "windows_logon_type": "windowsLogonType",
+    "windows_use_short_paths": "windowsUseShortPaths",
 }
 
 
@@ -3775,6 +4054,7 @@ def _generated_config_values(
         "scheduler_backend": config.scheduler_backend,
         "launchd_plist_dir": config.launchd_plist_dir,
         "windows_task_folder": config.windows_task_folder,
+        "windows_use_short_paths": str(config.windows_use_short_paths),
     }
     if user.get("uid") is not None and user.get("gid") is not None:
         values["backup_os_uid"] = str(user["uid"])

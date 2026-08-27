@@ -366,6 +366,47 @@ class MebSetupJobTests(unittest.TestCase):
         self.assertEqual(calls[0][0], ["/workbench new/helpers/task-helper"])
         self.assertEqual(calls[0][1]["backupHome"], "/backup home")
 
+    def test_windows_backup_home_validation_stops_when_ascii_path_is_unavailable(self) -> None:
+        class WindowsBackend:
+            def listdir(self, _path: str) -> list[str]:
+                raise AssertionError("Backup home contents must not be inspected.")
+
+            def check_dir_writable(self, _path: str) -> bool:
+                raise AssertionError("Backup home writability must not be inspected.")
+
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        context.backend = WindowsBackend()
+
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home = Path(temporary) / "テスト"
+            backup_home.mkdir()
+
+            with (
+                patched_setup(
+                    create_local_backup_context=lambda session: context,
+                    get_current_os_user=lambda: "lroot",
+                    get_path_owner=lambda path: self.fail("Backup home owner must not be inspected."),
+                    _backup_home_permissions_status=(
+                        lambda path, is_windows: self.fail("Backup home permissions must not be inspected.")
+                    ),
+                    _backup_home_reuse_status=(
+                        lambda path, datadir: self.fail("Backup home reuse must not be inspected.")
+                    ),
+                ),
+                mock.patch.object(
+                    setup,
+                    "windows_ascii_directory_path",
+                    side_effect=OSError("short path unavailable"),
+                    create=True,
+                ),
+            ):
+                result = setup.validate_backup_home(object(), backup_home.as_posix())
+
+        self.assertFalse(result.valid)
+        self.assertIn("ASCII short path", result.status.message)
+
     def test_runtime_helper_self_test_preserves_windows_argv(self) -> None:
         calls: list[tuple[list[str], str]] = []
 
@@ -473,10 +514,63 @@ class MebSetupJobTests(unittest.TestCase):
             "--port=3306",
         ])
         self.assertEqual(input_text, "secret\r")
-        self.assertEqual(env["MYSQL_TEST_LOGIN_FILE"], login_file)
+        self.assertEqual(
+            env["MYSQL_TEST_LOGIN_FILE"],
+            os.path.join(r"C:\backup-home", ".mylogin.cnf"),
+        )
         self.assertNotIn("secret", command)
         self.assertNotIn("secret", env.values())
         self.assertEqual(timeout, 30)
+
+    def test_windows_login_path_storage_uses_short_login_file_without_cwd(self) -> None:
+        calls = []
+
+        class WindowsBackend:
+            def execute_argv_with_input(
+                self,
+                command: list[str],
+                input_text: str,
+                output_handler: object,
+                env: dict[str, str],
+                timeout: float | None = None,
+            ) -> int:
+                calls.append((command, input_text, output_handler, env, timeout))
+
+                return 0
+
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        context.backend = WindowsBackend()
+        backup_home = r"C:\Users\lroot\scratch\テスト"
+        short_backup_home = r"C:\Users\lroot\scratch\95F2~1"
+
+        with (
+            mock.patch.object(
+                setup,
+                "windows_ascii_directory_path",
+                return_value=short_backup_home,
+            ),
+            mock.patch.object(
+                setup.mysqlsh,
+                "executable",
+                r"C:\workbench\mysqlsh.exe",
+                create=True,
+            ),
+        ):
+            setup._store_login_path(
+                context,
+                backup_home,
+                "mysqlbackup",
+                "secret",
+            )
+
+        command, _input_text, _output_handler, env, _timeout = calls[0]
+        self.assertEqual(
+            env["MYSQL_TEST_LOGIN_FILE"],
+            os.path.join(short_backup_home, ".mylogin.cnf"),
+        )
+        self.assertNotIn("--cwd", command)
 
     def test_windows_login_path_storage_redacts_worker_output(self) -> None:
         class FailingWindowsBackend:
@@ -814,6 +908,78 @@ class MebSetupJobTests(unittest.TestCase):
         self.assertNotIn("secret", " ".join(command))
         self.assertEqual(kwargs["env"]["MYSQL_TEST_LOGIN_FILE"], login_file)  # type: ignore[index]
 
+    def test_windows_backup_mysql_password_validation_uses_ascii_temporary_login_file(self) -> None:
+        editor_calls = []
+        client_calls = []
+
+        class WindowsBackend:
+            def execute_argv_with_input(
+                self,
+                command: list[str],
+                input_text: str,
+                output_handler: object,
+                env: dict[str, str],
+                timeout: float | None = None,
+            ) -> int:
+                editor_calls.append((command, input_text, output_handler, env, timeout))
+
+                return 0
+
+        class FakeCompletedProcess:
+            returncode = 0
+            stdout = "mysqlbackup@localhost\n"
+            stderr = ""
+
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        context.backend = WindowsBackend()
+
+        def fake_isfile(path: str) -> bool:
+            return path == "/mysql/bin/mysql.exe"
+
+        def fake_run(command: list[str], **kwargs: object) -> FakeCompletedProcess:
+            client_calls.append((command, kwargs))
+
+            return FakeCompletedProcess()
+
+        with (
+            mock.patch.object(setup.os.path, "isfile", side_effect=fake_isfile),
+            mock.patch.object(setup.subprocess, "run", side_effect=fake_run),
+            mock.patch.object(
+                setup.mysqlsh,
+                "executable",
+                r"C:\workbench\mysqlsh.exe",
+                create=True,
+            ),
+        ):
+            result = setup._validate_backup_account_password(
+                context,
+                "mysqlbackup",
+                "localhost",
+                "secret",
+            )
+
+        self.assertEqual(result.tone, "ok")
+        self.assertEqual(len(editor_calls), 1)
+        editor_command, input_text, _output_handler, editor_env, timeout = editor_calls[0]
+        process_login_file = editor_env["MYSQL_TEST_LOGIN_FILE"]
+        self.assertTrue(process_login_file.isascii())
+        self.assertEqual(os.path.basename(process_login_file), "login.cnf")
+        self.assertNotIn("--cwd", editor_command)
+        self.assertEqual(input_text, "secret\r")
+        self.assertEqual(timeout, 30)
+
+        self.assertEqual(len(client_calls), 1)
+        client_command, client_options = client_calls[0]
+        self.assertEqual(
+            client_options["env"]["MYSQL_TEST_LOGIN_FILE"],
+            process_login_file,
+        )  # type: ignore[index]
+        self.assertNotIn("cwd", client_options)
+        self.assertNotIn("secret", client_command)
+        self.assertNotIn("secret", editor_env.values())
+
     def test_stored_backup_mysql_password_validation_uses_login_file_with_mysql_client(self) -> None:
         context = FakeContext()
         context.target = FakeTarget()
@@ -858,6 +1024,61 @@ class MebSetupJobTests(unittest.TestCase):
         self.assertIn(f"--login-path={login_path}", command)
         self.assertIn("--execute=SELECT CURRENT_USER()", command)
         self.assertEqual(kwargs["env"]["MYSQL_TEST_LOGIN_FILE"], login_file)  # type: ignore[index]
+        self.assertNotIn("cwd", kwargs)
+
+    def test_windows_stored_backup_mysql_password_validation_uses_ascii_login_file(self) -> None:
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        calls = []
+
+        class FakeCompletedProcess:
+            returncode = 0
+            stdout = "mysqlbackup@localhost\n"
+            stderr = ""
+
+        original_isfile = setup.os.path.isfile
+        original_run = setup.subprocess.run
+
+        def fake_isfile(path: str) -> bool:
+            return path in (
+                "/backup-home/テスト/.mylogin.cnf",
+                "/mysql/bin/mysql.exe",
+            ) or original_isfile(path)
+
+        def fake_run(command: list[str], **kwargs: object) -> FakeCompletedProcess:
+            calls.append((command, kwargs))
+
+            return FakeCompletedProcess()
+
+        try:
+            setup.os.path.isfile = fake_isfile
+            setup.subprocess.run = fake_run
+
+            with mock.patch.object(
+                setup,
+                "windows_ascii_directory_path",
+                return_value="/backup-home/95F2~1",
+            ):
+                login_file, _login_path, result = setup._validate_stored_login_path(
+                    context,
+                    "/backup-home/テスト",
+                    "mysqlbackup",
+                    "localhost",
+                )
+        finally:
+            setup.os.path.isfile = original_isfile
+            setup.subprocess.run = original_run
+
+        self.assertEqual(result.tone, "ok")
+        self.assertEqual(login_file, "/backup-home/テスト/.mylogin.cnf")
+        self.assertEqual(len(calls), 1)
+        _command, kwargs = calls[0]
+        self.assertEqual(
+            kwargs["env"]["MYSQL_TEST_LOGIN_FILE"],
+            "/backup-home/95F2~1/.mylogin.cnf",
+        )  # type: ignore[index]
+        self.assertNotIn("cwd", kwargs)
 
     def test_create_backup_mysql_user_stores_generated_password_after_direct_login_validation(self) -> None:
         context = FakeContext()
@@ -1160,6 +1381,29 @@ class MebSetupJobTests(unittest.TestCase):
         self.assertIs(status, refreshed_status)
         self.assertEqual(states, [])
 
+    def test_save_profile_uses_target_windows_path_rules(self) -> None:
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        context.backend = FakeBackend({})
+        context.backend.create_directory_recursive = lambda _path: None  # type: ignore[attr-defined]
+        profile = MebBackupProfile(label="nightly", destination="/backup-home/nightly")
+        saved_options: dict[str, object] = {}
+        state = MebSetupState(status=MebStatus(profiles=[]))
+
+        with patched_setup(
+            create_local_backup_context=lambda session: context,
+            _manager_values=lambda backup_home_path: {},
+            validate_backup_home=lambda session, backup_home_path: MebBackupHomeValidation(valid=True),
+            _install_runtime_helper=lambda ctx, backup_home_path: "/backup-home/task-helper.cmd",
+            _save_profile=lambda *args, **kwargs: saved_options.update(kwargs),
+            get_setup_state=lambda session, backup_home_path: state,
+            _sync_profile_jobs=lambda *args, **kwargs: False,
+        ):
+            save_profile(object(), "/backup-home", profile)
+
+        self.assertTrue(saved_options["windows_path_rules"])
+
     def test_windows_manager_config_defaults_to_s4u(self) -> None:
         context = FakeContext()
         context.target = FakeTarget()
@@ -1174,6 +1418,26 @@ class MebSetupJobTests(unittest.TestCase):
 
         self.assertEqual(values["windows_logon_type"], "S4U")
         self.assertEqual(values["timeout_ms"], "0")
+
+    def test_windows_manager_config_records_short_path_use(self) -> None:
+        context = FakeContext()
+        context.target = FakeTarget()
+        context.target.is_windows = True
+        backup_home = r"C:\Users\lroot\scratch\テスト"
+
+        with mock.patch.object(
+            setup,
+            "windows_ascii_directory_path",
+            return_value=r"C:\Users\lroot\scratch\95F2~1",
+        ):
+            values = setup._manager_config_values(
+                context,
+                backup_home,
+                "mysqlbackup@localhost",
+                os.path.join(backup_home, "task-helper.cmd"),
+            )
+
+        self.assertEqual(values["windows_use_short_paths"], "True")
 
     def test_delete_profile_removes_deleted_profile_jobs_from_cron(self) -> None:
         calls = []
@@ -1689,6 +1953,7 @@ class MebSetupJobTests(unittest.TestCase):
             ("backups.applyLog", {
                 "backupHome": "/backup-home",
                 "backupId": "nightly/backup-1",
+                "profileId": "profile-1",
             }),
         ])
 

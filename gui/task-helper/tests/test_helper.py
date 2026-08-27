@@ -123,6 +123,43 @@ def write_runtime_config(root: Path, backup_home: Path, data_dir: Path) -> None:
 
 
 class HelperTests(unittest.TestCase):
+    def test_windows_ascii_direct_child_path_uses_parent_directory(self) -> None:
+        with mock.patch.object(
+            helper,
+            "_windows_ascii_directory_path",
+            return_value="/backup-home/95F2~1",
+        ):
+            process_path = helper._windows_ascii_direct_child_path(
+                "/backup-home/テスト/.mylogin.cnf",
+            )
+
+        self.assertEqual(
+            process_path,
+            "/backup-home/95F2~1/.mylogin.cnf",
+        )
+
+    def test_use_windows_short_paths_requires_windows_and_enabled_config(self) -> None:
+        for windows, enabled, expected in (
+            (False, False, False),
+            (False, True, False),
+            (True, False, False),
+            (True, True, True),
+        ):
+            with self.subTest(windows=windows, enabled=enabled):
+                config = copy_config(
+                    make_config(Path("/backup-home")),
+                    windows_use_short_paths=enabled,
+                )
+                with mock.patch.object(
+                    helper,
+                    "is_windows",
+                    return_value=windows,
+                ):
+                    self.assertEqual(
+                        helper.use_windows_short_paths(config),
+                        expected,
+                    )
+
     def run_setup_request(self, request: dict[str, object]) -> dict[str, object]:
         result = subprocess.run(
             [str(SETUP_PATH)],
@@ -505,6 +542,7 @@ class HelperTests(unittest.TestCase):
             values = setup_helper._config_values({}, backup_home, data_dir, helper_path, user)
 
         self.assertEqual(values["windows_logon_type"], "S4U")
+        self.assertEqual(values["windows_use_short_paths"], "False")
 
     def test_backup_home_setup_accepts_infinite_process_timeout(self) -> None:
         root, _config, backup_home, data_dir, _config_file = self.make_backup_home_fixture()
@@ -962,6 +1000,502 @@ class HelperTests(unittest.TestCase):
             audit_name=plan["auditName"],
         ))
 
+    def test_non_windows_mysqlbackup_plans_bypass_windows_path_conversion(self) -> None:
+        backup_home = Path("/backup-home/テスト")
+        output_directory = backup_home / "nightly"
+        config = copy_config(
+            make_config(Path("/root")),
+            backup_home=backup_home.as_posix(),
+            login_file=(backup_home / ".mylogin.cnf").as_posix(),
+            working_directory=backup_home.as_posix(),
+        )
+        job = {
+            "id": "nightly-backup-full",
+            "backupMode": "full",
+            "storageType": "local",
+            "outputDirectory": output_directory.as_posix(),
+            "defaultsFile": (backup_home / "nightly.cnf").as_posix(),
+            "applyLog": True,
+            "compress": False,
+            "incrementalWithRedoLogOnly": False,
+            "skipUnusedPages": False,
+            "usingTts": "0",
+            "windowsUseShortPaths": True,
+        }
+
+        with (
+            mock.patch.object(helper, "is_windows", return_value=False),
+            mock.patch.object(
+                helper,
+                "_windows_ascii_directory_path",
+                return_value="windows-helper-directory",
+            ) as ascii_directory,
+            mock.patch.object(
+                helper,
+                "_windows_ascii_child_path",
+                return_value="windows-helper-file",
+            ) as ascii_child,
+            mock.patch.object(
+                helper,
+                "_windows_ascii_incremental_base",
+                return_value="windows-helper-base",
+            ) as ascii_incremental_base,
+        ):
+            plan = helper._mysqlbackup_plan_for_job(job, config)
+            progress_plan = helper._with_mysqlbackup_progress_file(
+                plan,
+                backup_home / ".backup-progress",
+                config,
+            )
+            validate_plan = helper._mysqlbackup_validate_plan_for_backup(
+                output_directory,
+                config,
+            )
+
+        self.assertEqual(plan.cwd, backup_home.as_posix())
+        self.assertEqual(
+            plan.env["MYSQL_TEST_LOGIN_FILE"],
+            (backup_home / ".mylogin.cnf").as_posix(),
+        )
+        self.assertIn(
+            f"--defaults-file={job['defaultsFile']}",
+            plan.args,
+        )
+        self.assertIn(f"--backup-dir={job['outputDirectory']}", plan.args)
+        self.assertIn(
+            f"--show-progress=file:{(backup_home / '.backup-progress').as_posix()}",
+            progress_plan.args,
+        )
+        self.assertIn(
+            f"--backup-dir={job['outputDirectory']}",
+            validate_plan.args,
+        )
+        ascii_directory.assert_not_called()
+        ascii_child.assert_not_called()
+        ascii_incremental_base.assert_not_called()
+
+    def test_windows_mysqlbackup_plan_uses_absolute_login_file_and_working_directory(self) -> None:
+        config = copy_config(
+            make_config(Path("/backup-home/テスト")),
+            login_file="/backup-home/テスト/.mylogin.cnf",
+            working_directory="/backup-home/テスト",
+        )
+        job = {
+            "id": "nightly-backup-full",
+            "backupMode": "full",
+            "storageType": "local",
+            "outputDirectory": "/backup-home/テスト/nightly",
+            "defaultsFile": "/backup-home/テスト/nightly.cnf",
+            "applyLog": True,
+            "compress": False,
+            "incrementalWithRedoLogOnly": False,
+            "skipUnusedPages": False,
+            "usingTts": "0",
+        }
+
+        with (
+            mock.patch.object(helper, "is_windows", return_value=True),
+            mock.patch.object(
+                helper,
+                "_windows_ascii_directory_path",
+                return_value="windows-helper-directory",
+            ) as ascii_directory,
+            mock.patch.object(
+                helper,
+                "_windows_ascii_child_path",
+                return_value="windows-helper-file",
+            ) as ascii_child,
+            mock.patch.object(
+                helper,
+                "_windows_ascii_incremental_base",
+                return_value="windows-helper-base",
+            ) as ascii_incremental_base,
+            mock.patch.object(
+                helper,
+                "_windows_ascii_file_path",
+                return_value="windows-helper-file",
+            ),
+        ):
+            plan = helper._mysqlbackup_plan_for_job(job, config)
+
+        self.assertEqual(plan.cwd, "/backup-home/テスト")
+        self.assertEqual(
+            plan.env["MYSQL_TEST_LOGIN_FILE"],
+            "/backup-home/テスト/.mylogin.cnf",
+        )
+        self.assertIn("--defaults-file=windows-helper-file", plan.args)
+        ascii_directory.assert_not_called()
+        ascii_child.assert_not_called()
+        ascii_incremental_base.assert_not_called()
+
+    def test_windows_mysqlbackup_plan_converts_unicode_defaults_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home = Path(temporary)
+            defaults_file = backup_home / "日次.cnf"
+            defaults_file.write_text("[mysqlbackup]\n", encoding="utf-8")
+            short_defaults_file = backup_home / "DAILY~1.CNF"
+            os.link(defaults_file, short_defaults_file)
+            config = make_config(backup_home)
+            job = {
+                "id": "nightly-backup-full",
+                "backupMode": "full",
+                "storageType": "local",
+                "outputDirectory": (backup_home / "nightly").as_posix(),
+                "defaultsFile": defaults_file.as_posix(),
+                "applyLog": True,
+                "compress": False,
+                "incrementalWithRedoLogOnly": False,
+                "skipUnusedPages": False,
+                "usingTts": "0",
+                "windowsUseShortPaths": False,
+            }
+
+            with (
+                mock.patch.object(helper, "is_windows", return_value=True),
+                mock.patch.object(
+                    helper,
+                    "_windows_short_path",
+                    return_value=short_defaults_file.as_posix(),
+                ),
+            ):
+                plan = helper._mysqlbackup_plan_for_job(job, config)
+
+            self.assertIn(
+                f"--defaults-file={short_defaults_file.as_posix()}",
+                plan.args,
+            )
+
+    def test_windows_mysqlbackup_plan_converts_directories_when_config_requires_it(self) -> None:
+        backup_home = Path("/backup-home/テスト")
+        output_directory = backup_home / "nightly" / "データ"
+        base_directory = output_directory / "20260826T010203Z"
+        short_backup_home = "/backup-home/95F2~1"
+        short_output_directory = "/backup-home/95F2~1/nightly/DATA~1"
+        short_base_directory = os.path.join(
+            short_output_directory,
+            "20260826T010203Z",
+        )
+        config = copy_config(
+            make_config(backup_home),
+            backup_home=backup_home.as_posix(),
+            login_file=(backup_home / ".mylogin.cnf").as_posix(),
+            working_directory=backup_home.as_posix(),
+            windows_use_short_paths=True,
+        )
+        job = {
+            "id": "nightly-backup-full",
+            "backupMode": "full",
+            "storageType": "local",
+            "outputDirectory": output_directory.as_posix(),
+            "defaultsFile": (backup_home / "nightly.cnf").as_posix(),
+            "applyLog": True,
+            "compress": False,
+            "incrementalWithRedoLogOnly": False,
+            "skipUnusedPages": False,
+            "usingTts": "0",
+            "windowsUseShortPaths": False,
+        }
+
+        def ascii_directory(path: str) -> str:
+            return {
+                backup_home.as_posix(): short_backup_home,
+                output_directory.as_posix(): short_output_directory,
+            }[path]
+
+        with (
+            mock.patch.object(helper, "is_windows", return_value=True),
+            mock.patch.object(
+                helper,
+                "_windows_ascii_directory_path",
+                side_effect=ascii_directory,
+            ),
+            mock.patch.object(
+                helper,
+                "_windows_ascii_file_path",
+                return_value=os.path.join(short_backup_home, "nightly.cnf"),
+            ),
+        ):
+            plan = helper._mysqlbackup_plan_for_job(job, config)
+
+        self.assertEqual(plan.cwd, backup_home.as_posix())
+        self.assertEqual(
+            plan.env["MYSQL_TEST_LOGIN_FILE"],
+            os.path.join(short_backup_home, ".mylogin.cnf"),
+        )
+        self.assertIn(
+            f"--defaults-file={os.path.join(short_backup_home, 'nightly.cnf')}",
+            plan.args,
+        )
+        self.assertIn(f"--backup-dir={short_output_directory}", plan.args)
+
+        incremental_job = {
+            **job,
+            "backupMode": "incremental",
+            "incrementalBase": f"dir:{base_directory}",
+            "incrementalWithRedoLogOnly": False,
+        }
+        with (
+            mock.patch.object(helper, "is_windows", return_value=True),
+            mock.patch.object(
+                helper,
+                "_windows_ascii_directory_path",
+                side_effect=ascii_directory,
+            ),
+            mock.patch.object(
+                helper,
+                "_windows_ascii_file_path",
+                return_value=os.path.join(short_backup_home, "nightly.cnf"),
+            ),
+        ):
+            incremental_plan = helper._mysqlbackup_plan_for_job(
+                incremental_job,
+                config,
+            )
+
+        self.assertIn(
+            f"--incremental-base=dir:{short_base_directory}",
+            incremental_plan.args,
+        )
+        self.assertIn(
+            f"--incremental-backup-dir={short_output_directory}",
+            incremental_plan.args,
+        )
+
+    def test_windows_mysqlbackup_maintenance_plans_convert_directories(self) -> None:
+        backup_home = Path("/backup-home/テスト")
+        backup_directory = backup_home / "データ" / "20260826T010203Z"
+        short_backup_home = "/backup-home/95F2~1"
+        short_backup_directory = (
+            "/backup-home/95F2~1/DATA~1/20260826T010203Z"
+        )
+        config = copy_config(
+            make_config(backup_home),
+            backup_home=backup_home.as_posix(),
+            login_file=(backup_home / ".mylogin.cnf").as_posix(),
+            working_directory=backup_home.as_posix(),
+            windows_use_short_paths=True,
+            datadir="C:/mysql/data",
+        )
+
+        def ascii_directory(path: str) -> str:
+            return {
+                backup_home.as_posix(): short_backup_home,
+                backup_directory.as_posix(): short_backup_directory,
+            }[path]
+
+        with (
+            mock.patch.object(helper, "is_windows", return_value=True),
+            mock.patch.object(
+                helper,
+                "_windows_ascii_directory_path",
+                side_effect=ascii_directory,
+            ),
+            mock.patch.object(
+                helper,
+                "_read_backup_variables",
+                return_value={
+                    "apply_log_done": "0",
+                    "is_compressed": "0",
+                    "is_incremental": "0",
+                },
+            ),
+        ):
+            validate_plan = helper._mysqlbackup_validate_plan_for_backup(
+                backup_directory,
+                config,
+            )
+            apply_log_plan = helper._mysqlbackup_apply_log_plan_for_backup(
+                backup_directory,
+                config,
+            )
+            restore_plan = helper._mysqlbackup_restore_plan_for_backup(
+                backup_directory,
+                backup_directory / ".restore.cnf",
+                config,
+                force=False,
+            )
+            progress_plan = helper._with_mysqlbackup_progress_file(
+                validate_plan,
+                backup_home / ".backup-progress",
+                config,
+            )
+
+        self.assertIn(
+            f"--backup-dir={short_backup_directory}",
+            validate_plan.args,
+        )
+        self.assertIn(
+            f"--backup-dir={short_backup_directory}",
+            apply_log_plan.args,
+        )
+        self.assertIn(
+            f"--defaults-file={os.path.join(short_backup_directory, '.restore.cnf')}",
+            restore_plan.args,
+        )
+        self.assertIn(
+            f"--backup-dir={short_backup_directory}",
+            restore_plan.args,
+        )
+        self.assertIn(
+            f"--show-progress=file:{os.path.join(short_backup_home, '.backup-progress')}",
+            progress_plan.args,
+        )
+        self.assertEqual(validate_plan.cwd, backup_home.as_posix())
+        self.assertEqual(
+            validate_plan.env["MYSQL_TEST_LOGIN_FILE"],
+            os.path.join(short_backup_home, ".mylogin.cnf"),
+        )
+
+    def test_windows_mysqlbackup_maintenance_converts_unicode_profile_destination(
+        self,
+    ) -> None:
+        backup_home = Path("/backup-home")
+        backup_directory = backup_home / "テスト" / "20260826T010203Z"
+        short_backup_directory = (
+            "/backup-home/95F2~1/20260826T010203Z"
+        )
+        config = copy_config(
+            make_config(backup_home),
+            backup_home=backup_home.as_posix(),
+            login_file=(backup_home / ".mylogin.cnf").as_posix(),
+            working_directory=backup_home.as_posix(),
+            windows_use_short_paths=False,
+            datadir="C:/mysql/data",
+        )
+
+        with (
+            mock.patch.object(helper, "is_windows", return_value=True),
+            mock.patch.object(
+                helper,
+                "_windows_ascii_directory_path",
+                return_value=short_backup_directory,
+            ),
+            mock.patch.object(
+                helper,
+                "_read_backup_variables",
+                return_value={
+                    "apply_log_done": "0",
+                    "is_compressed": "0",
+                    "is_incremental": "0",
+                },
+            ),
+        ):
+            validate_plan = helper._mysqlbackup_validate_plan_for_backup(
+                backup_directory,
+                config,
+            )
+            apply_log_plan = helper._mysqlbackup_apply_log_plan_for_backup(
+                backup_directory,
+                config,
+            )
+            restore_plan = helper._mysqlbackup_restore_plan_for_backup(
+                backup_directory,
+                backup_directory / ".restore.cnf",
+                config,
+                force=False,
+            )
+
+        self.assertIn(
+            f"--backup-dir={short_backup_directory}",
+            validate_plan.args,
+        )
+        self.assertIn(
+            f"--backup-dir={short_backup_directory}",
+            apply_log_plan.args,
+        )
+        self.assertIn(
+            f"--defaults-file={os.path.join(short_backup_directory, '.restore.cnf')}",
+            restore_plan.args,
+        )
+        self.assertIn(
+            f"--backup-dir={short_backup_directory}",
+            restore_plan.args,
+        )
+
+    @unittest.skipUnless(os.name == "nt", "Windows API test")
+    def test_windows_short_path_resolves_unicode_directory(self) -> None:
+        scratch_root = os.environ.get("MEB_TEST_TEMP_ROOT")
+        with tempfile.TemporaryDirectory(dir=scratch_root) as temporary:
+            directory = Path(temporary) / "テスト"
+            directory.mkdir()
+
+            short_path = helper._windows_ascii_directory_path(
+                directory.as_posix(),
+            )
+
+            self.assertTrue(short_path.isascii())
+            self.assertTrue(os.path.samefile(directory, short_path))
+
+    @unittest.skipUnless(os.name == "nt", "Windows API test")
+    def test_windows_short_path_appends_ascii_children(self) -> None:
+        scratch_root = os.environ.get("MEB_TEST_TEMP_ROOT")
+        with tempfile.TemporaryDirectory(dir=scratch_root) as temporary:
+            directory = Path(temporary) / "テスト"
+            child_directory = directory / "non-8.3-directory"
+            child_directory.mkdir(parents=True)
+
+            process_child = helper._windows_ascii_child_path(
+                child_directory.as_posix(),
+                directory.as_posix(),
+            )
+            process_file = helper._windows_ascii_direct_child_path(
+                (directory / ".mylogin.cnf").as_posix(),
+            )
+
+            self.assertTrue(process_child.isascii())
+            self.assertTrue(os.path.samefile(child_directory, process_child))
+            self.assertTrue(process_file.isascii())
+            self.assertEqual(os.path.basename(process_file), ".mylogin.cnf")
+
+    @unittest.skipUnless(os.name == "nt", "Windows API test")
+    def test_windows_mysqlbackup_plan_contains_ascii_external_paths(self) -> None:
+        scratch_root = os.environ.get("MEB_TEST_TEMP_ROOT")
+        with tempfile.TemporaryDirectory(dir=scratch_root) as temporary:
+            backup_home = Path(temporary) / "テスト"
+            output_directory = backup_home / "データ"
+            output_directory.mkdir(parents=True)
+            defaults_file = backup_home / "日次.cnf"
+            defaults_file.write_text("[mysqlbackup]\n", encoding="utf-8")
+            config = copy_config(
+                make_config(backup_home),
+                backup_home=backup_home.as_posix(),
+                login_file=(backup_home / ".mylogin.cnf").as_posix(),
+                working_directory=backup_home.as_posix(),
+                windows_use_short_paths=True,
+            )
+            job = {
+                "id": "nightly-backup-full",
+                "backupMode": "full",
+                "storageType": "local",
+                "outputDirectory": output_directory.as_posix(),
+                "defaultsFile": defaults_file.as_posix(),
+                "applyLog": True,
+                "compress": False,
+                "incrementalWithRedoLogOnly": False,
+                "skipUnusedPages": False,
+                "usingTts": "0",
+                "windowsUseShortPaths": True,
+            }
+
+            plan = helper._mysqlbackup_plan_for_job(job, config)
+
+            self.assertEqual(plan.cwd, backup_home.as_posix())
+            self.assertTrue(plan.env["MYSQL_TEST_LOGIN_FILE"].isascii())
+            self.assertTrue(
+                next(
+                    argument
+                    for argument in plan.args
+                    if argument.startswith("--defaults-file=")
+                ).isascii()
+            )
+            self.assertTrue(
+                next(
+                    argument
+                    for argument in plan.args
+                    if argument.startswith("--backup-dir=")
+                ).isascii()
+            )
+
     def test_jobs_execute_derives_job_from_profile_config(self) -> None:
         _root, config, backup_home, output_dir, _option_file = self.make_job_fixture()
         profile_path = self.write_profile_config(backup_home, output_dir)
@@ -980,6 +1514,31 @@ class HelperTests(unittest.TestCase):
         args = response["result"]["plan"]["args"]
         self.assertIn(f"--defaults-file={profile_path.as_posix()}", args)
         self.assertEqual(args[-1], "backup")
+
+    def test_profile_job_reads_windows_short_path_flag(self) -> None:
+        _root, config, backup_home, output_dir, _option_file = self.make_job_fixture()
+        self.write_profile_config(
+            backup_home,
+            output_dir,
+            manager_options={"windows_use_short_paths": "True"},
+        )
+
+        jobs = helper._derived_profile_jobs(backup_home, config)
+
+        self.assertTrue(jobs["nightly-backup-full"]["windowsUseShortPaths"])
+        self.assertTrue(jobs["nightly-backup-incremental"]["windowsUseShortPaths"])
+
+    def test_legacy_windows_profile_infers_short_path_use(self) -> None:
+        _root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        output_directory = backup_home / "テスト"
+        output_directory.mkdir()
+        self.write_profile_config(backup_home, output_directory)
+
+        with mock.patch.object(helper, "is_windows", return_value=True):
+            jobs = helper._derived_profile_jobs(backup_home, config)
+
+        self.assertTrue(jobs["nightly-backup-full"]["windowsUseShortPaths"])
+        self.assertTrue(jobs["nightly-backup-incremental"]["windowsUseShortPaths"])
 
     def test_local_full_job_uses_profile_backup_options(self) -> None:
         _, config, backup_home, output_dir, _option_file = self.make_job_fixture()
@@ -1482,6 +2041,189 @@ class HelperTests(unittest.TestCase):
         self.assertTrue((backup_home / "nightly").exists())
         self.assertTrue(unrelated_log_file.exists())
 
+    def test_new_job_log_path_bounds_long_and_unicode_identifiers(self) -> None:
+        _root, _config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        user = helper._current_user()
+        identifiers = [
+            (f"apply-logs-{'a' * 240}", "apply-logs-"),
+            ("restore-profile-テスト", "restore-profile-"),
+        ]
+
+        for identifier, expected_prefix in identifiers:
+            with self.subTest(identifier=identifier):
+                log_path = helper._new_job_log_path(backup_home, identifier, user)
+                log_id = log_path.name
+
+                self.assertTrue(log_path.is_file())
+                self.assertTrue(log_id.isascii())
+                self.assertLessEqual(len(log_id), 105)
+                self.assertRegex(
+                    log_id,
+                    rf"^\d{{8}}T\d{{6}}Z-{re.escape(expected_prefix)}",
+                )
+                self.assertEqual(helper._require_log_id(log_id), log_id)
+
+    def test_backups_list_includes_unicode_directory_names(self) -> None:
+        _root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        backup_dir = backup_home / "data-テスト" / "2026-08-27_10-55-02"
+        backup_dir.mkdir(parents=True)
+
+        response = handle_request({
+            "operation": "backups.list",
+            "params": {
+                "backupHome": backup_home.as_posix(),
+            },
+        }, config)
+
+        self.assertTrue(response["ok"], response)
+        backup_ids = {backup["id"] for backup in response["result"]["backups"]}
+        self.assertIn("data-テスト", backup_ids)
+        self.assertIn("data-テスト/2026-08-27_10-55-02", backup_ids)
+
+    def test_backups_list_skips_unsupported_windows_directory_names(self) -> None:
+        _root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        (backup_home / ".hidden").mkdir()
+        (backup_home / "LOGS").mkdir()
+        (backup_home / "data-テスト").mkdir()
+
+        with mock.patch.object(helper, "is_windows", return_value=True):
+            response = handle_request({
+                "operation": "backups.list",
+                "params": {
+                    "backupHome": backup_home.as_posix(),
+                },
+            }, config)
+
+        self.assertTrue(response["ok"], response)
+        backup_ids = {backup["id"] for backup in response["result"]["backups"]}
+        self.assertNotIn(".hidden", backup_ids)
+        self.assertNotIn("LOGS", backup_ids)
+        self.assertIn("data-テスト", backup_ids)
+
+    def test_safe_backup_path_components_follow_windows_path_policy(self) -> None:
+        with mock.patch.object(helper, "is_windows", return_value=True):
+            for relative_path in [
+                ".hidden/backup",
+                "nightly./backup",
+                "nightly /backup",
+                "LOGS/backup",
+            ]:
+                with self.subTest(relative_path=relative_path):
+                    with self.assertRaises(HelperError):
+                        helper._require_safe_relative_path(relative_path, "backupId")
+
+            for relative_path in [
+                "daily backup/2026-08-27_10-55-02",
+                "data-テスト/2026-08-27_10-55-02",
+            ]:
+                with self.subTest(relative_path=relative_path):
+                    self.assertEqual(
+                        helper._require_safe_relative_path(relative_path, "backupId").as_posix(),
+                        relative_path,
+                    )
+
+        with mock.patch.object(helper, "is_windows", return_value=False):
+            for relative_path in [
+                "nightly./backup",
+                "nightly /backup",
+            ]:
+                with self.subTest(relative_path=relative_path):
+                    self.assertEqual(
+                        helper._require_safe_relative_path(relative_path, "backupId").as_posix(),
+                        relative_path,
+                    )
+
+    def test_backup_child_path_rejects_resolved_reserved_alias(self) -> None:
+        _root, _config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        alias_path = backup_home / "BACKUP~1.LOC"
+        alias_path.mkdir()
+        reserved_path = backup_home / ".backup-run.lock"
+        reserved_path.mkdir()
+        original_resolve = Path.resolve
+
+        def resolve_alias(path: Path, strict: bool = False) -> Path:
+            if path == alias_path:
+                return reserved_path
+
+            return original_resolve(path, strict=strict)
+
+        with mock.patch.object(Path, "resolve", new=resolve_alias):
+            with self.assertRaisesRegex(HelperError, "reserved backup-home entry"):
+                helper._require_backup_child_path(
+                    backup_home,
+                    Path(alias_path.name),
+                    "backupId",
+                )
+
+        self.assertTrue(reserved_path.is_dir())
+
+    def test_backup_child_path_rejects_resolved_unsafe_aliases(self) -> None:
+        _root, _config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        paths = [
+            (backup_home / "HIDDEN~1", backup_home / ".hidden"),
+            (backup_home / "safe" / "HIDDEN~1", backup_home / "safe" / ".hidden"),
+        ]
+        for alias_path, hidden_path in paths:
+            alias_path.mkdir(parents=True)
+            hidden_path.mkdir()
+        original_resolve = Path.resolve
+
+        def resolve_alias(path: Path, strict: bool = False) -> Path:
+            for alias_path, hidden_path in paths:
+                if path == alias_path:
+                    return hidden_path
+
+            return original_resolve(path, strict=strict)
+
+        with mock.patch.object(Path, "resolve", new=resolve_alias):
+            for alias_path, _hidden_path in paths:
+                relative_path = alias_path.relative_to(backup_home)
+                with self.subTest(relative_path=relative_path):
+                    with self.assertRaisesRegex(HelperError, "safe path component"):
+                        helper._require_backup_child_path(
+                            backup_home,
+                            relative_path,
+                            "backupId",
+                        )
+
+    @unittest.skipUnless(os.name == "nt", "requires Windows short paths")
+    def test_backup_child_path_rejects_actual_reserved_short_alias(self) -> None:
+        _root, _config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        reserved_path = backup_home / ".backup-run.lock"
+        reserved_path.mkdir()
+        alias_name = Path(helper._windows_short_path(str(reserved_path))).name
+        if alias_name.casefold() == reserved_path.name.casefold():
+            self.skipTest("reserved directory does not have a distinct short alias")
+        if not helper._is_safe_backup_path_component(alias_name):
+            self.skipTest("reserved directory short alias is already rejected")
+
+        with self.assertRaisesRegex(HelperError, "reserved backup-home entry"):
+            helper._require_backup_child_path(
+                backup_home,
+                Path(alias_name),
+                "backupId",
+            )
+
+        self.assertTrue(reserved_path.is_dir())
+
+    def test_backups_delete_accepts_unicode_directory_names(self) -> None:
+        _root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        backup_dir = backup_home / "data-テスト" / "2026-08-27_10-55-02"
+        backup_dir.mkdir(parents=True)
+
+        response = handle_request({
+            "operation": "backups.delete",
+            "params": {
+                "backupHome": backup_home.as_posix(),
+                "backupId": "data-テスト/2026-08-27_10-55-02",
+            },
+        }, config)
+
+        self.assertTrue(response["ok"], response)
+        self.assertEqual(response["result"]["status"], "deleted")
+        self.assertFalse(backup_dir.exists())
+        self.assertTrue((backup_home / "data-テスト").exists())
+
     def test_backup_logs_delete_removes_only_the_selected_log(self) -> None:
         _root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
         log_dir = backup_home / "logs"
@@ -1719,6 +2461,46 @@ class HelperTests(unittest.TestCase):
         self.assertTrue(response["ok"], response)
         self.assertEqual(response["result"]["status"], "applied")
 
+    def test_backups_apply_log_uses_profile_id_in_bounded_log_name(self) -> None:
+        _root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        backup_name = "a" * 240
+        backup_dir = backup_home / "nightly" / backup_name
+        meta_dir = backup_dir / "meta"
+        meta_dir.mkdir(parents=True)
+        (meta_dir / "backup_variables.txt").write_text(
+            "[backup_variables]\napply_log_done=0\nis_compressed=0\n",
+            encoding="utf-8",
+        )
+        profile_id = "p" * 64
+        plans: list[ProcessPlan] = []
+        process_result = {
+            "exitCode": 0,
+            "timedOut": False,
+            "stdoutTruncated": False,
+            "stderrTruncated": False,
+        }
+
+        with mock.patch.object(
+            helper,
+            "run_process_plan",
+            side_effect=lambda plan: plans.append(plan) or process_result,
+        ):
+            response = handle_request({
+                "operation": "backups.applyLog",
+                "params": {
+                    "backupHome": backup_home.as_posix(),
+                    "backupId": f"nightly/{backup_name}",
+                    "profileId": profile_id,
+                },
+            }, config)
+
+        self.assertTrue(response["ok"], response)
+        self.assertEqual(len(plans), 1)
+        log_name = Path(plans[0].log_path).name
+        self.assertIn(f"-apply-logs-{profile_id}-", log_name)
+        self.assertNotIn(backup_name, log_name)
+        self.assertLessEqual(len(log_name), 105)
+
     def test_failed_restore_returns_mysqlbackup_output(self) -> None:
         root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
         backup_dir = backup_home / "nightly" / "20260506T010203Z"
@@ -1750,11 +2532,12 @@ class HelperTests(unittest.TestCase):
                 }
 
             helper.run_process_plan = failed_process
+            profile_id = "p" * 64
             response = helper.handle_backups_restore({
                 "backupHome": backup_home.as_posix(),
                 "backupId": "nightly/20260506T010203Z",
                 "operationId": "restore-20260506-010203",
-                "profileId": "profile-1",
+                "profileId": profile_id,
                 "force": False,
             }, config, dry_run=False)
         finally:
@@ -1764,7 +2547,8 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(response["stdout"], "copy-back started\n")
         self.assertEqual(response["stderr"], "data directory is not empty\n")
         self.assertEqual(response["output"], "copy-back started\ndata directory is not empty\n")
-        self.assertIn("-restore-profile-1-", plans[0].log_path)
+        self.assertIn(f"-restore-{profile_id}-", plans[0].log_path)
+        self.assertNotIn("20260506T010203Z", Path(plans[0].log_path).name)
 
     def test_restore_requires_operation_id(self) -> None:
         root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
@@ -2624,6 +3408,23 @@ class HelperTests(unittest.TestCase):
                 config = helper.helper_config(backup_home)
 
             self.assertEqual(config.target_user.windows_logon_type, "S4U")
+
+    def test_helper_config_reads_windows_short_path_flag(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="task-helper-config-", dir=HELPER_ROOT) as temporary:
+            root = Path(temporary)
+            backup_home = root / "backup-home"
+            data_dir = root / "mysql-data"
+            backup_home.mkdir()
+            data_dir.mkdir()
+            write_runtime_config(root, backup_home, data_dir)
+            parser = configparser.RawConfigParser()
+            parser.read(backup_home / "backups.cnf", encoding="utf-8")
+            parser.set("meb", "windows_use_short_paths", "True")
+
+            with mock.patch.object(helper, "_read_helper_config_file", return_value=parser):
+                config = helper.helper_config(backup_home)
+
+            self.assertTrue(config.windows_use_short_paths)
 
     def test_helper_config_accepts_infinite_process_timeout(self) -> None:
         with tempfile.TemporaryDirectory(prefix="task-helper-config-", dir=HELPER_ROOT) as temporary:

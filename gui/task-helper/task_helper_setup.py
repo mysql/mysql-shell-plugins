@@ -58,6 +58,7 @@ SAFE_CONFIG_KEYS = {
     "launchd_plist_dir": "launchdPlistDir",
     "windows_task_folder": "windowsTaskFolder",
     "windows_logon_type": "windowsLogonType",
+    "windows_use_short_paths": "windowsUseShortPaths",
 }
 
 
@@ -496,6 +497,9 @@ def _config_values(request: dict[str, Any], backup_home: Path, data_dir: Path, h
         "launchd_plist_dir": (backup_home / "launchd").resolve(strict=False).as_posix(),
         "windows_task_folder": require_string(request.get("windowsTaskFolder", r"\MySQLWorkbench"), "windowsTaskFolder"),
         "windows_logon_type": windows_logon_type,
+        "windows_use_short_paths": str(
+            os.name == "nt" and not backup_home_path.isascii()
+        ),
     }
     if user.get("uid") is not None and user.get("gid") is not None:
         values["backup_os_uid"] = str(user["uid"])

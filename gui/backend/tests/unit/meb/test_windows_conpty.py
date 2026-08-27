@@ -85,6 +85,23 @@ class WindowsConPtyTests(unittest.TestCase):
             b"terminal input\r",
         )
 
+    def test_create_process_inherits_current_directory(self) -> None:
+        create_process = mock.Mock(return_value=True)
+        kernel32 = types.SimpleNamespace(
+            dll=types.SimpleNamespace(CreateProcessW=create_process),
+        )
+        startup = self.worker.STARTUPINFOEXW()
+        process_information = self.worker.PROCESS_INFORMATION()
+
+        self.worker._create_process(
+            kernel32,
+            [r"C:\MySQL\bin\mysql_config_editor.exe", "print", "--all"],
+            startup,
+            process_information,
+        )
+
+        self.assertIsNone(create_process.call_args.args[7])
+
     def test_main_requires_a_command(self) -> None:
         stderr = io.StringIO()
 

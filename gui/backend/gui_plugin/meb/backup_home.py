@@ -71,6 +71,21 @@ JOB_LOG_DIR_NAME = "logs"
 PROGRESS_STATE_NAME = ".backup-progress.json"
 MYSQLBACKUP_PROGRESS_NAME = ".backup-progress"
 RUN_LOCK_DIR_NAME = ".backup-run.lock"
+RESERVED_BACKUP_HOME_NAMES = {
+    MANAGER_CONFIG_NAME,
+    PROGRESS_STATE_NAME,
+    MYSQLBACKUP_PROGRESS_NAME,
+    RUN_LOCK_DIR_NAME,
+    JOB_LOG_DIR_NAME,
+    ".mylogin.cnf",
+    "launchd",
+    "task-helper",
+    "task-helper.cmd",
+    "task-helper.py",
+    "task-helper-setup",
+    "task-helper-setup.cmd",
+    "task-helper-setup.py",
+}
 IGNORED_PROFILE_CONFIGS = {
     MANAGER_CONFIG_NAME,
     ".mylogin.cnf",
@@ -2006,9 +2021,47 @@ def _cloud_option_value(
     return value
 
 
-def _validate_backup_destination(backup_home_path: str, backup_dir: str) -> None:
+def _is_safe_backup_path_component(value: str, windows_path_rules: bool) -> bool:
+    return (
+        value not in {"", ".", ".."}
+        and not value.startswith(".")
+        and not (windows_path_rules and value.endswith((" ", ".")))
+        and not any(
+            ord(character) < 32 or character in '<>:"/\\|?*'
+            for character in value
+        )
+    )
+
+
+def _is_reserved_backup_home_name(value: str, windows_path_rules: bool) -> bool:
+    if windows_path_rules:
+        value = value.casefold()
+
+        return any(value == name.casefold() for name in RESERVED_BACKUP_HOME_NAMES)
+
+    return value in RESERVED_BACKUP_HOME_NAMES
+
+
+def _validate_backup_destination(
+    backup_home_path: str,
+    backup_dir: str,
+    windows_path_rules: bool,
+) -> None:
+    backup_home_path = _canonical_path(backup_home_path)
+    backup_dir = _canonical_path(backup_dir)
     if not _path_in_directory(backup_home_path, backup_dir):
         raise ValueError("Backup destination must be inside the backup home directory")
+
+    relative_path = os.path.relpath(backup_dir, backup_home_path)
+    parts = Path(relative_path).parts
+    for index, part in enumerate(parts):
+        if not _is_safe_backup_path_component(part, windows_path_rules):
+            raise ValueError(
+                f"Backup destination path component {index + 1} is not supported."
+            )
+
+    if parts and _is_reserved_backup_home_name(parts[0], windows_path_rules):
+        raise ValueError("Backup destination names a reserved backup-home entry.")
 
 
 def _validate_cloud_options(
@@ -2243,8 +2296,10 @@ def save_profile(
     read_profile_config: Callable[[str], str] | None = None,
     path_exists: Callable[[str], bool] = os.path.exists,
     create_directory_recursive: Callable[[str], None] | None = None,
+    directory_uses_short_paths: Callable[[str], bool] | None = None,
     validate_directory: bool = True,
     mysqlbackup_command: str | None = None,
+    windows_path_rules: bool = os.name == "nt",
 ) -> MebStatus:
     """Creates or updates a MySQL Enterprise Backup profile in the backup home directory.
 
@@ -2274,7 +2329,7 @@ def save_profile(
 
     if not backup_dir:
         raise ValueError("Backup destination is required")
-    _validate_backup_destination(backup_home_path, backup_dir)
+    _validate_backup_destination(backup_home_path, backup_dir, windows_path_rules)
     incremental_backup_dir = os.path.join(backup_dir, "inc")
     if create_directory_recursive:
         create_directory_recursive(backup_dir)
@@ -2300,6 +2355,16 @@ def save_profile(
         except (OSError, configparser.Error):
             existing_config = None
             existing_uuid = None
+
+    if directory_uses_short_paths:
+        windows_use_short_paths = directory_uses_short_paths(
+            _canonical_path(backup_dir)
+        )
+    else:
+        windows_use_short_paths = bool(
+            existing_config
+            and _truthy(_get(existing_config, "meb_manager", "windows_use_short_paths"))
+        )
 
     _validate_cloud_options(profile, existing_config)
     _validate_profile_schedules(profile)
@@ -2329,6 +2394,7 @@ def save_profile(
     _write_schedule(config, "full", profile.fullSchedule)
     _write_schedule(config, "inc", profile.incSchedule)
     config.set("meb_manager", "using_tts", _tts_mode(profile.usingTts, strict=True))
+    config.set("meb_manager", "windows_use_short_paths", _bool_string(windows_use_short_paths))
     _set_if_value(
         config,
         "meb_manager",

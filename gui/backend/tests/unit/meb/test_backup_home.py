@@ -1091,6 +1091,22 @@ class MebBackupHomeTests(unittest.TestCase):
 
             self.assertEqual(status.recentActivity[0].profile, "Nightly")
 
+    def test_build_status_associates_apply_log_activity_with_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home_path = Path(temporary) / "backup-home"
+            log_dir = backup_home_path / "logs"
+            log_dir.mkdir(parents=True)
+            profile_id = "p" * 64
+            log_file = log_dir / f"20260618T120000Z-apply-logs-{profile_id}-random.log"
+            log_file.write_text("mysqlbackup completed OK!\n", encoding="utf-8")
+            profiles = [MebBackupProfileInfo(uuid=profile_id, label="Nightly")]
+
+            status = build_status(backup_home_path.as_posix(), {}, profiles)
+
+            self.assertEqual(status.recentActivity[0].profile, "Nightly")
+            self.assertEqual(status.recentActivity[0].profileId, profile_id)
+            self.assertEqual(status.recentActivity[0].backupType, "Apply Logs")
+
     def test_build_status_failed_activity_takes_precedence_over_completed_text(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             backup_home = Path(temporary) / "backup-home"
@@ -1213,6 +1229,107 @@ class MebBackupHomeTests(unittest.TestCase):
             self.assertEqual(config.get("mysqlbackup", "backup_dir"), backup_destination.as_posix())
             self.assertEqual(config.get("mysqlbackup", "incremental_backup_dir"),
                              (backup_destination / "inc").as_posix())
+
+    @unittest.skipIf(os.name == "nt", "requires POSIX symbolic links")
+    def test_save_profile_accepts_destination_through_backup_home_alias(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            canonical_parent = Path(temporary) / "private"
+            backup_home = canonical_parent / "backup-home"
+            backup_home.mkdir(parents=True)
+            alias_parent = Path(temporary) / "alias"
+            alias_parent.symlink_to(canonical_parent, target_is_directory=True)
+            backup_destination = alias_parent / "backup-home" / "nightly"
+            draft = profile("nightly", backup_destination, daily_schedule("2", "15"))
+
+            save_profile(alias_parent.joinpath("backup-home").as_posix(), draft)
+
+            self.assertTrue((backup_home / "nightly").is_dir())
+            self.assertTrue((backup_home / "nightly" / "inc").is_dir())
+
+    def test_save_profile_rejects_leading_dot_destination_component_before_creation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home = Path(temporary) / "backup-home"
+            backup_destination = backup_home / "nightly" / ".hidden"
+            created_directories: list[str] = []
+
+            with self.assertRaisesRegex(ValueError, "path component"):
+                save_profile(
+                    backup_home.as_posix(),
+                    profile("nightly", backup_destination, daily_schedule("2", "15")),
+                    create_directory_recursive=created_directories.append,
+                )
+
+            self.assertEqual(created_directories, [])
+            self.assertFalse(backup_destination.exists())
+
+    def test_save_profile_applies_windows_destination_component_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home = Path(temporary) / "backup-home"
+            unsafe_destinations = [
+                backup_home / "LOGS" / "nightly",
+                backup_home / "nightly.",
+                backup_home / "nightly " / "full",
+            ]
+
+            for backup_destination in unsafe_destinations:
+                with self.subTest(destination=backup_destination):
+                    with self.assertRaises(ValueError):
+                        save_profile(
+                            backup_home.as_posix(),
+                            profile("nightly", backup_destination, daily_schedule("2", "15")),
+                            windows_path_rules=True,
+                        )
+
+    def test_save_profile_checks_created_destination_for_short_path_use(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home = Path(temporary) / "backup-home"
+            backup_destination = backup_home / "テスト"
+            checked_directories: list[str] = []
+
+            def directory_uses_short_paths(path: str) -> bool:
+                self.assertTrue(Path(path).is_dir())
+                checked_directories.append(path)
+
+                return True
+
+            save_profile(
+                backup_home.as_posix(),
+                profile("nightly", backup_destination, daily_schedule("2", "15")),
+                directory_uses_short_paths=directory_uses_short_paths,
+            )
+
+            config_paths = list(backup_home.glob("*.cnf"))
+            self.assertEqual(len(config_paths), 1)
+            config = read_config(config_paths[0].as_posix())
+            self.assertEqual(checked_directories, [backup_destination.as_posix()])
+            self.assertTrue(config.getboolean("meb_manager", "windows_use_short_paths"))
+
+    @unittest.skipIf(os.name == "nt", "requires POSIX symbolic links")
+    def test_save_profile_checks_canonical_destination_for_short_path_use(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home = Path(temporary) / "backup-home"
+            backup_destination = backup_home / "テスト"
+            backup_destination.mkdir(parents=True)
+            alias_destination = backup_home / "ASCII~1"
+            alias_destination.symlink_to(backup_destination, target_is_directory=True)
+            checked_directories: list[str] = []
+
+            def directory_uses_short_paths(path: str) -> bool:
+                checked_directories.append(path)
+
+                return not path.isascii()
+
+            save_profile(
+                backup_home.as_posix(),
+                profile("nightly", alias_destination, daily_schedule("2", "15")),
+                directory_uses_short_paths=directory_uses_short_paths,
+            )
+
+            config_paths = list(backup_home.glob("*.cnf"))
+            self.assertEqual(len(config_paths), 1)
+            config = read_config(config_paths[0].as_posix())
+            self.assertEqual(checked_directories, [backup_destination.as_posix()])
+            self.assertTrue(config.getboolean("meb_manager", "windows_use_short_paths"))
 
     def test_save_profile_uses_uuid_config_filename(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
