@@ -1519,6 +1519,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
     private renderConnectionTreeContextMenus(): ComponentChild {
         const isClassicSidebar = (this.props.sidebarMode ?? "classic") === "classic";
+        const showMrsActions = !hasElectronHostBridge();
         const optionalMenuItems: ComponentChild[] = [];
         optionalMenuItems.push(
             <MenuItem command={{ title: "-", command: "" }} disabled key="edit-separator" />,
@@ -1714,8 +1715,14 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         command={{ title: "Load Data to HeatWave Cluster...", command: "msg.mds.loadToHeatWave" }}
                         disabled />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Add Schema to REST Service...", command: "msg.mrs.addSchema" }} />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    {showMrsActions &&
+                        <>
+                            <MenuItem
+                                command={{ title: "Add Schema to REST Service...", command: "msg.mrs.addSchema" }}
+                            />
+                            <MenuItem command={{ title: "-", command: "" }} disabled />
+                        </>
+                    }
                     <MenuItem command={{ title: "Drop Schema...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
@@ -1731,10 +1738,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     {copyToClipboardMenuItems()}
                     {sendToEditorMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
-                    />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    {showMrsActions &&
+                        <>
+                            <MenuItem
+                                command={{
+                                    title: "Add Database Object to REST Service...",
+                                    command: "msg.mrs.addDbObject",
+                                }}
+                            />
+                            <MenuItem command={{ title: "-", command: "" }} disabled />
+                        </>
+                    }
                     <MenuItem command={{ title: "Create a JSON Duality View...", command: "msg.createJdv" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Drop Table...", command: "msg.dropDbEntity" }} />
@@ -1782,10 +1796,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     {copyToClipboardMenuItems()}
                     {sendToEditorMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
-                    />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    {showMrsActions &&
+                        <>
+                            <MenuItem
+                                command={{
+                                    title: "Add Database Object to REST Service...",
+                                    command: "msg.mrs.addDbObject",
+                                }}
+                            />
+                            <MenuItem command={{ title: "-", command: "" }} disabled />
+                        </>
+                    }
                     <MenuItem command={{ title: "Drop View ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
@@ -1838,10 +1859,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     {copyToClipboardRoutineMenuItems(CdmEntityType.StoredProcedure)}
                     {sendToEditorRoutineMenuItems(CdmEntityType.StoredProcedure)}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
-                    />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    {showMrsActions &&
+                        <>
+                            <MenuItem
+                                command={{
+                                    title: "Add Database Object to REST Service...",
+                                    command: "msg.mrs.addDbObject",
+                                }}
+                            />
+                            <MenuItem command={{ title: "-", command: "" }} disabled />
+                        </>
+                    }
                     <MenuItem command={{ title: "Drop Stored Routine ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
@@ -1867,10 +1895,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     {copyToClipboardRoutineMenuItems(CdmEntityType.StoredFunction)}
                     {sendToEditorRoutineMenuItems(CdmEntityType.StoredFunction)}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
-                    />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    {showMrsActions &&
+                        <>
+                            <MenuItem
+                                command={{
+                                    title: "Add Database Object to REST Service...",
+                                    command: "msg.mrs.addDbObject",
+                                }}
+                            />
+                            <MenuItem command={{ title: "-", command: "" }} disabled />
+                        </>
+                    }
                     <MenuItem command={{ title: "Drop Stored Routine ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 

@@ -212,6 +212,66 @@ describe("DocumentSideBar native menus", () => {
         expect(refreshConnectionTreeEntryChildren).toHaveBeenCalledWith(mrsRoot, false, true);
     });
 
+    it("omits MRS actions from Electron database-object context menus", async () => {
+        const sideBar = createSideBar();
+        const { showNativeMenu } = installElectronHost();
+        renderNativeMenus(sideBar);
+        const menus = (sideBar as unknown as {
+            cdmTypeToMenuRefMap: Map<CdmEntityType, { current: Menu | null; }>;
+        }).cdmTypeToMenuRefMap;
+        const connection = {
+            details: {
+                version: 90400,
+            },
+        };
+        const cases: Array<{
+            type: CdmEntityType;
+            omittedLabel: string;
+            retainedLabel: string;
+        }> = [{
+            type: CdmEntityType.Schema,
+            omittedLabel: "Add Schema to REST Service...",
+            retainedLabel: "Drop Schema...",
+        }, {
+            type: CdmEntityType.Table,
+            omittedLabel: "Add Database Object to REST Service...",
+            retainedLabel: "Drop Table...",
+        }, {
+            type: CdmEntityType.View,
+            omittedLabel: "Add Database Object to REST Service...",
+            retainedLabel: "Drop View ...",
+        }, {
+            type: CdmEntityType.StoredProcedure,
+            omittedLabel: "Add Database Object to REST Service...",
+            retainedLabel: "Drop Stored Routine ...",
+        }, {
+            type: CdmEntityType.StoredFunction,
+            omittedLabel: "Add Database Object to REST Service...",
+            retainedLabel: "Drop Stored Routine ...",
+        }];
+
+        for (const testCase of cases) {
+            const menu = menus.get(testCase.type)?.current;
+            expect(menu).toBeTruthy();
+            menu!.open(new DOMRect(12, 16, 2, 2), false, undefined, {
+                dataModelEntry: {
+                    type: testCase.type,
+                    connection,
+                },
+            });
+            await nextRunLoop();
+
+            const request = showNativeMenu.mock.calls.at(-1)?.[0] as {
+                items: Array<{ label?: string; }>;
+            };
+            const labels = request.items.map((item) => {
+                return item.label;
+            });
+            expect(labels).toContain(testCase.retainedLabel);
+            expect(labels).not.toContain(testCase.omittedLabel);
+        }
+    });
+
     it("serializes routine invocation actions for procedure and function context menus", async () => {
         const sideBar = createSideBar();
         const { showNativeMenu } = installElectronHost();

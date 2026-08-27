@@ -196,7 +196,6 @@ const appName = "MySQL Workbench";
 const migrationAssistantTitle = "MySQL Cloud Migration Assistant";
 const isMac = process.platform === "darwin";
 const workbenchHelpUrl = "https://dev.mysql.com/doc/mysql-shell-gui/en/";
-const mrsDocsUrl = "https://dev.mysql.com/doc/dev/mysql-rest-service/latest/";
 const desktopOpenSupportedFileResourceId = "desktopOpenSupportedFile";
 const supportedRecentFileExtensions = new Set([
     ".sql",
@@ -1921,23 +1920,12 @@ const createMenu = () => {
         ]
     };
 
-    const browseMrsDocsCommand = getDesktopCommand("database.mrs.browseDocs");
-
     const databaseMenu = {
         label: "Database",
         submenu: [
             ...adminPageDefinitions.map((definition) => {
                 return createDesktopCommandStateMenuItem(definition.desktopCommandId, definition.label);
             }),
-            { type: "separator" },
-            createDesktopCommandStateMenuItem("database.mrs.configure", "Configure MySQL REST Service"),
-            {
-                label: browseMrsDocsCommand?.label ?? "Browse MySQL REST Service Documentation",
-                enabled: browseMrsDocsCommand?.enabled ?? true,
-                click: () => {
-                    openExternalUrl(mrsDocsUrl);
-                },
-            },
             { type: "separator" },
             createDesktopCommandStateMenuItem("database.migrationAssistant.start",
                 "Start MySQL HeatWave Cloud Migration Assistant"),

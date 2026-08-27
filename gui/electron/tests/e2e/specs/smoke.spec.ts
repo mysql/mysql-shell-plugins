@@ -80,8 +80,18 @@ test.describe("Electron desktop shell", () => {
 
         expect(bridges).toEqual({ host: true, backend: true });
 
-        const menuLabels = await workbench.menuLabels();
-        expect(menuLabels).toEqual(expect.arrayContaining(["File", "Edit", "View", "Run", "Database", "Window", "Help"]));
+        const menuSnapshot = await workbench.menuSnapshot();
+        expect(menuSnapshot.map((item) => {
+            return item.label;
+        })).toEqual(expect.arrayContaining(["File", "Edit", "View", "Run", "Database", "Window", "Help"]));
+
+        const databaseMenuLabels = menuSnapshot.find((item) => {
+            return item.label === "Database";
+        })?.submenu?.map((item) => {
+            return item.label;
+        });
+        expect(databaseMenuLabels).not.toContain("Configure MySQL REST Service");
+        expect(databaseMenuLabels).not.toContain("Browse MySQL REST Service Documentation");
     });
 
     test("keeps one running process per Electron user data profile",
