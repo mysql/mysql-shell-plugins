@@ -307,6 +307,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         const options: ITreeGridOptions = {
             layout: "fitData",
+            nestedFieldSeparator: false,
             verticalGridLines: true,
             horizontalGridLines: true,
             alternatingRowBackgrounds: false,

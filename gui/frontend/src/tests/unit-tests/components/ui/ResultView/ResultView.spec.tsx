@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { act, render } from "@testing-library/preact";
+import { act, render, waitFor } from "@testing-library/preact";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createRef, type RefObject } from "preact";
@@ -35,6 +35,7 @@ import {
     ResultView, getWideColumns, hasTallCellContent, updateWideColumnsCache,
 } from "../../../../../components/ResultView/ResultView.js";
 import { defaultCellValue } from "../../../../../components/ResultView/ResultCellValue.js";
+import type { TreeGrid } from "../../../../../components/ui/TreeGrid/TreeGrid.js";
 import { Assets } from "../../../../../supplement/Assets.js";
 import { requisitions } from "../../../../../supplement/Requisitions.js";
 import { KeyboardKeys } from "../../../../../utilities/helpers.js";
@@ -81,6 +82,7 @@ const readCssRule = (css: string, selector: string): string => {
 // @ts-expect-error, we are extending a class for testing purposes.
 class TestResultView extends ResultView {
     declare public cellContextMenuRef: RefObject<Menu>;
+    declare public gridRef: RefObject<TreeGrid>;
 }
 
 interface IResultViewInternals {
@@ -190,6 +192,29 @@ describe("Result View Tests", (): void => {
         );
 
         expect(container).toMatchSnapshot();
+
+        unmount();
+    });
+
+    it("Bug #39941571 renders flat result values for column names containing dots", async () => {
+        const field = "@@session.autocommit";
+        const resultSet = createResultSet("123", [{ id: 1, [field]: 1 }], [createColumn(field, field)]);
+        const viewRef = createRef<TestResultView>();
+        const { unmount } = render(
+            <TestResultView
+                ref={viewRef}
+                resultSet={resultSet}
+                editModeActive={false}
+                editable={false}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(viewRef.current?.gridRef.current?.getRows()).toHaveLength(1);
+        });
+        const row = viewRef.current!.gridRef.current!.getRows()[0];
+
+        expect(row.getCell(field).getValue()).toBe(1);
 
         unmount();
     });

@@ -71,6 +71,9 @@ export interface ITreeGridOptions {
     /** The field name in the tree data, which uniquely identifies a record/row (default: "id") */
     index?: string;
 
+    /** The separator for nested data fields. Set to false to use field names literally. */
+    nestedFieldSeparator?: string | false;
+
     /** The field name in the tree data, which contains child node data (default: children). */
     childKey?: string;
 
@@ -752,6 +755,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             // limitation in flex box layouts, which need extra counter measures.
             height,
         };
+
+        if (options?.nestedFieldSeparator !== undefined) {
+            result.nestedFieldSeparator = options.nestedFieldSeparator;
+        }
 
         // Tabulator is not consistent when dealing with missing callback functions. In some situations it tests for
         // null before accessing a callback, and sometimes it does not and creates an exception when null is assigned.
