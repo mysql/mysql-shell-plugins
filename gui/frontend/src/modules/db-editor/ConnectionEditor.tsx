@@ -672,25 +672,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             return;
         }
 
-        const mysqlOptions = options as IMySQLConnectionOptions;
-        const connectionTarget = mysqlOptions.port
-            ? `${mysqlOptions.host}:${mysqlOptions.port}`
-            : `localhost${mysqlOptions.socket ? ":" + mysqlOptions.socket : ""}`;
-        const service = useSSH
-            ? `${connectionTarget} (via SSH ${mysqlOptions.ssh})`
-            : `${mysqlOptions.user}@${connectionTarget}`;
-        const password = await ui.requestPassword({
-            requestId: "testConnection",
-            caption: "Test Connection",
-            service,
-            user: mysqlOptions.user,
-        });
-        if (password === undefined) {
-            return;
-        }
-
         try {
-            await ShellInterface.dbConnections.testConnection(details, password);
+            // MySQL Shell resolves saved credentials and prompts only when none is available.
+            await ShellInterface.dbConnections.testConnection(details);
             void ui.showInformationMessage("Connection test succeeded.", {});
         } catch (reason) {
             void ui.showErrorMessage(`Connection Error: ${convertErrorToString(reason)}`, {});
