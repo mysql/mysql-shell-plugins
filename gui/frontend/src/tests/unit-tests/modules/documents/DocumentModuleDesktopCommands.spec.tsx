@@ -2543,14 +2543,28 @@ describe("Document module desktop commands", () => {
             fireEvent.click(container.querySelector("#desktopTitlebarAddButton")!);
         });
         await nextRunLoop();
-        await act(async () => {
-            fireEvent.click(document.getElementById("desktopTitlebarAddOpenScriptItem")!);
-            await nextRunLoop();
-        });
-        expect(sideBarDocumentCommandSpy).toHaveBeenCalledWith(
-            { title: "", command: "msg.loadScriptFromDisk" },
-            fakePage,
-        );
+        const originalEmbedded = appParameters.embedded;
+        const executeRemoteSpy = vi.spyOn(requisitions, "executeRemote").mockReturnValue(true);
+        try {
+            appParameters.embedded = true;
+            await act(async () => {
+                fireEvent.click(document.getElementById("desktopTitlebarAddOpenScriptItem")!);
+                await nextRunLoop();
+            });
+            expect(executeRemoteSpy).toHaveBeenCalledWith("showOpenDialogWithRead", {
+                id: "desktopOpenSupportedFile",
+                title: "Open File",
+                openLabel: "Open",
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                filters: {
+                    "SQL Files": ["sql"],
+                },
+            });
+        } finally {
+            appParameters.embedded = originalEmbedded;
+        }
 
         await act(async () => {
             fireEvent.click(container.querySelector("#desktopTitlebarAddButton")!);
@@ -3337,8 +3351,11 @@ describe("Document module desktop commands", () => {
             }),
         }));
 
-        const openSupportedFileSpy = vi.spyOn(moduleRef.current as any,
-            "openDesktopSupportedFileFromDisk").mockResolvedValue(true);
+        const openFileFromDiskTarget = moduleRef.current as unknown as {
+            openDesktopFileFromDisk: (filters: Record<string, string[]>) => Promise<boolean>;
+        };
+        const openFileFromDiskSpy = vi.spyOn(openFileFromDiskTarget, "openDesktopFileFromDisk")
+            .mockResolvedValue(true);
         const createScriptSpy = vi.spyOn(moduleRef.current as any,
             "createAndSelectScriptDocument").mockResolvedValue(undefined);
         const addNotebookSpy = vi.spyOn(moduleRef.current as any, "handleAddNotebook").mockReturnValue("notebook-1");
@@ -3359,7 +3376,9 @@ describe("Document module desktop commands", () => {
         expect(addNotebookSpy).toHaveBeenCalledWith("page-1");
 
         expect(await desktopCommandRegistry.execute("file.open")).toBe(true);
-        expect(openSupportedFileSpy).toHaveBeenCalled();
+        expect(openFileFromDiskSpy).toHaveBeenCalledWith({
+            "Supported Files": ["sql", "mysql", "js", "ts", "mysql-notebook"],
+        });
 
         expect(await desktopCommandRegistry.execute("file.save")).toBe(true);
         expect(saveActiveDocumentSpy).toHaveBeenCalledWith(false);

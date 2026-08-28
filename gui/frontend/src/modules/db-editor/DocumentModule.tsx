@@ -2688,12 +2688,9 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
             }
 
             case "desktop.openScriptTab": {
-                const result = await this.handleSideBarDocumentCommand(
-                    { title: "", command: "msg.loadScriptFromDisk" },
-                    pageEntry,
-                );
-
-                return result.success;
+                return this.openDesktopFileFromDisk({
+                    "SQL Files": ["sql"],
+                });
             }
 
             case "desktop.openNotebookTab": {
@@ -5081,7 +5078,9 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
         return true;
     };
 
-    private openDesktopSupportedFileFromDisk = async (): Promise<boolean> => {
+    private openDesktopFileFromDisk = async (
+        filters: Record<string, string[]>,
+    ): Promise<boolean> => {
         const pageEntry = await this.getOrCreateSelectedUserConnectionPageEntry();
         if (!pageEntry) {
             return false;
@@ -5095,13 +5094,20 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                 canSelectFiles: true,
                 canSelectFolders: false,
                 canSelectMany: false,
-                filters: this.getDesktopOpenSupportedFileFilters(),
+                filters,
             });
 
             return true;
         }
 
-        const files = await selectFileInBrowser([".sql", ".mysql", ".js", ".ts", ".mysql-notebook"], false);
+        const acceptedExtensions: string[] = [];
+        Object.values(filters).forEach((extensions) => {
+            acceptedExtensions.push(...extensions.map((extension) => {
+                return `.${extension}`;
+            }));
+        });
+
+        const files = await selectFileInBrowser(acceptedExtensions, false);
         if (!files?.length) {
             return true;
         }
@@ -6171,7 +6177,7 @@ EXAMPLES
 
         switch (id) {
             case "file.open": {
-                return this.openDesktopSupportedFileFromDisk();
+                return this.openDesktopFileFromDisk(this.getDesktopOpenSupportedFileFilters());
             }
 
             case "file.save": {

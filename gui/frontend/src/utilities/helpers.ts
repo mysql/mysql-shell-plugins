@@ -77,17 +77,24 @@ export const selectFileInBrowser = (acceptedExtensions: string[], multiple: bool
         input.id = "fileSelect";
         input.multiple = multiple;
         input.accept = acceptedExtensions.join(",");
-        document.body.appendChild(input);
+        input.hidden = true;
+
+        const finishSelection = (files: File[] | null): void => {
+            input.remove();
+            resolve(files);
+        };
 
         input.onchange = (): void => {
             const files = input.files ? Array.from(input.files) : null;
-            resolve(files);
-
-            document.body.removeChild(input);
+            finishSelection(files);
         };
 
-        input.click();
+        input.oncancel = (): void => {
+            finishSelection(null);
+        };
 
+        document.body.appendChild(input);
+        input.click();
     });
 };
 

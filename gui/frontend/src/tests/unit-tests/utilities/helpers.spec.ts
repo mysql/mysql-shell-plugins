@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -135,16 +135,19 @@ describe("Utilities Tests", (): void => {
         let promise = selectFileInBrowser([".json"], false);
         let inputs = document.getElementsByTagName("input");
         expect(inputs).toHaveLength(1);
+        const inputWasHidden = inputs[0].hidden;
+        const selectedFile = new File(["{}"], "test.json", { type: "application/json" });
+        Object.defineProperty(inputs[0], "files", {
+            value: [selectedFile],
+        });
         await nextProcessTick();
 
-        // Fake file selection from the user. I cannot get a fake file to be inserted here, so we test with
-        // an empty file list.
         const e = new Event("change", { bubbles: true });
         inputs[0].dispatchEvent(e);
 
         const singleValue = await promise;
-        expect(singleValue).not.toBeNull();
-        expect(singleValue).toHaveLength(0);
+        expect(singleValue).toEqual([selectedFile]);
+        expect(inputWasHidden).toBe(true);
 
         promise = selectFileInBrowser([".json"], true);
         inputs = document.getElementsByTagName("input");
@@ -155,6 +158,25 @@ describe("Utilities Tests", (): void => {
 
         const valueList = await promise;
         expect(valueList).toHaveLength(0);
+    });
+
+    it("Cancel File Selection", async () => {
+        const promise = selectFileInBrowser([".sql"], false);
+        const input = document.getElementById("fileSelect");
+        let result: File[] | null | undefined;
+        void promise.then((value) => {
+            result = value;
+        });
+
+        try {
+            input?.dispatchEvent(new Event("cancel"));
+            await nextProcessTick();
+
+            expect(result).toBeNull();
+            expect(input?.isConnected).toBe(false);
+        } finally {
+            input?.remove();
+        }
     });
 
     it("Various Tools", async () => {
