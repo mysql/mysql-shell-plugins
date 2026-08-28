@@ -2564,13 +2564,20 @@ describe("Document module desktop commands", () => {
         expect(requisitionSpy).toHaveBeenCalledWith("editorLoadNotebook", { createNew: true });
 
         const showNativeMenu = vi.fn().mockResolvedValue(undefined);
+        let nativeMenuHandler: ((event: {
+            type: "select";
+            requestId: string;
+            itemId: string;
+        }) => void) | undefined;
         Object.defineProperty(window, "electronHost", {
             configurable: true,
             value: {
                 postMessage: vi.fn(),
                 showNativeMenu,
                 closeNativeMenu: vi.fn().mockResolvedValue(undefined),
-                setNativeMenuHandler: vi.fn(),
+                setNativeMenuHandler: (handler: typeof nativeMenuHandler) => {
+                    nativeMenuHandler = handler;
+                },
             },
         });
 
@@ -2616,6 +2623,28 @@ describe("Document module desktop commands", () => {
                 expect.objectContaining({ label: "Visual Explain Analyze" }),
             ]),
         }));
+        const runMenuRequest = showNativeMenu.mock.calls[0][0] as {
+            id: string;
+            items: Array<{ id: string; label?: string; }>;
+        };
+        const runScriptItem = runMenuRequest.items.find((item) => {
+            return item.label === "Run Script";
+        });
+        expect(runScriptItem).toBeTruthy();
+
+        requisitionSpy.mockClear();
+        nativeMenuHandler?.({
+            type: "select",
+            requestId: runMenuRequest.id,
+            itemId: runScriptItem!.id,
+        });
+        await nextRunLoop();
+        expect(requisitionSpy).toHaveBeenCalledWith("editorExecuteSelectedOrAll", {
+            advance: false,
+            forceSecondaryEngine: false,
+            asText: false,
+            is3rdLanguage: undefined,
+        });
 
         vi.useRealTimers();
         vi.useFakeTimers();

@@ -2562,6 +2562,11 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
 
     private handleDesktopTitlebarRunMenuItemClick = (props: IMenuItemProperties): boolean => {
         switch (props.command.command) {
+            case "run.execute": {
+                void this.executeDesktopCommand("run.execute");
+                break;
+            }
+
             case "run.executeCurrent": {
                 void this.executeDesktopCommand("run.executeCurrent");
                 break;
