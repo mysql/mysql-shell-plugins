@@ -43,6 +43,7 @@ from unittest import mock
 SCRIPT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "auto_package.py"
 HELPER_PATH = SCRIPT_PATH.parent / "prepare_mysqlsh_tree.py"
 OCI_HELPER_PATH = SCRIPT_PATH.parent / "prepare_oci_sdk.py"
+TEST_PACKAGE_VERSION = "1.2.3"
 
 
 class FlushingStringIO(io.StringIO):
@@ -113,7 +114,7 @@ class AutoPackageTest(unittest.TestCase):
         (electron_dir / "package.json").write_text(
             json.dumps({
                 "name": "mysql-workbench",
-                "version": "26.7.0",
+                "version": TEST_PACKAGE_VERSION,
                 "dependencies": {"electron": "43.2.0"},
                 "desktopPackageSuffixes": {
                     "community": "",
@@ -193,6 +194,7 @@ class AutoPackageTest(unittest.TestCase):
             "        'custom_dmgbuild_path': os.environ.get(\n"
             "            'CUSTOM_DMGBUILD_PATH'),\n"
             "        'use_system_fpm': os.environ.get('USE_SYSTEM_FPM'),\n"
+            "        'build_number': os.environ.get('BUILD_NUMBER'),\n"
             "        'path': os.environ.get('PATH'),\n"
             "        'rpmbuild': shutil.which('rpmbuild'),\n"
             "        'staging_tests_exist': any(\n"
@@ -332,6 +334,178 @@ class AutoPackageTest(unittest.TestCase):
                     expected,
                 )
 
+    def test_formats_dist_artifact_names(self) -> None:
+        auto_package = self.load_auto_package()
+        formatter = getattr(auto_package, "dist_artifact_name", None)
+        self.assertIsNotNone(
+            formatter,
+            "auto_package must format artifact names copied to dist",
+        )
+        assert formatter is not None
+        cases = (
+            (
+                "mysql-workbench",
+                "linux-x64",
+                "zip",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-linux-glibc2.28-x86_64.zip",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "linux-x64",
+                "zip",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-linux-glibc2.28-x86_64.zip",
+            ),
+            (
+                "mysql-workbench",
+                "linux-arm64",
+                "zip",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-linux-glibc2.28-aarch64.zip",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "linux-arm64",
+                "zip",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-linux-glibc2.28-aarch64.zip",
+            ),
+            (
+                "mysql-workbench",
+                "darwin-x64",
+                "zip",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-macos-x86_64.zip",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "darwin-x64",
+                "zip",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-macos-x86_64.zip",
+            ),
+            (
+                "mysql-workbench",
+                "darwin-arm64",
+                "zip",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-macos-arm64.zip",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "darwin-arm64",
+                "zip",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-macos-arm64.zip",
+            ),
+            (
+                "mysql-workbench",
+                "win32-x64",
+                "zip",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-winx64.zip",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "win32-x64",
+                "zip",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-winx64.zip",
+            ),
+            (
+                "mysql-workbench",
+                "darwin-x64",
+                "dmg",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-macos-x86_64.dmg",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "darwin-x64",
+                "dmg",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-macos-x86_64.dmg",
+            ),
+            (
+                "mysql-workbench",
+                "darwin-arm64",
+                "dmg",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-macos-arm64.dmg",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "darwin-arm64",
+                "dmg",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-macos-arm64.dmg",
+            ),
+            (
+                "mysql-workbench",
+                "win32-x64",
+                "msi",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-winx64.msi",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "win32-x64",
+                "msi",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-winx64.msi",
+            ),
+            (
+                "mysql-workbench",
+                "linux-x64",
+                "rpm",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-1.x86_64.rpm",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "linux-x64",
+                "rpm",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-1.x86_64.rpm",
+            ),
+            (
+                "mysql-workbench",
+                "linux-arm64",
+                "rpm",
+                f"mysql-workbench-{TEST_PACKAGE_VERSION}-1.aarch64.rpm",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "linux-arm64",
+                "rpm",
+                f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-1.aarch64.rpm",
+            ),
+            (
+                "mysql-workbench",
+                "linux-x64",
+                "deb",
+                f"mysql-workbench_{TEST_PACKAGE_VERSION}-1_amd64.deb",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "linux-x64",
+                "deb",
+                f"mysql-workbench-commercial_{TEST_PACKAGE_VERSION}-1_amd64.deb",
+            ),
+            (
+                "mysql-workbench",
+                "linux-arm64",
+                "deb",
+                f"mysql-workbench_{TEST_PACKAGE_VERSION}-1_arm64.deb",
+            ),
+            (
+                "mysql-workbench-commercial",
+                "linux-arm64",
+                "deb",
+                f"mysql-workbench-commercial_{TEST_PACKAGE_VERSION}-1_arm64.deb",
+            ),
+        )
+
+        for package_name, target, extension, expected in cases:
+            with self.subTest(
+                package_name=package_name,
+                target=target,
+                extension=extension,
+            ):
+                self.assertEqual(
+                    formatter(
+                        package_name,
+                        TEST_PACKAGE_VERSION,
+                        target,
+                        extension,
+                        "1",
+                    ),
+                    expected,
+                )
+
     def test_rejects_unsupported_platforms(self) -> None:
         auto_package = self.load_auto_package()
 
@@ -381,6 +555,59 @@ class AutoPackageTest(unittest.TestCase):
         ])
 
         self.assertTrue(options.win_sign)
+
+    def test_parses_package_release(self) -> None:
+        auto_package = self.load_auto_package()
+        required_arguments = [
+            "--mysqlsh", "/mysqlsh",
+            "--electron", "/electron",
+            "--router", "/router",
+            "--installer",
+        ]
+
+        default_options = auto_package.parse_arguments(required_arguments)
+        self.assertEqual(
+            getattr(default_options, "package_release", None),
+            "1",
+        )
+        explicit_options = auto_package.parse_arguments([
+            *required_arguments,
+            "--package-release", "2.1",
+        ])
+        self.assertEqual(explicit_options.package_release, "2.1")
+
+    def test_rejects_invalid_package_releases(self) -> None:
+        auto_package = self.load_auto_package()
+        required_arguments = [
+            "--mysqlsh", "/mysqlsh",
+            "--electron", "/electron",
+            "--router", "/router",
+            "--installer",
+            "--package-release",
+        ]
+        invalid_releases = (
+            "",
+            ".1",
+            "1.",
+            "2-1",
+            "2_1",
+            "../2",
+            "~1",
+            "a" * 65,
+        )
+
+        for package_release in invalid_releases:
+            with self.subTest(package_release=package_release):
+                with (
+                    contextlib.redirect_stderr(io.StringIO()),
+                    self.assertRaises(SystemExit) as exit_context,
+                ):
+                    auto_package.parse_arguments([
+                        *required_arguments,
+                        package_release,
+                    ])
+
+                self.assertEqual(exit_context.exception.code, 2)
 
     def test_windows_sign_requires_windows(self) -> None:
         auto_package = self.load_auto_package()
@@ -441,7 +668,7 @@ class AutoPackageTest(unittest.TestCase):
             package_path.write_text(
                 json.dumps({
                     "name": "mysql-workbench",
-                    "version": "26.7.0",
+                    "version": TEST_PACKAGE_VERSION,
                     "dependencies": {"electron": "43.2.0"},
                     "desktopPackageSuffixes": {
                         "community": "",
@@ -468,7 +695,7 @@ class AutoPackageTest(unittest.TestCase):
             package_path.write_text(
                 json.dumps({
                     "name": "mysql-workbench",
-                    "version": "26.7.0",
+                    "version": TEST_PACKAGE_VERSION,
                     "dependencies": {"electron": "43.2.0"},
                     "desktopPackageSuffixes": {
                         "community": "",
@@ -771,26 +998,39 @@ class AutoPackageTest(unittest.TestCase):
             )
             dist = electron_dir / "dist"
             dist.mkdir()
-            (dist / deb.name).write_bytes(b"old deb")
+            deb_output = (
+                dist / f"mysql-workbench_{TEST_PACKAGE_VERSION}-1_amd64.deb"
+            )
+            rpm_output = (
+                dist / f"mysql-workbench-{TEST_PACKAGE_VERSION}-1.x86_64.rpm"
+            )
+            deb_output.write_bytes(b"old deb")
             output = io.StringIO()
 
             with contextlib.redirect_stdout(output):
-                result = auto_package.copy_artifact_outputs(manifest, electron_dir)
+                result = auto_package.copy_artifact_outputs(
+                    manifest,
+                    electron_dir,
+                    "mysql-workbench",
+                    TEST_PACKAGE_VERSION,
+                    "linux-x64",
+                    "1",
+                )
 
             self.assertEqual(result, 0)
-            self.assertEqual((dist / deb.name).read_bytes(), b"new deb")
-            self.assertEqual((dist / rpm.name).read_bytes(), b"new rpm")
+            self.assertEqual(deb_output.read_bytes(), b"new deb")
+            self.assertEqual(rpm_output.read_bytes(), b"new rpm")
             self.assertEqual(
                 output.getvalue().splitlines(),
                 [
                     "Copying artifact output:",
                     f"  From: {deb.resolve()}",
-                    f"  To:   {(dist / deb.name).resolve()}",
-                    f"Artifact output: {(dist / deb.name).resolve()}",
+                    f"  To:   {deb_output.resolve()}",
+                    f"Artifact output: {deb_output.resolve()}",
                     "Copying artifact output:",
                     f"  From: {rpm.resolve()}",
-                    f"  To:   {(dist / rpm.name).resolve()}",
-                    f"Artifact output: {(dist / rpm.name).resolve()}",
+                    f"  To:   {rpm_output.resolve()}",
+                    f"Artifact output: {rpm_output.resolve()}",
                 ],
             )
 
@@ -813,15 +1053,28 @@ class AutoPackageTest(unittest.TestCase):
             )
             dist = electron_dir / "dist"
             dist.mkdir()
-            (dist / deb.name).write_bytes(b"old deb")
+            deb_output = (
+                dist / f"mysql-workbench_{TEST_PACKAGE_VERSION}-1_amd64.deb"
+            )
+            rpm_output = (
+                dist / f"mysql-workbench-{TEST_PACKAGE_VERSION}-1.x86_64.rpm"
+            )
+            deb_output.write_bytes(b"old deb")
             error_output = io.StringIO()
 
             with contextlib.redirect_stderr(error_output):
-                result = auto_package.copy_artifact_outputs(manifest, electron_dir)
+                result = auto_package.copy_artifact_outputs(
+                    manifest,
+                    electron_dir,
+                    "mysql-workbench",
+                    TEST_PACKAGE_VERSION,
+                    "linux-x64",
+                    "1",
+                )
 
             self.assertEqual(result, 1)
-            self.assertEqual((dist / deb.name).read_bytes(), b"old deb")
-            self.assertFalse((dist / rpm.name).exists())
+            self.assertEqual(deb_output.read_bytes(), b"old deb")
+            self.assertFalse(rpm_output.exists())
             self.assertIn(
                 f"ERROR: Expected artifact output was not produced: {rpm}",
                 error_output.getvalue(),
@@ -845,6 +1098,10 @@ class AutoPackageTest(unittest.TestCase):
                         auto_package.copy_artifact_outputs(
                             manifest,
                             electron_dir,
+                            "mysql-workbench",
+                            TEST_PACKAGE_VERSION,
+                            "linux-x64",
+                            "1",
                         )
 
     def test_requires_exactly_one_output_mode_before_extracting(self) -> None:
@@ -1057,7 +1314,23 @@ class AutoPackageTest(unittest.TestCase):
             self.assertTrue((destination / "runtime").is_file())
             self.assertEqual((destination / "runtime").read_text(encoding="utf-8"), "electron")
             self.assertTrue(os.access(destination / "runtime", os.X_OK))
-            zip_output = root / "electron" / "dist" / f"mysql-workbench-26.7.0-{target}.zip"
+            zip_name = {
+                "darwin-arm64": (
+                    f"mysql-workbench-{TEST_PACKAGE_VERSION}-macos-arm64.zip"
+                ),
+                "darwin-x64": (
+                    f"mysql-workbench-{TEST_PACKAGE_VERSION}-macos-x86_64.zip"
+                ),
+                "linux-arm64": (
+                    f"mysql-workbench-{TEST_PACKAGE_VERSION}-"
+                    "linux-glibc2.28-aarch64.zip"
+                ),
+                "linux-x64": (
+                    f"mysql-workbench-{TEST_PACKAGE_VERSION}-"
+                    "linux-glibc2.28-x86_64.zip"
+                ),
+            }[target]
+            zip_output = root / "electron" / "dist" / zip_name
             self.assertTrue(zip_output.is_file())
             self.assertEqual(zip_output.read_bytes(), b"desktop zip")
             self.assertIn(f"Artifact output: {zip_output.resolve()}", result.stdout)
@@ -1083,7 +1356,7 @@ class AutoPackageTest(unittest.TestCase):
             self.assertIn("Copying artifact output:", lines)
             self.assertIn(
                 "  From: "
-                f"{(root / 'electron' / 'packaging' / 'desktop-artifacts' / target / zip_output.name).resolve()}",
+                f"{(root / 'electron' / 'packaging' / 'desktop-artifacts' / target / f'mysql-workbench-{TEST_PACKAGE_VERSION}-{target}.zip').resolve()}",
                 lines,
             )
             self.assertIn(f"  To:   {zip_output.resolve()}", lines)
@@ -1158,7 +1431,24 @@ class AutoPackageTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             zip_output = (
                 root / "electron" / "dist"
-                / f"mysql-workbench-commercial-26.7.0-{target}.zip"
+                / {
+                    "darwin-arm64": (
+                        f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-"
+                        "macos-arm64.zip"
+                    ),
+                    "darwin-x64": (
+                        f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-"
+                        "macos-x86_64.zip"
+                    ),
+                    "linux-arm64": (
+                        f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-"
+                        "linux-glibc2.28-aarch64.zip"
+                    ),
+                    "linux-x64": (
+                        f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-"
+                        "linux-glibc2.28-x86_64.zip"
+                    ),
+                }[target]
             )
             self.assertEqual(zip_output.read_bytes(), b"desktop zip")
             self.assertIn(f"Artifact output: {zip_output.resolve()}", result.stdout)
@@ -1290,7 +1580,64 @@ class AutoPackageTest(unittest.TestCase):
             )
             self.assertEqual(invocation["cwd"], str(root / "electron"))
             self.assertTrue(invocation["staging_tests_exist"])
+            if target.startswith("linux-"):
+                self.assertEqual(invocation["build_number"], "1")
             self.assertFalse((root / "electron" / "dist").exists())
+
+    def test_linux_installer_uses_release_and_native_dist_names(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (
+                script_path,
+                fake_bin,
+                mysqlsh_source,
+                electron_source,
+                router_source,
+            ) = self.prepare_test_tree(root)
+            target = "linux-x64"
+            archive_path = electron_source / f"electron-v43.2.0-{target}.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("electron", b"electron")
+
+            log_path = root / "arguments.json"
+            auto_package = self.load_auto_package(script_path)
+            options = auto_package.parse_arguments([
+                "--mysqlsh", str(mysqlsh_source),
+                "--electron", str(electron_source),
+                "--router", str(router_source),
+                "--installer",
+                "--commercial",
+                "--package-release", "2.1",
+            ])
+            environment = os.environ.copy()
+            environment["PATH"] = os.pathsep.join(
+                (str(fake_bin), environment["PATH"])
+            )
+            environment["AUTO_PACKAGE_TEST_LOG"] = str(log_path)
+
+            with mock.patch.dict(os.environ, environment, clear=True):
+                result = auto_package.package_target(
+                    options,
+                    target,
+                    script_path.parent,
+                )
+
+            self.assertEqual(result, 0)
+            dist = root / "electron" / "dist"
+            deb = (
+                dist
+                / f"mysql-workbench-commercial_{TEST_PACKAGE_VERSION}-2.1_amd64.deb"
+            )
+            rpm = (
+                dist
+                / f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-2.1.x86_64.rpm"
+            )
+            self.assertTrue(deb.is_file(), f"Missing dist artifact: {deb}")
+            self.assertTrue(rpm.is_file(), f"Missing dist artifact: {rpm}")
+            self.assertEqual(deb.read_bytes(), b"desktop deb")
+            self.assertEqual(rpm.read_bytes(), b"desktop rpm")
+            invocation = json.loads(log_path.read_text(encoding="utf-8"))
+            self.assertEqual(invocation["build_number"], "2.1")
 
     def test_linux_arm64_installer_skips_deb(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -1317,7 +1664,7 @@ class AutoPackageTest(unittest.TestCase):
                 artifact = (
                     root / "electron" / "packaging" / "desktop-artifacts"
                     / "linux-arm64"
-                    / "mysql-workbench-26.7.0-linux-arm64.rpm"
+                    / f"mysql-workbench-{TEST_PACKAGE_VERSION}-linux-arm64.rpm"
                 )
                 artifact.parent.mkdir(parents=True)
                 artifact.write_bytes(b"rpm")
@@ -1362,11 +1709,11 @@ class AutoPackageTest(unittest.TestCase):
             self.assertNotIn("--skip-rpm", invocations[0])
             self.assertTrue(
                 (root / "electron" / "dist"
-                 / "mysql-workbench-26.7.0-linux-arm64.rpm").is_file()
+                 / f"mysql-workbench-{TEST_PACKAGE_VERSION}-1.aarch64.rpm").is_file()
             )
             self.assertFalse(
                 (root / "electron" / "dist"
-                 / "mysql-workbench-26.7.0-linux-arm64.deb").exists()
+                 / f"mysql-workbench_{TEST_PACKAGE_VERSION}-1_arm64.deb").exists()
             )
 
     def test_darwin_installer_uses_dmgbuild_from_path(self) -> None:
@@ -1554,7 +1901,7 @@ class AutoPackageTest(unittest.TestCase):
             self.assertEqual(result, 0)
             installer = (
                 root / "electron" / "dist"
-                / "mysql-workbench-commercial-26.7.0-win32-x64.msi"
+                / f"mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-winx64.msi"
             )
             self.assertEqual(installer.read_bytes(), b"desktop msi")
             lines = output.getvalue().splitlines()
@@ -1563,7 +1910,7 @@ class AutoPackageTest(unittest.TestCase):
             self.assertIn(f"Artifact output: {installer.resolve()}", lines)
             self.assertIn(
                 "  From: "
-                f"{(root / 'electron' / 'packaging' / 'desktop-artifacts' / target / installer.name).resolve()}",
+                f"{(root / 'electron' / 'packaging' / 'desktop-artifacts' / target / f'mysql-workbench-commercial-{TEST_PACKAGE_VERSION}-win32-x64.msi').resolve()}",
                 lines,
             )
             self.assertIn(f"  To:   {installer.resolve()}", lines)

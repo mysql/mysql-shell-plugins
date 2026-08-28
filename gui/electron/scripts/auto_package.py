@@ -27,6 +27,7 @@ import contextlib
 import json
 import os
 import platform
+import re
 import shlex
 import shutil
 import stat
@@ -59,6 +60,77 @@ def resolve_platform(system_name: str, machine_name: str) -> str:
         return "win32-x64"
 
     raise RuntimeError(f"Unsupported platform: {system_name} {machine_name}")
+
+
+def dist_artifact_name(
+    package_name: str,
+    package_version: str,
+    target: str,
+    artifact_extension: str,
+    package_release: str,
+) -> str:
+    portable_targets = {
+        "darwin-arm64": "macos-arm64",
+        "darwin-x64": "macos-x86_64",
+        "linux-arm64": "linux-glibc2.28-aarch64",
+        "linux-x64": "linux-glibc2.28-x86_64",
+        "win32-x64": "winx64",
+    }
+    rpm_architectures = {
+        "linux-arm64": "aarch64",
+        "linux-x64": "x86_64",
+    }
+    deb_architectures = {
+        "linux-arm64": "arm64",
+        "linux-x64": "amd64",
+    }
+
+    if artifact_extension == "rpm" and target in rpm_architectures:
+        architecture = rpm_architectures[target]
+
+        return (
+            f"{package_name}-{package_version}-{package_release}"
+            f".{architecture}.rpm"
+        )
+
+    if artifact_extension == "deb" and target in deb_architectures:
+        architecture = deb_architectures[target]
+
+        return (
+            f"{package_name}_{package_version}-{package_release}"
+            f"_{architecture}.deb"
+        )
+
+    portable_extensions = {
+        "dmg": target.startswith("darwin-"),
+        "msi": target.startswith("win32-"),
+        "zip": True,
+    }
+    if (
+        portable_extensions.get(artifact_extension, False)
+        and target in portable_targets
+    ):
+        return (
+            f"{package_name}-{package_version}-{portable_targets[target]}"
+            f".{artifact_extension}"
+        )
+
+    raise ValueError(
+        f"Unsupported artifact for target {target}: {artifact_extension}"
+    )
+
+
+def parse_package_release(value: str) -> str:
+    if re.fullmatch(
+        r"[A-Za-z0-9](?:[A-Za-z0-9.+~]{0,62}[A-Za-z0-9])?",
+        value,
+    ) is None:
+        raise argparse.ArgumentTypeError(
+            "package release must be 1-64 ASCII letters, digits, '.', '+', "
+            "or '~', and must start and end with a letter or digit"
+        )
+
+    return value
 
 
 def parse_arguments(arguments: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -110,6 +182,15 @@ def parse_arguments(arguments: Optional[Sequence[str]] = None) -> argparse.Names
         "--commercial",
         action="store_true",
         help="Build the commercial package edition instead of community.",
+    )
+    parser.add_argument(
+        "--package-release",
+        default="1",
+        type=parse_package_release,
+        help=(
+            "RPM release and Debian revision to use for Linux installer "
+            "packages (default: 1)."
+        ),
     )
     parser.add_argument(
         "--wix-archive",
@@ -200,7 +281,7 @@ def force_copy_directory_contents(source: Path, destination: Path) -> None:
 
 def package_metadata(
     package_path: Path,
-) -> tuple[str, dict[str, str], str]:
+) -> tuple[str, dict[str, str], str, str, str]:
     package = json.loads(package_path.read_text(encoding="utf-8"))
     suffixes: dict[str, str] = package["desktopPackageSuffixes"]
 
@@ -208,6 +289,8 @@ def package_metadata(
         str(package["dependencies"]["electron"]),
         suffixes,
         str(package["desktopElectronBuilderCache"]),
+        str(package["name"]),
+        str(package["version"]),
     )
 
 
@@ -318,7 +401,14 @@ def rpmbuild_openssl_workaround(
             environment["PATH"] = original_path
 
 
-def copy_artifact_outputs(manifest_path: Path, electron_dir: Path) -> int:
+def copy_artifact_outputs(
+    manifest_path: Path,
+    electron_dir: Path,
+    package_name: str,
+    package_version: str,
+    target: str,
+    package_release: str,
+) -> int:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     artifacts = manifest.get("artifacts") if isinstance(manifest, dict) else None
     if (
@@ -342,7 +432,14 @@ def copy_artifact_outputs(manifest_path: Path, electron_dir: Path) -> int:
     dist_dir = electron_dir / "dist"
     dist_dir.mkdir(parents=True, exist_ok=True)
     for source in sources:
-        destination = dist_dir / source.name
+        artifact_extension = source.suffix.removeprefix(".").lower()
+        destination = dist_dir / dist_artifact_name(
+            package_name,
+            package_version,
+            target,
+            artifact_extension,
+            package_release,
+        )
         print_path_operation("Copying artifact output", source, destination)
         shutil.copy2(source, destination)
         print(f"Artifact output: {destination.resolve()}")
@@ -391,6 +488,8 @@ def package_target(
         electron_version,
         package_suffixes,
         electron_builder_cache,
+        base_package_name,
+        package_version,
     ) = package_metadata(electron_dir / "package.json")
     wix_source = validate_wix_archive_option(
         options.wix_archive,
@@ -409,6 +508,7 @@ def package_target(
     print(f"Package edition: {edition}")
     print(f"Output mode: {output_mode}", flush=True)
     package_name_suffix = package_suffixes[edition]
+    package_name = f"{base_package_name}{package_name_suffix}"
     electron_archive = electron_archives / f"electron-v{electron_version}-{target}.zip"
 
     print_path_operation(
@@ -439,6 +539,7 @@ def package_target(
 
     linux_installer = options.installer and target.startswith("linux-")
     if linux_installer:
+        environment["BUILD_NUMBER"] = options.package_release
         configure_fpm_environment(environment)
 
     with tempfile.TemporaryDirectory(
@@ -483,7 +584,14 @@ def package_target(
         if result.returncode != 0:
             return result.returncode
 
-        return copy_artifact_outputs(manifest_path, electron_dir)
+        return copy_artifact_outputs(
+            manifest_path,
+            electron_dir,
+            package_name,
+            package_version,
+            target,
+            options.package_release,
+        )
 
 
 def main(arguments: Optional[Sequence[str]] = None) -> int:
