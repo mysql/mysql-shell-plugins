@@ -32,6 +32,12 @@ import { Container, Orientation } from "../Container/Container.js";
 import { computeContentPosition } from "../html-helpers.js";
 import { IPortalOptions, IPortalProperties, Portal } from "../Portal/Portal.js";
 
+export const popupOpenedEvent = "popupOpened";
+
+export const notifyPopupOpened = (): void => {
+    document.dispatchEvent(new Event(popupOpenedEvent));
+};
+
 export interface IPopupProperties extends IPortalProperties {
     header?: ComponentChild;
 
@@ -110,6 +116,7 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
     }
 
     public open(currentTarget: DOMRect, options?: IPortalOptions): void {
+        notifyPopupOpened();
         this.setState({ currentTarget }, () => {
             this.portalRef.current?.open({
                 closeOnEscape: true,

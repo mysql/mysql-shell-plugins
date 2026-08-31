@@ -37,7 +37,7 @@ import { KeyboardKeys } from "../../../utilities/helpers.js";
 import { collectVNodes } from "../../../utilities/preact-helpers.js";
 import { ComponentBase, ComponentPlacement, IComponentState } from "../Component/ComponentBase.js";
 import { Orientation } from "../Container/Container.js";
-import { IPopupProperties, Popup } from "../Popup/Popup.js";
+import { IPopupProperties, notifyPopupOpened, Popup } from "../Popup/Popup.js";
 import { IPortalOptions } from "../Portal/Portal.js";
 import { IMenuItemProperties, MenuItem } from "./MenuItem.js";
 
@@ -544,6 +544,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
                 return { x: anchorX, y: anchorY };
             })();
 
+        notifyPopupOpened();
         this.props.onOpen?.(this.props);
         const requestPromise = window.electronHost?.showNativeMenu?.({
             id: requestId,

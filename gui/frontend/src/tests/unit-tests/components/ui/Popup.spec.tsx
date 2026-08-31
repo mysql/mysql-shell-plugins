@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,13 +27,15 @@ import { render } from "@testing-library/preact";
 import { createRef } from "preact";
 import { describe, expect, it, vi } from "vitest";
 
-import { Popup } from "../../../../components/ui/Popup/Popup.js";
+import { popupOpenedEvent, Popup } from "../../../../components/ui/Popup/Popup.js";
 import { nextRunLoop } from "../../test-helpers.js";
 
 describe("Popup component tests", (): void => {
     it("Test Popup callbacks", async () => {
         const onClose = vi.fn();
         const onOpen = vi.fn();
+        const onPopupOpened = vi.fn();
+        document.addEventListener(popupOpenedEvent, onPopupOpened);
 
         const popupRef = createRef<Popup>();
         const { unmount } = render(
@@ -58,10 +60,12 @@ describe("Popup component tests", (): void => {
         await nextRunLoop();
 
         expect(onOpen).toHaveBeenCalled();
+        expect(onPopupOpened).toHaveBeenCalledTimes(1);
 
         popupRef.current?.close(false);
         expect(onClose).toHaveBeenCalled();
 
+        document.removeEventListener(popupOpenedEvent, onPopupOpened);
         unmount();
     });
 

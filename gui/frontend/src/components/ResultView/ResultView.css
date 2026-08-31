@@ -509,6 +509,7 @@
     padding: 0 7px;
     border: none;
     border-radius: 0;
+    color: var(--resultStatus-foreground);
     font-family: var(--msg-standard-font-family);
     font-size: 0.9em;
 }

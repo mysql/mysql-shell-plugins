@@ -334,14 +334,14 @@ test.describe("SQL execution", () => {
         await workbench.insertInActiveEditor([
             ...createScratchSchemaSql(schema),
             "DROP TABLE IF EXISTS electron_grid_rows_e2e;",
-            "CREATE TABLE electron_grid_rows_e2e (id INT PRIMARY KEY, label VARCHAR(64));",
+            "CREATE TABLE electron_grid_rows_e2e (id INT AUTO_INCREMENT PRIMARY KEY, label VARCHAR(64));",
             "INSERT INTO electron_grid_rows_e2e VALUES (1, 'base-row');",
             "SELECT * FROM electron_grid_rows_e2e;",
         ].join("\n"));
         await workbench.clickMenu(["Run", "Execute"]);
         await workbench.expectResultGridCellText(0, "label", "base-row");
 
-        await workbench.addResultGridRow({ id: "2", label: "added-row" });
+        await workbench.addResultGridRow({ label: "added-row" });
         await workbench.applyResultGridChanges();
 
         await workbench.writeInActiveEditor("SELECT * FROM electron_grid_rows_e2e;");

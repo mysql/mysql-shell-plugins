@@ -30,6 +30,7 @@ import { cwd } from "node:process";
 import { describe, expect, it, vi } from "vitest";
 
 import { Label } from "../../../../components/ui/Label/Label.js";
+import { popupOpenedEvent } from "../../../../components/ui/Popup/Popup.js";
 import { TooltipProvider } from "../../../../components/ui/Tooltip/Tooltip.js";
 import * as helpers from "../../../../components/ui/html-helpers.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
@@ -183,6 +184,33 @@ describe("Tooltip component tests", (): void => {
             expect(queryTooltipElement()).toBeNull();
 
         }, { timeout: delay });
+
+        unmount();
+    });
+
+    it("Tooltip disappears when a popup opens", async () => {
+        const text = "hover me";
+        const tooltip = "tooltip";
+
+        const { unmount, queryByText } = render(
+            <div>
+                <Label data-tooltip={tooltip}>{text}</Label>
+                <TooltipProvider showDelay={delay} />
+            </div>,
+        );
+
+        const element = queryByText(text);
+        expect(element).not.toBe(null);
+        fireEvent.mouseOver(element as Element);
+
+        await waitFor(() => {
+            expect(queryByText(tooltip)).toBeDefined();
+        }, { timeout: delay });
+
+        document.dispatchEvent(new Event(popupOpenedEvent));
+
+        expect(queryByText(tooltip)).toBeNull();
+        expect(queryTooltipElement()).toBeNull();
 
         unmount();
     });

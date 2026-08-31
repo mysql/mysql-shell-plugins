@@ -102,7 +102,7 @@ const openMigrationAssistant = async (
     });
 
     expect(nativeWindowState).toEqual({
-        menuBarVisible: false,
+        menuBarVisible: process.platform === "darwin",
         title: "MySQL Cloud Migration Assistant",
     });
 

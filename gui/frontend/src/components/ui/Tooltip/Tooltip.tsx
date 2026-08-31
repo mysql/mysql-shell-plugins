@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,6 +35,7 @@ import {
 } from "../Component/ComponentBase.js";
 import { Container } from "../Container/Container.js";
 import { Label } from "../Label/Label.js";
+import { popupOpenedEvent } from "../Popup/Popup.js";
 import { clampToDocument, computeBounds, computeContentPosition, isElementClipped, } from "../html-helpers.js";
 
 interface ITooltipProviderProperties extends IComponentProperties {
@@ -80,6 +81,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
 
     public override componentDidMount(): void {
         document.body.addEventListener("mouseover", this.elementMouseOver, false); // Mouse enter doesn't work here.
+        document.addEventListener(popupOpenedEvent, this.handlePopupOpened);
         document.body.addEventListener("keyup", this.handleDocumentKeyUp);
     }
 
@@ -89,6 +91,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
             this.tooltipTimer = null;
         }
 
+        document.removeEventListener(popupOpenedEvent, this.handlePopupOpened);
         document.body.removeEventListener("keyup", this.handleDocumentKeyUp);
         document.body.removeEventListener("mouseover", this.elementMouseOver);
     }
@@ -264,6 +267,21 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
 
     private handleDocumentKeyUp = (e: KeyboardEvent): void => {
         if (this.state.target && e.key === KeyboardKeys.Escape) {
+            this.hideTooltip();
+        }
+    };
+
+    private handlePopupOpened = (): void => {
+        this.hideTooltip();
+    };
+
+    private hideTooltip = (): void => {
+        if (this.tooltipTimer) {
+            clearTimeout(this.tooltipTimer);
+            this.tooltipTimer = null;
+        }
+
+        if (this.state.target) {
             this.setState({ target: undefined });
         }
     };
