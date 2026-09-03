@@ -33,6 +33,8 @@ import pathlib
 import time
 from typing import Callable, Optional
 
+import mysqlsh  # type: ignore
+
 from . import model
 from .. import logging, errors
 from mds_plugin.compute import SshConnection
@@ -44,10 +46,56 @@ k_bundled_mysqlsh_rpm = {
     "x86_64": "mysql-shell.x86_64.rpm",
 }
 
-k_repo_mysqlsh_url = {
-    "aarch64": "https://cdn.mysql.com/Downloads/MySQL-Shell/mysql-shell-26.7.0-1.el8.aarch64.rpm",
-    "x86_64": "https://cdn.mysql.com/Downloads/MySQL-Shell/mysql-shell-26.7.0-1.el8.x86_64.rpm",
-}
+k_calendar_release_months = (1, 4, 7, 10)
+
+
+def _mysqlsh_versions(version: str) -> tuple[str, str]:
+    match = re.search(r"\d+\.\d+\.\d+", version)
+    if not match:
+        raise errors.RemoteHelperFailed(
+            f"Could not determine MySQL Shell version from '{version}'"
+        )
+
+    current = match.group(0)
+    major, minor, patch = (int(part) for part in current.split("."))
+
+    if patch:
+        return current, f"{major}.{minor}.0"
+
+    try:
+        month_index = k_calendar_release_months.index(minor)
+    except ValueError as e:
+        raise errors.RemoteHelperFailed(
+            f"MySQL Shell version '{current}' is not a calendar release"
+        ) from e
+
+    if month_index == 0:
+        fallback_major = major - 1
+        fallback_month = k_calendar_release_months[-1]
+    else:
+        fallback_major = major
+        fallback_month = k_calendar_release_months[month_index - 1]
+
+    fallback = f"{fallback_major}.{fallback_month}.0"
+    return current, fallback
+
+
+def _repo_mysqlsh_url(version: str, arch: str) -> str:
+    return (
+        "https://cdn.mysql.com/Downloads/MySQL-Shell/"
+        f"mysql-shell-{version}-1.el8.{arch}.rpm"
+    )
+
+
+def _is_missing_repo_package(output: str) -> bool:
+    return bool(
+        re.search(
+            r"\b(?:(?:status code:|https? error|returned error:)\s*"
+            r"(?:404|410)|404\s+not found|410\s+gone)\b",
+            output,
+            re.IGNORECASE,
+        )
+    )
 
 
 def setup_mysqlsh(
@@ -57,7 +105,7 @@ def setup_mysqlsh(
     target_basedir: str,
     progress_fn: Callable[[str], None],
 ):
-    def run(cmd) -> tuple[int, str]:
+    def run(cmd: str) -> tuple[int, str]:
         logging.debug(f"jumphost: executing {cmd}...")
         rc, data = ssh.executeWithStdin(cmd, "")
         logging.info(f"jumphost: {cmd}: rc={rc} '''{data}'''")
@@ -68,9 +116,11 @@ def setup_mysqlsh(
     # or
     #  Curl error (6): Couldn't resolve host name for ...
     # retry all rpm cmds just in case
-    def run_rpm(cmd) -> tuple[int, str]:
-        def should_retry(output):
-            return "transaction lock" in data or "Curl error" in data
+    def run_rpm(cmd: str) -> tuple[int, str]:
+        def should_retry(output: str) -> bool:
+            return "transaction lock" in output or (
+                "Curl error" in output and not _is_missing_repo_package(output)
+            )
 
         attempt = 100
         while True:
@@ -114,18 +164,24 @@ def setup_mysqlsh(
             raise errors.RemoteHelperFailed(
                 f"Could not install {bundled_rpm_name} on jump host"
             )
-    elif arch in k_repo_mysqlsh_url:
+    else:
         progress_fn("Installing mysqlsh")
         # if there's no bundled mysqlsh, install it from repo
-        status, data = run_rpm(f"sudo yum -y install {k_repo_mysqlsh_url[arch]}")
+        current, fallback = _mysqlsh_versions(mysqlsh.globals.shell.version)
+        current_url = _repo_mysqlsh_url(current, arch)
+        status, data = run_rpm(f"sudo yum -y install {current_url}")
+
+        if status != 0 and _is_missing_repo_package(data):
+            logging.warning(
+                f"MySQL Shell {current} is not available, trying {fallback}"
+            )
+            fallback_url = _repo_mysqlsh_url(fallback, arch)
+            status, data = run_rpm(f"sudo yum -y install {fallback_url}")
+
         if status != 0:
             raise errors.RemoteHelperFailed(
                 "Could not install mysql-shell on jump host"
             )
-    else:
-        raise errors.RemoteHelperFailed(
-            f"Could not find mysql-shell {arch} to install on jump host"
-        )
 
 
 class RemoteHelperClient:

@@ -1,7 +1,7 @@
 {
     "name": "mysql-workbench",
     "productName": "MySQL Workbench",
-    "version": "26.7.0",
+    "version": "26.10.0",
     "private": true,
     "description": "Graphical MySQL development and administration tool based on MySQL Shell",
     "desktopPackageSuffixes": {

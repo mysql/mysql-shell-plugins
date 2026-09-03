@@ -31,10 +31,11 @@ const { join, resolve } = require("node:path");
 const test = require("node:test");
 
 const { handleVersionCommand } = require("../src/version-command.cjs");
+const packageVersion = require("../package.json").version;
 
 const versionCases = [
-    [undefined, "MySQL Workbench 26.7.0\n"],
-    ["-commercial", "MySQL Workbench 26.7.0-commercial\n"],
+    [undefined, `MySQL Workbench ${packageVersion}\n`],
+    ["-commercial", `MySQL Workbench ${packageVersion}-commercial\n`],
 ];
 
 for (const [desktopPackageSuffix, expectedOutput] of versionCases) {
@@ -42,7 +43,7 @@ for (const [desktopPackageSuffix, expectedOutput] of versionCases) {
         let output = "";
         const packageMetadata = {
             productName: "MySQL Workbench",
-            version: "26.7.0",
+            version: packageVersion,
             desktopPackageSuffix,
         };
 
@@ -64,7 +65,7 @@ for (const argument of ["-v", "--version=commercial", "--help"]) {
         let output = "";
         const handled = handleVersionCommand(
             ["mysql-workbench", argument],
-            { productName: "MySQL Workbench", version: "26.7.0" },
+            { productName: "MySQL Workbench", version: packageVersion },
             (value) => {
                 output += value;
             },
@@ -118,7 +119,7 @@ test("Electron --version runs without a display or application profile", {
 
     assert.equal(result.error, undefined);
     assert.equal(result.status, 0, result.stderr);
-    assert.equal(result.stdout, "MySQL Workbench 26.7.0\n");
+    assert.equal(result.stdout, `MySQL Workbench ${packageVersion}\n`);
     assert.equal(result.stderr, "");
     assert.deepEqual(readdirSync(configDirectory), []);
 });

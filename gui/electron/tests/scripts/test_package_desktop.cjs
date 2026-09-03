@@ -712,13 +712,13 @@ test("artifact filenames match the requested Electron Builder targets", () => {
 
     assert.deepEqual(
         getArtifactFileNames("win32-x64", installerOptions, "mysql-workbench"),
-        ["mysql-workbench-26.7.0-win32-x64.msi"],
+        [`mysql-workbench-${packageMetadata.version}-win32-x64.msi`],
     );
     assert.deepEqual(
         getArtifactFileNames("win32-x64", combinedOptions, "mysql-workbench"),
         [
-            "mysql-workbench-26.7.0-win32-x64.zip",
-            "mysql-workbench-26.7.0-win32-x64.msi",
+            `mysql-workbench-${packageMetadata.version}-win32-x64.zip`,
+            `mysql-workbench-${packageMetadata.version}-win32-x64.msi`,
         ],
     );
 });
@@ -731,7 +731,7 @@ test("copied artifacts contain only the exact requested outputs", (context) => {
     const source = join(root, "source");
     const nested = join(source, "win-unpacked", "resources", "app");
     const destination = join(root, "destination");
-    const expected = "mysql-workbench-26.7.0-win32-x64.msi";
+    const expected = `mysql-workbench-${packageMetadata.version}-win32-x64.msi`;
     mkdirSync(nested, { recursive: true });
     writeFileSync(join(source, expected), "msi");
     writeFileSync(join(source, "unrelated.zip"), "zip");

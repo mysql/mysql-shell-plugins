@@ -24,7 +24,7 @@
 from mysqlsh.plugin_manager import plugin_function
 
 # Define plugin version
-VERSION = "26.7.0"
+VERSION = "26.10.0"
 
 
 @plugin_function("gui.info", shell=True, cli=True, web=True)

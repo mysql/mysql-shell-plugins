@@ -45,7 +45,7 @@ def test_setup_records_unmodified_mysql_version(
     monkeypatch.setattr(
         setup_e2e,
         "mysql_server_info",
-        lambda *args: ("26.7.0-commercial", "/mysql/base"),
+        lambda *args: ("1.2.3-commercial", "/mysql/base"),
     )
     monkeypatch.setattr(setup_e2e, "run_sql_file", lambda *args: None)
 
@@ -57,4 +57,4 @@ def test_setup_records_unmodified_mysql_version(
     )
 
     config = json.loads(config_file.read_text(encoding="utf-8"))
-    assert config["MYSQL_VERSION"] == "26.7.0-commercial"
+    assert config["MYSQL_VERSION"] == "1.2.3-commercial"
