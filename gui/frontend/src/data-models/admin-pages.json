@@ -14,6 +14,13 @@
         "commandTitle": "Show Client Connections"
     },
     {
+        "pageType": "logs",
+        "desktopCommandId": "database.admin.logs",
+        "label": "Error Log",
+        "command": "msg.showLogs",
+        "commandTitle": "Show Error Log"
+    },
+    {
         "pageType": "userAccounts",
         "desktopCommandId": "database.admin.userAccounts",
         "label": "User Accounts",

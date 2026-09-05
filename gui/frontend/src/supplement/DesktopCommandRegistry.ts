@@ -53,6 +53,7 @@ export type DesktopCommandId =
     "run.autoCommit" |
     "database.admin.serverStatus" |
     "database.admin.clientConnections" |
+    "database.admin.logs" |
     "database.admin.userAccounts" |
     "database.admin.performanceDashboard" |
     "database.admin.enterpriseBackup" |

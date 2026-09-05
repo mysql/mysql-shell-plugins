@@ -69,9 +69,7 @@ export enum ShellAPIGui {
     GuiDbConnectionsListConnectionTags = "gui.dbConnections.list_connection_tags",
     /** Updates the connection tag definitions for a profile's user. */
     GuiDbConnectionsUpdateConnectionTags = "gui.dbConnections.update_connection_tags",
-    /** Updates the cached server status sysvars for a db_connection. */
-    GuiDbConnectionsUpdateServerStatusCache = "gui.dbConnections.update_server_status_cache",
-    /** Gets the cached server status sysvars for a db_connection. */
+    /** Gets cached server status sysvars for an offline module session. */
     GuiDbConnectionsGetServerStatusCache = "gui.dbConnections.get_server_status_cache",
     /** Get the list of db_types */
     GuiDbConnectionsGetDbTypes = "gui.dbConnections.get_db_types",
@@ -301,6 +299,12 @@ export enum ShellAPIGui {
     GuiInfo = "gui.info",
     /** Returns the version number of the plugin */
     GuiVersion = "gui.version",
+    /** Reads one local MySQL error log page using backend-cached configuration. */
+    GuiMysqlReadErrorLogFilePage = "gui.mysql.read_error_log_file_page",
+    /** Copies the cached local MySQL error log file to a user-selected path. */
+    GuiMysqlExportErrorLogFile = "gui.mysql.export_error_log_file",
+    /** Exports all rows from the connected performance schema error log. */
+    GuiMysqlExportErrorLogs = "gui.mysql.export_error_logs",
     /** Lists MySQL users using the provided session object. */
     GuiMysqlListUsers = "gui.mysql.list_users",
     /** Replaces the granted/default roles for the given MySQL user account. */
@@ -395,8 +399,6 @@ export interface IShellDbConnection {
     /** The user-defined tags assigned to the connection */
     tags: string[] | null;
 }
-
-export interface Ilist {}
 
 export interface IAny {}
 
@@ -821,8 +823,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { args: { dbConnectionId: number; profileId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsListConnectionTags]: { args: { profileId: number; }; };
     [ShellAPIGui.GuiDbConnectionsUpdateConnectionTags]: { args: { profileId: number; tags: { }; }; };
-    [ShellAPIGui.GuiDbConnectionsUpdateServerStatusCache]: { args: { connectionId: number; endpointFingerprint: string; sysvars: Ilist; }; };
-    [ShellAPIGui.GuiDbConnectionsGetServerStatusCache]: { args: { connectionId: number; endpointFingerprint: string; }; };
+    [ShellAPIGui.GuiDbConnectionsGetServerStatusCache]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbConnectionsGetDbTypes]: {};
     [ShellAPIGui.GuiDbConnectionsSetCredential]: { args: { url: string; password: string; }; };
     [ShellAPIGui.GuiDbConnectionsDeleteCredential]: { args: { url: string; }; };
@@ -937,6 +938,9 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiSqlEditorRemoveExecutionHistoryEntry]: { args: { connectionId: number; index?: number; profileId?: number; }; };
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
+    [ShellAPIGui.GuiMysqlReadErrorLogFilePage]: { args: { moduleSessionId: string; page?: number; pageSize?: number; filters?: { }; }; };
+    [ShellAPIGui.GuiMysqlExportErrorLogFile]: { args: { moduleSessionId: string; targetPath: string; }; };
+    [ShellAPIGui.GuiMysqlExportErrorLogs]: { args: { targetPath: string; moduleSessionId: string; }; };
     [ShellAPIGui.GuiMysqlListUsers]: { args: { moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlSetGrantedRoles]: { args: { user: string; host: string; roles: string[]; moduleSessionId?: string; defaultRoles?: string[] | null; }; };
     [ShellAPIGui.GuiMysqlListGlobalPrivilegeCatalog]: { args: { moduleSessionId?: string; }; };
@@ -1091,6 +1095,30 @@ export interface IVisualExplainData {
     svg: string;
     plan?: string;
     executionTime?: number;
+}
+
+export interface IErrorLogFileRow {
+    line: number;
+    logged: string;
+    threadId: string;
+    prio: string;
+    errorCode: string;
+    subsystem: string;
+    data: string;
+}
+
+export interface IErrorLogFilePage {
+    path: string;
+    isTruncated?: boolean;
+    page: number;
+    pageSize: number;
+    startLine: number;
+    totalLines: number;
+    totalPages: number;
+    errorCodeValues: string[];
+    subsystemValues: string[];
+    hasNext: boolean;
+    rows: IErrorLogFileRow[];
 }
 
 /**
@@ -1413,6 +1441,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiShellKillTask]: {};
     [ShellAPIGui.GuiDbGetObjectsTypes]: {};
     [ShellAPIGui.GuiDbExecute]: { result: IDbEditorResultSetData; };
+    [ShellAPIGui.GuiMysqlReadErrorLogFilePage]: { result: IErrorLogFilePage; };
     [ShellAPIGui.GuiDbGetCatalogObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetSchemaObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetTableObjectNames]: { result: string[]; };
@@ -1503,13 +1532,14 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreDeleteFile]: {};
     [ShellAPIGui.GuiCoreSetPluginCommandMocks]: { result: boolean; };
     [ShellAPIGui.GuiCoreClearPluginCommandMocks]: { result: boolean; };
-    [ShellAPIGui.GuiDbConnectionsUpdateServerStatusCache]: {};
     [ShellAPIGui.GuiDbConnectionsGetServerStatusCache]: { result: Record<string, IAny> | null; };
     [ShellAPIGui.GuiLegacyDiscover]: { result: IShellDictionary; };
     [ShellAPIGui.GuiLegacyImportDiscoveredWorkbenchConnections]: { result: IShellDictionary; };
     [ShellAPIGui.GuiLegacyImportVsCode]: { result: IShellDictionary[]; };
     [ShellAPIGui.GuiLegacyImportMigrationAssistantProjects]: { result: IShellDictionary[]; };
     [ShellAPIGui.GuiSqlEditorReformat]: { result: string; };
+    [ShellAPIGui.GuiMysqlExportErrorLogFile]: {};
+    [ShellAPIGui.GuiMysqlExportErrorLogs]: {};
     [ShellAPIGui.GuiMysqlListUsers]: { result: IMySQLUserListItem[]; };
     [ShellAPIGui.GuiMysqlSetGrantedRoles]: {};
     [ShellAPIGui.GuiMysqlListGlobalPrivilegeCatalog]: { result: IMySQLGlobalPrivilegeCatalogItem[]; };

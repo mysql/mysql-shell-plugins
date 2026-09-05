@@ -112,6 +112,30 @@ export interface IVisualExplainData {
     executionTime?: number;
 }
 
+export interface IErrorLogFileRow {
+    line: number;
+    logged: string;
+    threadId: string;
+    prio: string;
+    errorCode: string;
+    subsystem: string;
+    data: string;
+}
+
+export interface IErrorLogFilePage {
+    path: string;
+    isTruncated?: boolean;
+    page: number;
+    pageSize: number;
+    startLine: number;
+    totalLines: number;
+    totalPages: number;
+    errorCodeValues: string[];
+    subsystemValues: string[];
+    hasNext: boolean;
+    rows: IErrorLogFileRow[];
+}
+
 /**
  * The members of this record come with pascal case naming, which is not processed by our snake-to-camel
  * case processing. So for now we define this with the original names here, until this is fixed.
@@ -432,6 +456,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiShellKillTask]: {};
     [ShellAPIGui.GuiDbGetObjectsTypes]: {};
     [ShellAPIGui.GuiDbExecute]: { result: IDbEditorResultSetData; };
+    [ShellAPIGui.GuiMysqlReadErrorLogFilePage]: { result: IErrorLogFilePage; };
     [ShellAPIGui.GuiDbGetCatalogObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetSchemaObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetTableObjectNames]: { result: string[]; };

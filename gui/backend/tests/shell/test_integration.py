@@ -199,8 +199,8 @@ FUNCTIONS
       get_folder(folder_path_id[, be_session])
             Get folder
 
-      get_server_status_cache(connection_id, endpoint_fingerprint[, be_session])
-            Gets the cached server status sysvars for a db_connection.
+      get_server_status_cache(module_session[, be_session])
+            Gets cached server status sysvars for an offline module session.
 
       help([member])
             Provides help about this object and it's members
@@ -253,10 +253,7 @@ FUNCTIONS
             Update the data for a database connection
 
       update_folder_settings(folder_path_id, new_settings[, be_session])
-            Rename a folder path
-
-      update_server_status_cache(connection_id, endpoint_fingerprint, sysvars[, be_session])
-            Updates the cached server status sysvars for a db_connection."""
+            Rename a folder path"""
 
     assert (
         help_text == mysqlsh.globals.gui.db_connections.help()

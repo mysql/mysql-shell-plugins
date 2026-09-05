@@ -36,17 +36,12 @@ import { Label } from "../../components/ui/Label/Label.js";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import { Assets } from "../../supplement/Assets.js";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import {
-    type IServerStatusSysvar,
-} from "../../supplement/ShellInterface/ShellInterfaceDbConnection.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import type { IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { calculateTimestampAge } from "../../utilities/time-helpers.js";
 import {
     AdministrationPageBody, AdministrationPageFrame, AdministrationPageHeading,
 } from "./AdministrationPageFrame.js";
-import { localServerEndpointFingerprint } from "./OfflineAdministration.js";
 import { IToolbarItems } from "./index.js";
 
 type TriState = true | false | undefined;
@@ -174,7 +169,6 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         "slow_query_log",
         "slow_query_log_file",
     ]);
-
     public constructor(props: IServerStatusProperties) {
         super(props);
 
@@ -581,37 +575,6 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         return logOutput.split(",").includes("TABLE") ? "[Stored in database]" : fileValue ?? "none";
     };
 
-    private sysvarsFromValues = (values: Map<string, string>): IServerStatusSysvar[] => {
-        const sysvars: IServerStatusSysvar[] = [];
-        values.forEach((value, name) => {
-            if (this.cachedSysvarNames.has(name)) {
-                sysvars.push({ name, value });
-            }
-        });
-
-        return sysvars;
-    };
-
-    private updateServerStatusCache = async (values: Map<string, string>): Promise<void> => {
-        const { connectionDetails } = this.props;
-        const endpointFingerprint = connectionDetails
-            ? localServerEndpointFingerprint(connectionDetails)
-            : undefined;
-        if (!connectionDetails || !endpointFingerprint) {
-            return;
-        }
-
-        try {
-            await ShellInterface.dbConnections.updateServerStatusCache(
-                connectionDetails.id,
-                endpointFingerprint,
-                this.sysvarsFromValues(values),
-            );
-        } catch {
-            // Cache failures must not affect the live status page.
-        }
-    };
-
     private cachedValueFrom = (values: Map<string, string>, ...names: string[]): string | undefined => {
         for (const name of names) {
             if (values.has(name)) {
@@ -623,21 +586,15 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
     };
 
     private loadCachedServerStatus = async (): Promise<void> => {
-        const { connectionDetails } = this.props;
-        const endpointFingerprint = connectionDetails
-            ? localServerEndpointFingerprint(connectionDetails)
-            : undefined;
-        if (!connectionDetails || !endpointFingerprint) {
+        const { backend, connectionDetails } = this.props;
+        if (!connectionDetails || !backend) {
             this.setState({ cacheUpdatedAt: undefined, serverStatus: {}, serverDirectories: {} });
 
             return;
         }
 
         try {
-            const cache = await ShellInterface.dbConnections.getServerStatusCache(
-                connectionDetails.id,
-                endpointFingerprint,
-            );
+            const cache = await backend.getOfflineServerStatusCache();
             const values = new Map(cache?.sysvars.map((entry) => {
                 return [entry.name, entry.value];
             }));
@@ -801,7 +758,6 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                     serverStatus, serverDirectories,
                     serverFeatures, serverSsl, firewall,
                 });
-                void this.updateServerStatusCache(values);
             }
 
             result = await backend.executeService("show global status");

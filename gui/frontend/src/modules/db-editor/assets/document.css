@@ -1002,6 +1002,15 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 
 /* Definitions for server status. */
 
+.msg.serverStatus {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+}
+
+.msg.serverStatus #statusBoxHost,
+.msg.serverStatus .serverStatusOfflineBanner,
+.msg.clientConnections #connectionList,
 .msg.msg.clientConnections #clientConnectionToolbar {
     border: none;
     filter: none;
@@ -1029,6 +1038,365 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
     color: var(--secondaryButton-disabledForeground);
 }
 
+/* Definitions for logs. */
+
+.msg.logs {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+}
+
+.msg.logs #logsToolbar,
+.msg.logs #logsTruncationNotice,
+.msg.logs #logsTableHost,
+.msg.logs #logsEmptyState {
+    width: min(1560px, 100%);
+    margin: 0 auto;
+}
+
+.msg.logs #logsIcon {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    background-color: var(--icon-foreground);
+}
+
+.msg.logs #logsToolbar {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 8px;
+}
+
+.msg.logs #logsTruncationNotice {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--editorGroupHeader-tabsBorder);
+    color: var(--descriptionForeground);
+    background-color: var(--editor-background);
+}
+
+.msg.logs .logsIconButton {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    color: var(--foreground);
+}
+
+.msg.logs .logsIconButton>.icon.codicon {
+    background: none;
+    color: var(--foreground);
+}
+
+.msg.logs .logsDoubleIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+}
+
+.msg.logs .logsDoubleIcon>.icon.codicon {
+    width: 10px;
+    min-width: 10px;
+    background: none;
+    color: var(--foreground);
+}
+
+.msg.logs .logsDoubleIcon>.icon.codicon+.icon.codicon {
+    margin-left: -2px;
+}
+
+.msg.logs .logsIconButton:not(.disabled):hover,
+.msg.logs .logsIconButton:not(.disabled):focus,
+.msg.logs .logsIconButton:not(.disabled):focus-visible,
+.msg.logs .logsIconButton:not(.disabled):active,
+.msg.logs .logsFilterButton.active {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg.logs .logsFilterButton {
+    margin-right: auto;
+}
+
+.msg.logs .logsIconButton.disabled,
+.msg.logs .logsIconButton.disabled>.icon.codicon,
+.msg.logs .logsIconButton.disabled .logsDoubleIcon>.icon.codicon {
+    background: none;
+    color: var(--disabledForeground);
+}
+
+.msg.logs #logsFilterEditor {
+    display: grid;
+    grid-template-columns: minmax(130px, 0.8fr) minmax(110px, 0.7fr) minmax(130px, 0.8fr)
+        minmax(130px, 0.8fr) minmax(240px, 1.8fr) auto;
+    gap: 10px;
+    width: min(1560px, 100%);
+    margin: -4px auto 0;
+    padding: 10px;
+    border: 1px solid var(--editorGroupHeader-tabsBorder);
+    border-radius: 8px;
+    background-color: var(--editor-background);
+}
+
+.msg.logs #logsFilterEditor .logsFilterField {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 4px;
+}
+
+.msg.logs #logsFilterEditor>.logsFilterField>span {
+    color: var(--disabledForeground);
+    font-size: 0.72rem;
+    line-height: 1.25;
+}
+
+.msg.logs #logsFilterEditor input:not([type='checkbox']),
+.msg.logs #logsFilterEditor select {
+    min-width: 0;
+    height: 26px;
+    padding: 3px 7px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    background-color: var(--input-background);
+    color: var(--input-foreground);
+    font: inherit;
+}
+
+.msg.logs .logsFilterDropdown {
+    position: relative;
+    align-self: stretch;
+    width: 100%;
+    min-width: 0;
+}
+
+.msg.logs .logsFilterDropdownButton {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    width: 100%;
+    height: 26px;
+    min-width: 0;
+    margin: 0;
+    padding: 0 7px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    background-color: var(--input-background);
+    color: var(--input-foreground);
+}
+
+.msg.logs .logsFilterDropdownButton:hover,
+.msg.logs .logsFilterDropdownButton:focus,
+.msg.logs .logsFilterDropdownButton:focus-visible,
+.msg.logs .logsFilterDropdownButton:active,
+.msg.logs .logsFilterDropdown.open .logsFilterDropdownButton {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg.logs .logsFilterDropdownButton>.icon.codicon {
+    width: 14px;
+    min-width: 14px;
+    background: none;
+    color: var(--input-foreground);
+}
+
+.msg.logs .logsFilterDropdownMenu {
+    position: absolute;
+    z-index: 10;
+    top: 30px;
+    right: 0;
+    left: 0;
+    max-height: 180px;
+    overflow: auto;
+    padding: 8px;
+    border: 1px solid var(--dropdown-border);
+    border-radius: 6px;
+    background-color: var(--dropdown-background);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--widget-shadow) 45%, transparent);
+}
+
+.msg.logs .logsFilterDropdownMenu .logsFilterChoices {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 6px;
+}
+
+.msg.logs .logsFilterChoices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    min-width: 0;
+}
+
+.msg.logs #logsFilterEditor .logsFilterChoice {
+    display: inline-flex;
+    flex: 0 1 auto;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    gap: 4px;
+    color: var(--foreground);
+    font-size: 0.78rem;
+    line-height: 1.25;
+}
+
+.msg.logs #logsFilterEditor .logsFilterChoice input {
+    width: 13px;
+    height: 13px;
+    min-width: 13px;
+    padding: 0;
+}
+
+.msg.logs #logsFilterEditor .logsFilterChoice span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.logs #logsFilterActions {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 126px;
+}
+
+.msg.logs .logsFilterActionButton {
+    height: 26px;
+    min-width: 56px;
+    margin: 0;
+    padding: 0 10px;
+    background-color: transparent;
+    color: var(--foreground);
+}
+
+.msg.logs .logsFilterMatchButton {
+    min-width: 28px;
+    width: 28px;
+    padding: 0;
+}
+
+.msg.logs .logsFilterMatchButton>.icon.codicon {
+    width: 14px;
+    min-width: 14px;
+    background: none;
+    color: var(--foreground);
+}
+
+.msg.logs .logsFilterActionButton:not(.disabled):hover,
+.msg.logs .logsFilterActionButton:not(.disabled):focus,
+.msg.logs .logsFilterActionButton:not(.disabled):focus-visible,
+.msg.logs .logsFilterActionButton:not(.disabled):active {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg.logs #logsTableHost {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--background) 28%, transparent);
+}
+
+.msg.logs #logsTable {
+    font-size: 12px;
+}
+
+.msg.logs #logsTable .tabulator-header {
+    min-height: 30px;
+    border-bottom: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 86%, transparent);
+    background-color: color-mix(in srgb, var(--list-headerBackground) 88%, var(--sideBar-background));
+}
+
+.msg.logs #logsTable .tabulator-header .tabulator-col {
+    padding: 0 8px;
+    border-right-color: transparent;
+    background-color: transparent;
+}
+
+.msg.logs #logsTable .tabulator-header .tabulator-col .tabulator-col-content {
+    padding: 6px 0;
+}
+
+.msg.logs #logsTable .tabulator-col-title {
+    color: var(--disabledForeground);
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.logs #logsTable .tabulator-row .tabulator-cell {
+    display: inline-flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 5px 8px;
+    border-right: none;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.logs #logsTable .tabulator-row .tabulator-cell .logMessage {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.logs #logsTable .tabulator-row.priority-warning .tabulator-cell {
+    color: var(--editorWarning-foreground);
+}
+
+.msg.logs #logsTable .tabulator-row.priority-error .tabulator-cell {
+    color: var(--editorError-foreground);
+}
+
+.msg.logs #logsTable .tabulator-row {
+    transition: background-color 80ms ease;
+}
+
+.msg.logs #logsTable .tabulator-row.tabulator-row-odd {
+    background-color: transparent;
+}
+
+.msg.logs #logsTable .tabulator-row.tabulator-row-even {
+    background-color: color-mix(in srgb, var(--foreground) 2.5%, transparent);
+}
+
+.msg.logs #logsTable .tabulator-row.tabulator-selectable:not(.tabulator-selected):hover .tabulator-cell {
+    background-color: color-mix(in srgb, var(--list-hoverBackground) 72%, transparent);
+}
+
+.msg.logs #logsTable .tabulator-row .tabulator-cell:first-child {
+    border-left: 3px solid transparent;
+}
+
+.msg.logs #logsTable .tabulator-row.highlighted .tabulator-cell,
+.msg.logs #logsTable .tabulator-row.tabulator-selected .tabulator-cell {
+    background-color: color-mix(in srgb, var(--list-activeSelectionBackground) 84%, transparent);
+    color: var(--list-activeSelectionForeground);
+}
+
+.msg.logs #logsTable .tabulator-row.highlighted .tabulator-cell:first-child,
+.msg.logs #logsTable .tabulator-row.tabulator-selected .tabulator-cell:first-child {
+    border-left-color: #f29111;
+}
+
+.msg.logs #logsEmptyState {
+    padding: 18px;
+    border: 1px solid var(--editorGroupHeader-tabsBorder);
+    border-radius: 8px;
+    color: var(--disabledForeground);
+    background-color: var(--editor-background);
+}
+
 .msg.serverStatus #serverStatusOverview {
     display: grid;
     grid-template-columns: minmax(180px, auto) 1fr;
@@ -1038,7 +1406,6 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 
 .msg.serverStatus #serverStatusOverview>.administrationPageHeadingHeader {
     align-self: start;
-    margin: 6px 0 0 4px;
 }
 
 .msg.serverStatus #serverStatusOverview,
@@ -1330,7 +1697,6 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 
 .msg.userAccounts #userAccountsOverview>.administrationPageHeadingHeader {
     align-self: start;
-    margin: 6px 0 0 4px;
 }
 
 .msg.userAccounts #userAccountsIcon {
@@ -3431,7 +3797,6 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 
 .msg.clientConnections #clientConnectionsOverview>.administrationPageHeadingHeader {
     align-self: start;
-    margin: 6px 0 0 4px;
 }
 
 .msg.clientConnections #clientConnectionsIcon {

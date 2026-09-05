@@ -33,18 +33,6 @@ import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js";
 
 export type ConnectionsAndFoldersList = Array<IConnectionDetails | IFolderPath>;
 
-export interface IServerStatusSysvar {
-    [key: string]: string;
-    name: string;
-    value: string;
-}
-
-export interface IServerStatusCache {
-    endpointFingerprint: string;
-    updatedAt: string;
-    sysvars: IServerStatusSysvar[];
-}
-
 /** Interface for connection management. */
 export class ShellInterfaceDbConnection {
     private interactive = new ShellInteractiveInterface();
@@ -193,39 +181,6 @@ export class ShellInterfaceDbConnection {
         });
 
         return response.result;
-    }
-
-    /**
-     * Updates the cached basic server status sysvars for a saved connection.
-     *
-     * @param connectionId The id of the connection.
-     * @param endpointFingerprint The local endpoint identity for this cache.
-     * @param sysvars The filtered sysvar list to cache.
-     */
-    public async updateServerStatusCache(connectionId: number, endpointFingerprint: string,
-        sysvars: IServerStatusSysvar[]): Promise<void> {
-        await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbConnectionsUpdateServerStatusCache,
-            parameters: { args: { connectionId, endpointFingerprint, sysvars } },
-        });
-    }
-
-    /**
-     * Gets the cached basic server status sysvars for a saved connection.
-     *
-     * @param connectionId The id of the connection.
-     * @param endpointFingerprint The local endpoint identity for this cache.
-     *
-     * @returns A promise resolving to the cached status data, or undefined.
-     */
-    public async getServerStatusCache(connectionId: number,
-        endpointFingerprint: string): Promise<IServerStatusCache | undefined> {
-        const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbConnectionsGetServerStatusCache,
-            parameters: { args: { connectionId, endpointFingerprint } },
-        });
-
-        return response.result === null ? undefined : response.result as unknown as IServerStatusCache;
     }
 
     /**

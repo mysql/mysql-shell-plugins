@@ -29,6 +29,7 @@ import gui_plugin.core.Logger as logger
 
 class DbSessionData(enum.Enum):
     PING_INTERVAL = 0
+    CONNECTION_ESTABLISHED_CALLBACK = 1
 
 
 class DbPingHandler(threading.Thread):

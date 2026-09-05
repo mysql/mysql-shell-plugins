@@ -66,6 +66,10 @@ export const mysqlshUserConfigHome = (): string => {
     return readConfigValue("MYSQLSH_USER_CONFIG_HOME");
 };
 
+export const mysqlSandboxDir = (): string => {
+    return readConfigValue("SANDBOX_DIR");
+};
+
 export const mysqlServerVersion = (): string => {
     return readConfigValue("MYSQL_VERSION");
 };

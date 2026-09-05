@@ -364,7 +364,7 @@ describe("ConnectionDataModel", () => {
         expect(offlineConnection.mrsEntry).toBeUndefined();
         expect(offlineConnection.adminEntry?.pages.map((page) => {
             return page.pageType;
-        })).toEqual(["serverStatus", "enterpriseBackup"]);
+        })).toEqual(["serverStatus", "logs", "enterpriseBackup"]);
         expect(startOfflineSession).toHaveBeenCalledWith(
             `CDM_${offlineConnection.id}`, connection.details.id,
         );

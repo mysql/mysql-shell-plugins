@@ -1438,8 +1438,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
     /**
      * Renders one of our UI elements as a cell editor, if there's no built-in editor already or we need different
-     * functionality. This function is also called for each change in the editor it creates, because we use controlled
-     * components.
+     * functionality. Multiline text editors remain mounted while they are being edited so that input events do not
+     * replace the active element.
      *
      * @param cell The cell being edited.
      * @param host The HTML element that will host our UI component.
@@ -1533,7 +1533,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
                             cell.checkHeight();
 
-                            this.renderCustomEditor(cell, host, props.value, success, cancel, editorParams);
+                            // Keep the active editor mounted. Its current value is read from the DOM when the edit is
+                            // confirmed or blurred, so replacing it here would only interrupt the user's input.
                         }
                     }}
                     onConfirm={(e: KeyboardEvent, props: IInputChangeProperties): void => {

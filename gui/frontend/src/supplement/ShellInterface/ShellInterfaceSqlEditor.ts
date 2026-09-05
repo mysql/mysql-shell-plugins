@@ -30,7 +30,7 @@ import {
     ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest, IStatusData,
     IShellDbConnection, ISqlEditorHistoryEntry, IVisualExplainData, IMySQLUserListItem,
     IMySQLUser, IMySQLGlobalPrivilegeCatalogItem, IMySQLDefaultUserOptions, IMySQLObjectPrivilegeSchemaTarget,
-    IObjectPrivilegeTarget, IUserInfo,
+    IObjectPrivilegeTarget, IUserInfo, IErrorLogFilePage,
 } from "../../communication/ProtocolGui.js";
 import { defaultVisualExplainOptions, type IVisualExplainOptions } from "../../script-execution/index.js";
 import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
@@ -39,6 +39,14 @@ import { ShellInterfaceMrs } from "./ShellInterfaceMrs.js";
 import { promiseWithTimeout } from "../../utilities/helpers.js";
 import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js";
 
+export interface IErrorLogFilters {
+    minTimestamp?: number;
+    priorities?: string[];
+    errorCodes?: string[];
+    subsystems?: string[];
+    message?: string;
+}
+
 const isBackendTrue = (value: unknown): boolean => {
     if (value === true || value === 1 || value === "1") {
         return true;
@@ -46,6 +54,12 @@ const isBackendTrue = (value: unknown): boolean => {
 
     return typeof value === "string" && ["ON", "TRUE", "YES"].includes(value.trim().toUpperCase());
 };
+
+interface IServerStatusCache {
+    updatedAt: string;
+    isLocal: boolean;
+    sysvars: Array<{ name: string; value: string; }>;
+}
 
 export interface IPerformanceReportCapabilities {
     performanceSchema: boolean;
@@ -196,8 +210,8 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
      *
      * This is used by administration pages, which must keep working when the user session is busy or blocked.
      *
-     * @param id
-     * @param connection
+     * @param id The connection entry identifier used to look up the module session.
+     * @param connection The saved connection identifier or details to open.
      * @param password Optional password for the service connection.
      */
     public async startServiceSession(id: string, connection: number | IShellDbConnection,
@@ -233,6 +247,85 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
         });
         webSession.setModuleSessionId(this.moduleSessionLookupId, response.result.moduleSessionId);
         this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
+    }
+
+    /**
+     * Returns cached server status data for this offline administration session.
+     *
+     * @returns Cached data, or undefined when the session is not offline.
+     */
+    public async getOfflineServerStatusCache(): Promise<IServerStatusCache | undefined> {
+        if (!this.moduleSessionId || !this.offlineSession) {
+            return undefined;
+        }
+
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsGetServerStatusCache,
+            parameters: { args: { moduleSessionId: this.moduleSessionId } },
+        });
+
+        return response.result === null ? undefined : response.result as unknown as IServerStatusCache;
+    }
+
+    /**
+     * Reads one page from the local error log bound to this connection session.
+     *
+     * @param page The zero-based page number.
+     * @param pageSize The maximum number of rows to return.
+     * @param filters Optional filters to apply before paging.
+     *
+     * @returns The requested page, if the cached local log is available.
+     */
+    public async readErrorLogFilePage(page: number, pageSize = 100,
+        filters?: IErrorLogFilters): Promise<IErrorLogFilePage | undefined> {
+        if (!this.moduleSessionId) {
+            throw new Error("No backend session is available.");
+        }
+
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiMysqlReadErrorLogFilePage,
+            parameters: { args: { moduleSessionId: this.moduleSessionId, page, pageSize, filters } },
+            caseConversionIgnores: ["filters"],
+        });
+
+        return response.result;
+    }
+
+    /**
+     * Copies the local error log bound to this connection session to a selected path.
+     *
+     * @param targetPath The destination path selected by the user.
+     */
+    public async exportErrorLogFile(targetPath: string): Promise<void> {
+        if (!this.moduleSessionId) {
+            throw new Error("No backend session is available.");
+        }
+
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiMysqlExportErrorLogFile,
+            parameters: { args: { moduleSessionId: this.moduleSessionId, targetPath } },
+        });
+    }
+
+    /**
+     * Exports all rows from the connected performance schema error log.
+     *
+     * @param targetPath The destination path selected by the user.
+     */
+    public async exportErrorLogs(targetPath: string): Promise<void> {
+        if (!this.moduleSessionId) {
+            throw new Error("No backend session is available.");
+        }
+
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiMysqlExportErrorLogs,
+            parameters: {
+                args: {
+                    moduleSessionId: this.moduleSessionId,
+                    targetPath,
+                },
+            },
+        });
     }
 
     /**

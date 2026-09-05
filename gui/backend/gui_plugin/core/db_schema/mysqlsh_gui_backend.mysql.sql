@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `db_connection` (
   `description` VARCHAR(200) NULL,
   `options` TEXT NULL,
   `settings` TEXT NULL,
+  `internal_data` TEXT NULL COMMENT 'Backend-owned JSON; never populate from client input',
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -579,7 +580,7 @@ ENGINE = InnoDB
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version` ;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 25;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 26;
 
 -- -----------------------------------------------------
 -- Data for table `data_category`

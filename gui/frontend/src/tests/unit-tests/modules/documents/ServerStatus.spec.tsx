@@ -28,7 +28,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MySQLConnectionScheme, type IMySQLConnectionOptions } from "../../../../communication/MySQL.js";
 import { ServerStatus } from "../../../../modules/db-editor/ServerStatus.js";
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, type IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { nextRunLoop } from "../../test-helpers.js";
@@ -80,9 +79,7 @@ describe("Server status module tests", (): void => {
         unmount();
     });
 
-    it("caches filtered sysvars for local connected status", async () => {
-        const updateServerStatusCache = vi.spyOn(ShellInterface.dbConnections, "updateServerStatusCache")
-            .mockResolvedValue();
+    it("renders live server status values", async () => {
         const executeService = vi.fn((sql: string) => {
             switch (sql) {
                 case "select 1": {
@@ -133,18 +130,9 @@ describe("Server status module tests", (): void => {
         );
 
         await waitFor(() => {
-            expect(updateServerStatusCache).toHaveBeenCalledWith(1, "tcp:localhost:3306", [
-                { name: "hostname", value: "localhost" },
-                { name: "port", value: "3306" },
-                { name: "server_id", value: "42" },
-                { name: "server_uuid", value: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" },
-                { name: "datadir", value: "/usr/local/mysql/data" },
-                { name: "version_comment", value: "MySQL Community Server" },
-                { name: "version", value: "8.4.0" },
-            ]);
+            expect(getByTestId("version").textContent).toBe("MySQL Community Server (8.4.0)");
         });
         expect(container.querySelectorAll(".serverStatusSummaryItem")).toHaveLength(3);
-        expect(getByTestId("version").textContent).toBe("MySQL Community Server (8.4.0)");
         expect(getByTestId("serverId").textContent).toBe("42");
         expect(getByTestId("serverUuid").textContent).toBe("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
         expect(getByTestId("redoLogStatus").closest("#serverModeStatus")).not.toBeNull();
@@ -153,9 +141,7 @@ describe("Server status module tests", (): void => {
         unmount();
     });
 
-    it("does not cache sysvars for remote connected status", async () => {
-        const updateServerStatusCache = vi.spyOn(ShellInterface.dbConnections, "updateServerStatusCache")
-            .mockResolvedValue();
+    it("renders live server status values for remote connections", async () => {
         const executeService = vi.fn((sql: string) => {
             return Promise.resolve(sql === "show variables" ? {
                 rows: [
@@ -168,7 +154,7 @@ describe("Server status module tests", (): void => {
             executeService,
         } as unknown as ShellInterfaceSqlEditor;
 
-        const { unmount } = render(
+        const { getByTestId, unmount } = render(
             <ServerStatus backend={backend}
                 connectionDetails={connectionDetails({ host: "db.example.com" })}
                 runStatus="running"
@@ -176,9 +162,9 @@ describe("Server status module tests", (): void => {
             />,
         );
 
-        await nextRunLoop();
-
-        expect(updateServerStatusCache).not.toHaveBeenCalled();
+        await waitFor(() => {
+            expect(getByTestId("host").textContent).toBe("db.example.com");
+        });
 
         unmount();
     });
@@ -215,23 +201,23 @@ describe("Server status module tests", (): void => {
     it("renders cached offline status rows without backend queries", async () => {
         vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-06-27T02:00:00+00:00"));
         const executeService = vi.fn();
-        const getServerStatusCache = vi.spyOn(ShellInterface.dbConnections, "getServerStatusCache")
-            .mockResolvedValue({
-                endpointFingerprint: "tcp:localhost:3306",
-                updatedAt: "2026-06-27T00:00:00+00:00",
-                sysvars: [
-                    { name: "hostname", value: "localhost" },
-                    { name: "port", value: "3306" },
-                    { name: "server_id", value: "84" },
-                    { name: "server_uuid", value: "ffffffff-1111-2222-3333-444444444444" },
-                    { name: "version_comment", value: "MySQL Community Server" },
-                    { name: "version", value: "8.4.0" },
-                    { name: "datadir", value: "/usr/local/mysql/data" },
-                    { name: "general_log", value: "OFF" },
-                ],
-            });
+        const getOfflineServerStatusCache = vi.fn().mockResolvedValue({
+            updatedAt: "2026-06-27T00:00:00+00:00",
+            isLocal: true,
+            sysvars: [
+                { name: "hostname", value: "localhost" },
+                { name: "port", value: "3306" },
+                { name: "server_id", value: "84" },
+                { name: "server_uuid", value: "ffffffff-1111-2222-3333-444444444444" },
+                { name: "version_comment", value: "MySQL Community Server" },
+                { name: "version", value: "8.4.0" },
+                { name: "datadir", value: "/usr/local/mysql/data" },
+                { name: "general_log", value: "OFF" },
+            ],
+        });
         const backend = {
             executeService,
+            getOfflineServerStatusCache,
         } as unknown as ShellInterfaceSqlEditor;
 
         const { container, getByTestId, unmount } = render(
@@ -246,7 +232,7 @@ describe("Server status module tests", (): void => {
             expect(getByTestId("host").textContent).toBe("localhost");
         });
 
-        expect(getServerStatusCache).toHaveBeenCalledWith(1, "tcp:localhost:3306");
+        expect(getOfflineServerStatusCache).toHaveBeenCalledOnce();
         expect(getByTestId("version").textContent).toBe("MySQL Community Server (8.4.0)");
         expect(getByTestId("serverId").textContent).toBe("84");
         expect(getByTestId("serverUuid").textContent).toBe("ffffffff-1111-2222-3333-444444444444");
@@ -268,9 +254,10 @@ describe("Server status module tests", (): void => {
 
     it("omits offline status boxes when no cached values are available", async () => {
         const executeService = vi.fn();
-        vi.spyOn(ShellInterface.dbConnections, "getServerStatusCache").mockResolvedValue(undefined);
+        const getOfflineServerStatusCache = vi.fn().mockResolvedValue(undefined);
         const backend = {
             executeService,
+            getOfflineServerStatusCache,
         } as unknown as ShellInterfaceSqlEditor;
 
         const { container, unmount } = render(

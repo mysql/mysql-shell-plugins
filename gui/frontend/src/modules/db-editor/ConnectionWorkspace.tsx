@@ -88,6 +88,7 @@ import { ClientConnections, type IClientConnectionsSavedState } from "./ClientCo
 import { EnterpriseBackup, type IEnterpriseBackupSavedState } from "./EnterpriseBackup.js";
 import { getDocumentFileName, getOpenDocumentDisplayCaption, getUntitledFileIndex } from "./DocumentCaptionHelpers.js";
 import { ILakehouseNavigatorSavedState, ILakehouseNavigatorState, LakehouseNavigator } from "./LakehouseNavigator.js";
+import { Logs } from "./Logs.js";
 import { Notebook } from "./Notebook.js";
 import { offlineProbeStatusText } from "./OfflineAdministration.js";
 import { PerformanceDashboard } from "./PerformanceDashboard.js";
@@ -757,6 +758,16 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                                     refreshInterval={5000}
                                     savedState={savedState.adminPageStates.clientConnectionsState}
                                     onStateChange={this.handleClientConnectionsStateChange}
+                                />;
+
+                                break;
+                            }
+
+                            case "logs": {
+                                document = <Logs
+                                    backend={connection.backend}
+                                    connectionDetails={connection.details}
+                                    offline={offline}
                                 />;
 
                                 break;

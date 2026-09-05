@@ -258,6 +258,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         // istanbul ignore else
         if (this.hostRef.current) {
             this.hostRef.current.addEventListener("wheel", this.handleWheel, { passive: false });
+            this.hostRef.current.addEventListener("pointerdown", this.handleResizeHandlePointerDown);
 
             // The tabulator options can contain data, passed in as properties.
             this.timeoutId = null;
@@ -328,6 +329,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         }
 
         this.hostRef.current?.removeEventListener("wheel", this.handleWheel);
+        this.hostRef.current?.removeEventListener("pointerdown", this.handleResizeHandlePointerDown);
     }
 
     public override componentDidUpdate(prevProps: ITreeGridProperties): void {
@@ -907,6 +909,15 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         onColumnResized?.(column);
     };
 
+    private handleResizeHandlePointerDown = (event: PointerEvent): void => {
+        const target = event.target;
+        const handle = target instanceof HTMLElement
+            ? target.closest<HTMLElement>(".tabulator-col-resize-handle")
+            : null;
+
+        handle?.setPointerCapture(event.pointerId);
+    };
+
     private currentColumnWidths(): Map<string, number> {
         const widths = new Map<string, number>();
         this.tabulator?.getColumns(true).forEach((component) => {
@@ -917,20 +928,6 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         });
 
         return widths;
-    }
-
-    private static applyColumnWidths(columns: ColumnDefinition[], widths: Map<string, number>): ColumnDefinition[] {
-        return columns.map((column) => {
-            const columnWithWidths = column.columns
-                ? { ...column, columns: TreeGrid.applyColumnWidths(column.columns, widths) }
-                : { ...column };
-
-            if (columnWithWidths.field && widths.has(columnWithWidths.field)) {
-                columnWithWidths.width = widths.get(columnWithWidths.field);
-            }
-
-            return columnWithWidths;
-        });
     }
 
     /**
@@ -1017,6 +1014,20 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     private limitValue(value: number, min: number, max: number): number {
         return Math.min(Math.max(value, min), Math.max(min, max));
+    }
+
+    private static applyColumnWidths(columns: ColumnDefinition[], widths: Map<string, number>): ColumnDefinition[] {
+        return columns.map((column) => {
+            const columnWithWidths = column.columns
+                ? { ...column, columns: TreeGrid.applyColumnWidths(column.columns, widths) }
+                : { ...column };
+
+            if (columnWithWidths.field && widths.has(columnWithWidths.field)) {
+                columnWithWidths.width = widths.get(columnWithWidths.field);
+            }
+
+            return columnWithWidths;
+        });
     }
 
     private static readonly headerOverflowTooltip = (

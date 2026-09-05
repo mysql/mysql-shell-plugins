@@ -34,6 +34,7 @@ from gui_plugin.core import Filtering
 from gui_plugin.core.Context import get_context
 from gui_plugin.core.dbms import DbMySQLSessionSetupTasks as SetupTasks
 from gui_plugin.core.dbms import DbPingHandlerTask
+from gui_plugin.core.dbms.DbSessionUtils import DbSessionData
 from gui_plugin.core.dbms.DbMySQLSessionTasks import (
     MySQLBaseObjectTask,
     MySQLColumnsMetadataTask,
@@ -245,6 +246,9 @@ class DbMysqlSession(DbSession):
             self.bastion_session.is_new = False
 
         super()._on_connected(notify_success)
+
+        if DbSessionData.CONNECTION_ESTABLISHED_CALLBACK in self.data:
+            self.data[DbSessionData.CONNECTION_ESTABLISHED_CALLBACK](self)
 
         if self._connected_cb is not None and notify_success:
             self._connected_cb(self)

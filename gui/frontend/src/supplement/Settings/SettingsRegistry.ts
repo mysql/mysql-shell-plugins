@@ -434,7 +434,6 @@ export const registerSettings = (): void => {
         true,
         false,
     );
-
     registerSettingCategory("connectionBrowser", "Connection Browser", "Settings related to the connection " +
         "overview page");
     registerSetting(

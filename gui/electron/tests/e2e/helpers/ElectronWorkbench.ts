@@ -258,6 +258,43 @@ export class ElectronWorkbench {
             `${(await this.tabLabels()).join(", ") || "<none>"}`);
     }
 
+    public async expectVisibleAfterPassword(
+        locator: Locator,
+        password: string,
+        description = "target element",
+        timeout = 45000,
+    ): Promise<void> {
+        const deadline = Date.now() + timeout;
+        let submittedPassword = false;
+
+        while (Date.now() < deadline) {
+            if (await this.passwordPromptVisible(250)) {
+                if (submittedPassword) {
+                    throw new Error(`Unexpected repeated password prompt while waiting for ${description}.`);
+                }
+
+                await this.submitPasswordIfRequested(password);
+                submittedPassword = true;
+            }
+
+            if (await this.waitForVisible(locator, 250)) {
+                await this.settlePasswordPrompts(password);
+
+                return;
+            }
+
+            const errorMessage = await this.visibleErrorMessage();
+            if (errorMessage) {
+                throw new Error(`Workbench reported an error while waiting for ${description}: ${errorMessage}`);
+            }
+
+            await this.page.waitForTimeout(250);
+        }
+
+        throw new Error(`Timed out waiting for ${description}. Open tabs: ` +
+            `${(await this.tabLabels()).join(", ") || "<none>"}`);
+    }
+
     public async expectTabAfterPassword(label: RegExp | string, password: string, timeout = 45000): Promise<void> {
         const deadline = Date.now() + timeout;
         let submittedPassword = false;
@@ -391,6 +428,15 @@ export class ElectronWorkbench {
 
     public async selectConnectionTileAction(caption: string, menuPath: string[]): Promise<void> {
         await this.selectTileMenuAction(this.connectionTile(caption), menuPath);
+    }
+
+    public async selectPopupMenuAction(target: Locator, menuPath: string[]): Promise<void> {
+        await this.installNativeMenuInterceptor();
+        await this.clearNativeMenuRequest();
+        await expect(target).toBeVisible({ timeout: 15000 });
+        await target.click();
+
+        await this.selectNativeMenuPath(menuPath);
     }
 
     public async openSqlScriptFromConnectionTile(caption: string, password: string,

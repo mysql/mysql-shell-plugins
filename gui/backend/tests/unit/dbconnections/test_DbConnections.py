@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-from gui_plugin.db_connections import DbConnections
+from gui_plugin.db_connections import DbConnections, InternalData
 from gui_plugin.core.Db import GuiBackendDb
 from gui_plugin.users import UserManagement
 import config
@@ -31,6 +31,10 @@ import pytest
 def validate_response(response):
     assert response is not None
     assert isinstance(response, list)
+
+
+def get_server_status_cache(connection_id, user_id=None):
+    return InternalData.get_server_status_cache(connection_id, user_id)
 
 
 def validate_rows(rows, validate_function):
@@ -61,6 +65,38 @@ def validate_connection_row(row):
 def validate_db_type_row(type):
     assert isinstance(type, str)
     assert type in ("MySQL", "Sqlite")
+
+
+class FakeServerVariablesResult:
+    def __init__(self, rows):
+        self.rows = iter(rows)
+
+    def fetch_one(self):
+        return next(self.rows, None)
+
+
+class FakeServiceSession:
+    database_type = "MySQL"
+
+    def __init__(self, rows, connection_options=None):
+        self.rows = rows
+        self.lock_count = 0
+        self.release_count = 0
+        self.connection_options = connection_options or {
+            "host": "localhost",
+            "port": 3306,
+        }
+
+    def run_sql(self, sql):
+        assert sql.startswith("SHOW GLOBAL VARIABLES WHERE Variable_name IN (")
+
+        return FakeServerVariablesResult(self.rows)
+
+    def lock(self):
+        self.lock_count += 1
+
+    def release(self):
+        self.release_count += 1
 
 
 def test_connection_tags_round_trip_with_connection_data():
@@ -267,69 +303,227 @@ class TestDbConnectionsSqlite:
         assert latest["description"] == "Altered description"
         assert latest["options"] == {"item": "empty"}
 
-    def test_server_status_cache_roundtrip(self):
+    def test_server_status_cache_is_backend_owned(self):
         result = DbConnections.add_db_connection(
             1,
             {
                 "db_type": "Sqlite",
                 "caption": "This is a test sqlite3 database",
                 "description": "This is a test sqlite3 database description",
-                "options": {"db_file": "tests.sqlite3"},
-                "settings": {"defaultEditor": "DB Notebook"},
+                "options": {"host": "localhost", "port": 3306},
+                "settings": {
+                    "defaultEditor": "DB Notebook",
+                    "serverStatusCache": {
+                        "sysvars": [{"name": "log_error", "value": "/tmp/untrusted"}],
+                    },
+                },
+                "internal_data": {
+                    "serverStatusCache": {
+                        "sysvars": [{"name": "log_error", "value": "/tmp/untrusted"}],
+                    },
+                },
             },
         )
         connection_id = result[0]
+        assert get_server_status_cache(connection_id) is None
 
-        DbConnections.update_server_status_cache(
-            connection_id,
-            "tcp:localhost:3306",
-            [
-                {"name": "hostname", "value": "localhost"},
-                {"name": "datadir", "value": "/usr/local/mysql/data"},
-            ],
-        )
+        service_session = FakeServiceSession([
+            ("hostname", "localhost"),
+            ("datadir", "/usr/local/mysql/data"),
+            ("log_error", "mysqld.err"),
+            ("log_error_services", "log_filter_internal; log_sink_internal"),
+            ("server_id", "42"),
+            ("server_uuid", "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+        ])
+        DbConnections.refresh_server_status_cache(connection_id, service_session)
 
-        cache = DbConnections.get_server_status_cache(
-            connection_id, "tcp:localhost:3306"
-        )
+        cache = get_server_status_cache(connection_id)
         latest = DbConnections.get_db_connection(connection_id)
 
-        assert cache["endpointFingerprint"] == "tcp:localhost:3306"
         assert cache["updatedAt"]
+        assert cache["isLocal"] is True
         assert cache["sysvars"] == [
             {"name": "hostname", "value": "localhost"},
             {"name": "datadir", "value": "/usr/local/mysql/data"},
+            {"name": "log_error", "value": "mysqld.err"},
+            {
+                "name": "log_error_services",
+                "value": "log_filter_internal; log_sink_internal",
+            },
+            {"name": "server_id", "value": "42"},
+            {
+                "name": "server_uuid",
+                "value": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            },
         ]
-        assert latest["settings"]["defaultEditor"] == "DB Notebook"
+        assert service_session.lock_count == 1
+        assert service_session.release_count == 1
+        assert latest == {
+            "id": connection_id,
+            "db_type": "Sqlite",
+            "caption": "This is a test sqlite3 database",
+            "description": "This is a test sqlite3 database description",
+            "options": {"host": "localhost", "port": 3306},
+            "settings": {"defaultEditor": "DB Notebook"},
+        }
 
-        DbConnections.remove_db_connection(1, connection_id)
-
-    def test_server_status_cache_endpoint_mismatch(self):
-        result = DbConnections.add_db_connection(
-            1,
-            {
-                "db_type": "Sqlite",
-                "caption": "This is a test sqlite3 database",
-                "description": "This is a test sqlite3 database description",
-                "options": {"db_file": "tests.sqlite3"},
-            },
+    def test_server_status_cache_requires_profile_ownership(self):
+        owner_id = UserManagement.create_user(
+            "server_status_cache_owner", "password", role="User",
         )
-        connection_id = result[0]
-
-        DbConnections.update_server_status_cache(
+        owner_profile_id = UserManagement.add_profile(owner_id, {
+            "name": "Owner profile",
+            "description": "Owns the cached connection.",
+            "options": {},
+        })
+        other_user_id = UserManagement.create_user(
+            "server_status_cache_other_user", "password", role="User",
+        )
+        UserManagement.add_profile(other_user_id, {
+            "name": "Other profile",
+            "description": "Must not read the cached connection.",
+            "options": {},
+        })
+        connection_id = DbConnections.add_db_connection(
+            owner_profile_id,
+            {
+                "db_type": "MySQL",
+                "caption": "Cached MySQL connection",
+                "description": "Cached MySQL connection",
+                "options": {"host": "localhost", "port": 3306},
+                "settings": {},
+            },
+        )[0]
+        DbConnections.refresh_server_status_cache(
             connection_id,
-            "tcp:localhost:3306",
-            [{"name": "hostname", "value": "localhost"}],
+            FakeServiceSession([("log_error", "mysqld.err")]),
         )
 
-        assert (
-            DbConnections.get_server_status_cache(connection_id, "tcp:localhost:3307")
-            is None
-        )
+        assert get_server_status_cache(
+            connection_id, user_id=owner_id,
+        ) is not None
+        assert get_server_status_cache(
+            connection_id, user_id=other_user_id,
+        ) is None
 
         DbConnections.remove_db_connection(1, connection_id)
 
-    def test_server_status_cache_missing_and_malformed_settings(self):
+    def test_server_status_cache_is_not_written_after_endpoint_changes(self):
+        old_options = {"host": "old-host", "port": 3306}
+        connection_id = DbConnections.add_db_connection(
+            1,
+            {
+                "db_type": "MySQL",
+                "caption": "Cached MySQL connection",
+                "description": "Cached MySQL connection",
+                "options": old_options,
+            },
+        )[0]
+        service_session = FakeServiceSession(
+            [("log_error", "mysqld.err")], old_options,
+        )
+
+        DbConnections.update_db_connection(
+            1, connection_id, {"options": {"host": "new-host", "port": 3306}},
+        )
+        DbConnections.refresh_server_status_cache(
+            connection_id, service_session,
+        )
+
+        assert get_server_status_cache(connection_id) is None
+        DbConnections.remove_db_connection(1, connection_id)
+
+    def test_server_status_cache_is_invalidated_with_connection_options(self):
+        result = DbConnections.add_db_connection(
+            1,
+            {
+                "db_type": "Sqlite",
+                "caption": "This is a test sqlite3 database",
+                "description": "This is a test sqlite3 database description",
+                "options": {"host": "localhost", "port": 3306},
+            },
+        )
+        connection_id = result[0]
+
+        DbConnections.refresh_server_status_cache(
+            connection_id,
+            FakeServiceSession([("hostname", "localhost")]),
+        )
+        assert get_server_status_cache(connection_id) is not None
+
+        DbConnections.update_db_connection(
+            1,
+            connection_id,
+            {"options": {"host": "other-host", "port": 3306}},
+        )
+        assert get_server_status_cache(connection_id) is None
+
+        DbConnections.remove_db_connection(1, connection_id)
+
+    def test_server_status_cache_is_invalidated_with_database_type(self):
+        result = DbConnections.add_db_connection(
+            1,
+            {
+                "db_type": "Sqlite",
+                "caption": "This is a test sqlite3 database",
+                "description": "This is a test sqlite3 database description",
+                "options": {"host": "localhost", "port": 3306},
+            },
+        )
+        connection_id = result[0]
+
+        DbConnections.refresh_server_status_cache(
+            connection_id,
+            FakeServiceSession([("hostname", "localhost")]),
+        )
+        assert get_server_status_cache(connection_id) is not None
+
+        DbConnections.update_db_connection(
+            1,
+            connection_id,
+            {"db_type": "MySQL"},
+        )
+
+        assert get_server_status_cache(connection_id) is None
+
+        DbConnections.remove_db_connection(1, connection_id)
+
+    def test_server_status_cache_is_preserved_with_unchanged_identity(self):
+        options = {"host": "localhost", "port": 3306}
+        result = DbConnections.add_db_connection(
+            1,
+            {
+                "db_type": "Sqlite",
+                "caption": "This is a test sqlite3 database",
+                "description": "This is a test sqlite3 database description",
+                "options": options,
+            },
+        )
+        connection_id = result[0]
+
+        DbConnections.refresh_server_status_cache(
+            connection_id,
+            FakeServiceSession([("hostname", "localhost")]),
+        )
+
+        DbConnections.update_db_connection(
+            1,
+            connection_id,
+            {
+                "db_type": "Sqlite",
+                "caption": "Renamed sqlite database",
+                "description": "Updated description",
+                "options": options,
+                "settings": {},
+                "tags": None,
+            },
+        )
+
+        assert get_server_status_cache(connection_id) is not None
+
+        DbConnections.remove_db_connection(1, connection_id)
+
+    def test_server_status_cache_missing_and_malformed_internal_data(self):
         result = DbConnections.add_db_connection(
             1,
             {
@@ -342,19 +536,19 @@ class TestDbConnectionsSqlite:
         connection_id = result[0]
 
         assert (
-            DbConnections.get_server_status_cache(connection_id, "tcp:localhost:3306")
+            get_server_status_cache(connection_id)
             is None
         )
 
         db = GuiBackendDb()
         db.execute(
-            "UPDATE db_connection SET settings=? WHERE id=?",
+            "UPDATE db_connection SET internal_data=? WHERE id=?",
             (json.dumps("invalid"), connection_id),
         )
         db.close()
 
         assert (
-            DbConnections.get_server_status_cache(connection_id, "tcp:localhost:3306")
+            get_server_status_cache(connection_id)
             is None
         )
 

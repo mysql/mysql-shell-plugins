@@ -37,6 +37,7 @@ import gui_plugin.core.Logger as logger
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
 from gui_plugin.core.dbms.DbSession import ReconnectionMode
+from gui_plugin.core.dbms.DbSessionUtils import DbSessionData
 from gui_plugin.core.dbms.DbSqliteSession import DbSqliteSession
 from gui_plugin.db_connections import DbConnections
 from tests.lib.utils import backend_callback, backend_callback_with_pending
@@ -418,6 +419,22 @@ class TestDbMysqlSession:
         session = DbMysqlSession(uuid.uuid1(), True, connection_config)
 
         session.close()
+
+    def test_connection_established_callback_runs_for_automatic_reconnect(self):
+        session = object.__new__(DbMysqlSession)
+        session._setup_tasks = []
+        connected_sessions = []
+        session._connected_cb = connected_sessions.append
+        session._data = {}
+        callback_sessions = []
+        session._data[DbSessionData.CONNECTION_ESTABLISHED_CALLBACK] = (
+            callback_sessions.append
+        )
+
+        session._on_connected(notify_success=False)
+
+        assert callback_sessions == [session]
+        assert connected_sessions == []
 
     def test_bad_query(self, mysql_sessions):
         session = mysql_sessions[0]

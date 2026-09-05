@@ -34,6 +34,7 @@ import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
 from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.dbms.DbSession import ReconnectionMode
+from gui_plugin.core.dbms.DbSessionUtils import DbSessionData
 from gui_plugin.core.dbms.DbSqliteSession import find_schema_name
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.ModuleSession import ModuleSession
@@ -293,7 +294,10 @@ class DbModuleSession(ModuleSession):
             session_id,
             True,
             self._connection_options,
-            None,
+            {
+                DbSessionData.CONNECTION_ESTABLISHED_CALLBACK:
+                    self._refresh_server_status_cache
+            },
             self._reconnection_mode,
             self._handle_api_response,
             self.on_connected,
@@ -356,6 +360,19 @@ class DbModuleSession(ModuleSession):
         )
         self.send_command_response(self._current_request_id, data)
         self.completion_event.set()
+
+    def _refresh_server_status_cache(self, db_session):
+        if self._db_connection_id is None:
+            return
+
+        try:
+            from gui_plugin.db_connections import DbConnections
+
+            DbConnections.refresh_server_status_cache(
+                self._db_connection_id, db_session
+            )
+        except Exception as exc:  # Cache failures must not fail connection setup.
+            logger.exception(exc)
 
     def on_fail_connecting(self, exc):
         logger.exception(exc)

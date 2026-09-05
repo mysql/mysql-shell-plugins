@@ -256,6 +256,38 @@ def test_upgrade_db():
             assert "".join(diff) == ""
 
 
+def test_upgrade_db_0_0_25_adds_internal_data_column(tmp_path):
+    database_path = tmp_path / "mysqlsh_gui_backend.sqlite3"
+    with sqlite3.connect(database_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE db_connection (
+                id INTEGER NOT NULL PRIMARY KEY,
+                db_type VARCHAR(45) NOT NULL,
+                caption VARCHAR(256),
+                description VARCHAR(200),
+                options TEXT,
+                settings TEXT
+            );
+            CREATE VIEW schema_version (major, minor, patch)
+                AS SELECT 0, 0, 25;
+            """
+        )
+
+    BackendSqliteDbManager.upgrade_database_file(database_path)
+
+    with sqlite3.connect(database_path) as conn:
+        columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(db_connection)")
+        }
+        version = conn.execute(
+            "SELECT major, minor, patch FROM schema_version"
+        ).fetchone()
+
+    assert "internal_data" in columns
+    assert version == (0, 0, 26)
+
+
 def normalize_sql_file(file):
     normalized = []
     indexes = []

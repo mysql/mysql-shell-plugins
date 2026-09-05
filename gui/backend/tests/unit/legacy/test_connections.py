@@ -21,7 +21,6 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import json
 import uuid
 
 import pytest
@@ -226,11 +225,7 @@ def test_retry_uses_the_mapping_from_the_same_source(profile_id):
             "scheme": "mysql",
             "host": "recovered.example",
         },
-        "settings": {
-            "serverStatusCache": {
-                "hostname": "recovered.example",
-            },
-        },
+        "settings": {},
     }
     try:
         first_mappings = {}
@@ -255,21 +250,10 @@ def test_retry_uses_the_mapping_from_the_same_source(profile_id):
                     [legacy_connection],
                     first_mappings,
                 )
-            stored = db.select(
-                "SELECT settings FROM db_connection WHERE id=?",
-                (imported_id,),
-            )[0]
 
         retry_mapping = next(iter(first_mappings.values()))
-        settings = stored["settings"]
-        if isinstance(settings, str):
-            settings = json.loads(settings)
         assert result["merged"] == 1
         assert retry_mapping["targetConnectionId"] == imported_id
-        assert "legacyConfigurationImport" not in settings
-        assert settings["serverStatusCache"]["hostname"] == (
-            "recovered.example"
-        )
     finally:
         if imported_id is not None:
             DbConnections.remove_db_connection(profile_id, imported_id)

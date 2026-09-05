@@ -48,6 +48,8 @@ CREATE TABLE IF NOT EXISTS `db_connection` (
   `description` VARCHAR(200) NULL,
   `options` TEXT NULL,
   `settings` TEXT NULL,
+  -- Backend-owned JSON. Never populate this column from client input.
+  `internal_data` TEXT NULL,
   PRIMARY KEY (`id`));
 
 
@@ -633,7 +635,7 @@ CREATE TABLE IF NOT EXISTS `logs`.`message` (
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version` ;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 25;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 26;
 
 -- -----------------------------------------------------
 -- Data for table `data_category`

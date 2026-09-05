@@ -29,8 +29,12 @@ import pytest
 import mysqlsh
 
 import config
+import gui_plugin.Meb as Meb
+import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
 from gui_plugin import db_connections, sql_editor
+from gui_plugin.db import Metadata
+from gui_plugin.db_connections import InternalData
 import gui_plugin.sql_editor.SqlEditor as sql_editor_module
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
@@ -128,6 +132,14 @@ def params():
     )
     del connection_options["portStr"]
 
+    user_id = UserManagement.create_user(
+        f"sqleditor_profile_{uuid.uuid4()}", "password", role="User"
+    )
+    profile_id = UserManagement.add_profile(user_id, {
+        "name": "SQL editor test profile",
+        "description": "Owns the SQL editor test connection.",
+        "options": {},
+    })
     result = db_connections.add_db_connection(
         profile_id,
         {
@@ -140,6 +152,8 @@ def params():
         parameters._web_session.db,
     )
 
+    parameters._web_session.session_active_profile_id = profile_id
+    parameters._web_session.session_user_id = user_id
     parameters._web_session.request_id = open_connection_cb.request_id
     parameters._db_connection_id = result[0]
     sql_editor.open_connection(parameters._db_connection_id, parameters._module_session)
@@ -150,6 +164,7 @@ def params():
 
     yield parameters
 
+    db_connections.remove_db_connection(profile_id, parameters._db_connection_id)
     parameters._web_session.db.close()
     result = sql_editor.close_session(parameters._module_session)
     # del parameters._web_session.module_sessions[parameters._module_session_id]
@@ -199,6 +214,51 @@ class Test_sql_editor:
             params._open_connection_info["connection_id"]
             != params._open_connection_info["service_connection_id"]
         )
+
+        cache = InternalData.get_server_status_cache(params._db_connection_id)
+        assert cache is not None
+        assert cache["sysvars"]
+        assert params._module_session.get_bound_connection_id() == params._db_connection_id
+
+    def test_bound_connection_rejects_a_profile_switch(self, params):
+        original_profile_id = params._web_session.session_active_profile_id
+        params._web_session.session_active_profile_id = original_profile_id + 1
+        try:
+            with pytest.raises(MSGException) as exc_info:
+                params._module_session.get_bound_connection_id()
+        finally:
+            params._web_session.session_active_profile_id = original_profile_id
+
+        assert exc_info.value.code == Error.CORE_PERMISSION_DENIED
+
+    def test_bound_connection_rejects_a_user_switch(self, params):
+        original_user_id = params._web_session.session_user_id
+        params._web_session.session_user_id = original_user_id + 1
+        try:
+            with pytest.raises(MSGException) as exc_info:
+                params._module_session.get_bound_connection_id()
+        finally:
+            params._web_session.session_user_id = original_user_id
+
+        assert exc_info.value.code == Error.CORE_PERMISSION_DENIED
+
+    def test_start_offline_session_binds_the_active_profile_connection(self, params, monkeypatch):
+        result = Metadata.start_offline_session(params._db_connection_id)
+        offline_session = params._web_session.module_sessions[
+            result["module_session_id"]
+        ]
+        status = object()
+        monkeypatch.setattr(Meb, "get_backup_home_status", lambda _path: status)
+
+        try:
+            assert offline_session.get_offline_connection_id() == params._db_connection_id
+            assert offline_session._db_service_session is None
+            assert Meb.get_status(
+                module_session=offline_session,
+                backup_home_path="/backups",
+            ) is status
+        finally:
+            offline_session.close()
 
     def test_should_ignore_history_entry_honors_sql_ignore_pattern(self):
         original_pattern = mysqlsh.globals.shell.options["history.sql.ignorePattern"]

@@ -146,6 +146,7 @@ const odmTypeToDocumentIcon = new Map<OdmEntityType, string>([
 export const pageTypeToDocumentIcon = new Map<AdminPageType, string>([
     ["serverStatus", Assets.documents.adminServerStatusIcon],
     ["clientConnections", Assets.documents.clientConnectionsIcon],
+    ["logs", Assets.documents.adminDashboardIcon],
     ["userAccounts", Assets.oci.profileIcon],
     ["performanceDashboard", Assets.documents.adminPerformanceDashboardIcon],
     ["enterpriseBackup", Assets.documents.adminBackupIcon],

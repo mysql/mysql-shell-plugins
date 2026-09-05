@@ -260,7 +260,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             };
 
             this.addAdminSections(this.adminEntry, new Set([
-                "serverStatus", "enterpriseBackup",
+                "serverStatus", "logs", "enterpriseBackup",
             ]));
         }
 
