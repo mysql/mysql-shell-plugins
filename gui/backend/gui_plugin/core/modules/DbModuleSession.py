@@ -56,9 +56,14 @@ class DbModuleSession(ModuleSession):
     def __init__(self, reconnection_mode=ReconnectionMode.STANDARD):
         super().__init__()
         self._db_type = None
+        self._db_connection_id = None
         self._connection_options = None
         self._db_service_session = None
         self._bastion_options = None
+        self._user_id = None
+        self._profile_id = None
+        self._offline = False
+        self._offline_profile_id = None
         self._reconnection_mode = reconnection_mode
         self.completion_event = None
 
@@ -74,12 +79,90 @@ class DbModuleSession(ModuleSession):
         # do cleanup
         self._connection_options = None
         self._db_type = None
+        self._db_connection_id = None
+        self._user_id = None
+        self._profile_id = None
+        self._offline = False
+        self._offline_profile_id = None
 
         if self._db_service_session is not None:
             self._db_service_session.lock()
             self._db_service_session.close(after_fail)
             self._db_service_session.release()
             self._db_service_session = None
+
+    def _bind_connection_profile(self, connection_id):
+        if self._web_session is None:
+            raise MSGException(
+                Error.CORE_PERMISSION_DENIED,
+                "A database connection requires an authenticated web session.",
+            )
+
+        profile_id = self._web_session.session_active_profile_id
+        user_id = self._web_session.session_user_id
+        if profile_id is None or user_id is None:
+            raise MSGException(
+                Error.CORE_PERMISSION_DENIED,
+                "A database connection requires an active user profile.",
+            )
+
+        membership = self._web_session.db.select(
+            """SELECT 1
+            FROM profile_has_db_connection pdc
+                JOIN profile p ON pdc.profile_id = p.id
+            WHERE pdc.profile_id=? AND pdc.db_connection_id=? AND p.user_id=?""",
+            (profile_id, connection_id, user_id),
+        )
+        if not membership:
+            raise MSGException(
+                Error.CORE_PERMISSION_DENIED,
+                "The connection is not available in the active user profile.",
+            )
+
+        self._user_id = user_id
+        self._profile_id = profile_id
+
+    def open_offline_connection(self, connection_id):
+        """Binds this module session to an offline administration connection."""
+        self.close_connection()
+        self._bind_connection_profile(connection_id)
+        self._db_connection_id = connection_id
+        self._offline = True
+        self._offline_profile_id = self._profile_id
+
+    def get_bound_connection_id(self):
+        """Returns the connection bound to this authenticated module session."""
+        if (
+            self._db_connection_id is None
+            or self._user_id is None
+            or self._profile_id is None
+            or self._web_session is None
+        ):
+            raise MSGException(
+                Error.CORE_PERMISSION_DENIED,
+                "This module session is not bound to a saved connection.",
+            )
+
+        if (
+            self._web_session.session_user_id != self._user_id
+            or self._web_session.session_active_profile_id != self._profile_id
+        ):
+            raise MSGException(
+                Error.CORE_PERMISSION_DENIED,
+                "The module session belongs to a different profile.",
+            )
+
+        return self._db_connection_id
+
+    def get_offline_connection_id(self):
+        """Returns the connection bound for offline administration requests."""
+        if not self._offline or self._offline_profile_id is None:
+            raise MSGException(
+                Error.CORE_PERMISSION_DENIED,
+                "This module session is not authorized for offline administration.",
+            )
+
+        return self.get_bound_connection_id()
 
     def reconnect(self):
         context = get_context()
@@ -175,11 +258,14 @@ class DbModuleSession(ModuleSession):
         self._current_request_id = context.request_id if context else None
 
         if isinstance(connection, int):
+            self._bind_connection_profile(connection)
+            self._db_connection_id = connection
             self._db_type, options, _ = self._web_session.db.get_connection_details(
                 connection
             )
             options = options.copy()
         elif isinstance(connection, dict):
+            self._db_connection_id = None
             self._db_type = connection["db_type"]
             options = connection["options"].copy()
 

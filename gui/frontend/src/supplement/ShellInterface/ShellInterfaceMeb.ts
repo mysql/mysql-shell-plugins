@@ -39,10 +39,10 @@ export type {
 } from "../../communication/ProtocolGui.js";
 
 export class ShellInterfaceMeb {
-    public async getStatus(backupHomePath?: string): Promise<IMebStatus> {
+    public async getStatus(moduleSessionId: string, backupHomePath?: string): Promise<IMebStatus> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebGetStatus,
-            parameters: { args: { backupHomePath } },
+            parameters: { args: { moduleSessionId, backupHomePath } },
         });
 
         return response.result as unknown as IMebStatus;
@@ -166,88 +166,90 @@ export class ShellInterfaceMeb {
         return response.result as unknown as IMebStatus;
     }
 
-    public async deleteBackup(backupHomePath: string,
+    public async deleteBackup(moduleSessionId: string, backupHomePath: string,
         activityId: string): Promise<IMebStatus> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebDeleteBackup,
-            parameters: { args: { backupHomePath, activityId } },
+            parameters: { args: { moduleSessionId, backupHomePath, activityId } },
         });
 
         return response.result as unknown as IMebStatus;
     }
 
-    public async verifyBackup(backupHomePath: string,
+    public async verifyBackup(moduleSessionId: string, backupHomePath: string,
         activityId: string): Promise<IMebLogContent> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebVerifyBackup,
-            parameters: { args: { backupHomePath, activityId } },
+            parameters: { args: { moduleSessionId, backupHomePath, activityId } },
         });
 
         return response.result as unknown as IMebLogContent;
     }
 
-    public async applyBackupLogs(backupHomePath: string,
+    public async applyBackupLogs(moduleSessionId: string, backupHomePath: string,
         activityId: string): Promise<IMebStatus> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebApplyBackupLogs,
-            parameters: { args: { backupHomePath, activityId } },
+            parameters: { args: { moduleSessionId, backupHomePath, activityId } },
         });
 
         return response.result as unknown as IMebStatus;
     }
 
-    public async restoreBackup(backupHomePath: string,
+    public async restoreBackup(moduleSessionId: string, backupHomePath: string,
         activityId: string, operationId: string, force: boolean): Promise<IMebRestoreResult> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebRestoreBackup,
-            parameters: { args: { backupHomePath, activityId, operationId, force } },
+            parameters: { args: { moduleSessionId, backupHomePath, activityId, operationId, force } },
         });
 
         return response.result as unknown as IMebRestoreResult;
     }
 
-    public async getRestoreProgress(backupHomePath: string, operationId: string): Promise<IMebRestoreProgress> {
+    public async getRestoreProgress(moduleSessionId: string, backupHomePath: string,
+        operationId: string): Promise<IMebRestoreProgress> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebGetRestoreProgress,
-            parameters: { args: { backupHomePath, operationId } },
+            parameters: { args: { moduleSessionId, backupHomePath, operationId } },
         });
 
         return response.result as unknown as IMebRestoreProgress;
     }
 
-    public async abortBackupRestore(backupHomePath: string, operationId: string): Promise<IMebRestoreProgress> {
+    public async abortBackupRestore(moduleSessionId: string, backupHomePath: string,
+        operationId: string): Promise<IMebRestoreProgress> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebAbortBackupRestore,
-            parameters: { args: { backupHomePath, operationId } },
+            parameters: { args: { moduleSessionId, backupHomePath, operationId } },
         });
 
         return response.result as unknown as IMebRestoreProgress;
     }
 
     public async readBackupContent(
-        backupHomePath: string, activityId: string,
+        moduleSessionId: string, backupHomePath: string, activityId: string,
     ): Promise<IMebBackupContent> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebReadBackupContent,
-            parameters: { args: { backupHomePath, activityId } },
+            parameters: { args: { moduleSessionId, backupHomePath, activityId } },
         });
 
         return response.result as unknown as IMebBackupContent;
     }
 
-    public async getBackupPath(backupHomePath: string, activityId: string): Promise<string> {
+    public async getBackupPath(moduleSessionId: string, backupHomePath: string, activityId: string): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebGetBackupPath,
-            parameters: { args: { backupHomePath, activityId } },
+            parameters: { args: { moduleSessionId, backupHomePath, activityId } },
         });
 
         return response.result as unknown as string;
     }
 
-    public async readLog(backupHomePath: string, activityId: string): Promise<IMebLogContent> {
+    public async readLog(moduleSessionId: string, backupHomePath: string, activityId: string): Promise<IMebLogContent> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiMebReadLog,
-            parameters: { args: { backupHomePath, activityId } },
+            parameters: { args: { moduleSessionId, backupHomePath, activityId } },
         });
 
         return response.result as unknown as IMebLogContent;

@@ -25,9 +25,11 @@ from gui_plugin.core.Db import GuiBackendDb
 
 
 class MockWebSession:
-    def __init__(self, user_id=3, local=False):
+    def __init__(self, user_id=3, local=False, active_profile_id=None):
         "User id 3 is the first id for the test users"
         self.user_id = user_id
+        self.session_user_id = user_id
+        self.session_active_profile_id = active_profile_id
         self.session_uuid = f"test_uuid_{user_id}"
         self.is_local_session = local
         self.db = GuiBackendDb()

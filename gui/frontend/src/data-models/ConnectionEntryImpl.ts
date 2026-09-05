@@ -237,7 +237,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         return true;
     }
 
-    public initializeOffline(probe?: IConnectionOfflineProbe): boolean {
+    public async initializeOffline(probe?: IConnectionOfflineProbe): Promise<boolean> {
+        await this.backend.startOfflineSession(`CDM_${this.id}`, this.details.id);
         this.open = false;
         this.isOffline = true;
         this.offlineProbe = probe;
@@ -258,7 +259,9 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 },
             };
 
-            this.addAdminSections(this.adminEntry, new Set(["serverStatus", "enterpriseBackup"]));
+            this.addAdminSections(this.adminEntry, new Set([
+                "serverStatus", "enterpriseBackup",
+            ]));
         }
 
         (this.state as Mutable<IDataModelEntryState>).initialized = true;

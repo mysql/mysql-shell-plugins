@@ -48,16 +48,17 @@ describe("ShellInterfaceMeb", () => {
         });
     });
 
-    it("sends delete backup requests without a module session", async () => {
+    it("sends delete backup requests with the profile-bound module session", async () => {
         const sendRequest = vi.spyOn(MessageScheduler.get, "sendRequest").mockResolvedValue({ result: {} });
         const meb = new ShellInterfaceMeb();
 
-        await meb.deleteBackup("/backups", "activity:v1:logs/backup.log");
+        await meb.deleteBackup("session-1", "/backups", "activity:v1:logs/backup.log");
 
         expect(sendRequest).toHaveBeenCalledWith({
             requestType: ShellAPIGui.GuiMebDeleteBackup,
             parameters: {
                 args: {
+                    moduleSessionId: "session-1",
                     backupHomePath: "/backups",
                     activityId: "activity:v1:logs/backup.log",
                 },
@@ -65,16 +66,17 @@ describe("ShellInterfaceMeb", () => {
         });
     });
 
-    it("sends restore requests without a module session", async () => {
+    it("sends restore requests with the profile-bound module session", async () => {
         const sendRequest = vi.spyOn(MessageScheduler.get, "sendRequest").mockResolvedValue({ result: {} });
         const meb = new ShellInterfaceMeb();
 
-        await meb.restoreBackup("/backups", "activity:v1:logs/backup.log", "restore-1", false);
+        await meb.restoreBackup("session-1", "/backups", "activity:v1:logs/backup.log", "restore-1", false);
 
         expect(sendRequest).toHaveBeenCalledWith({
             requestType: ShellAPIGui.GuiMebRestoreBackup,
             parameters: {
                 args: {
+                    moduleSessionId: "session-1",
                     backupHomePath: "/backups",
                     activityId: "activity:v1:logs/backup.log",
                     operationId: "restore-1",
@@ -84,16 +86,17 @@ describe("ShellInterfaceMeb", () => {
         });
     });
 
-    it("sends backup-content requests without a module session", async () => {
+    it("sends backup-content requests with the profile-bound module session", async () => {
         const sendRequest = vi.spyOn(MessageScheduler.get, "sendRequest").mockResolvedValue({ result: {} });
         const meb = new ShellInterfaceMeb();
 
-        await meb.readBackupContent("/backups", "activity:v1:logs/backup.log");
+        await meb.readBackupContent("session-1", "/backups", "activity:v1:logs/backup.log");
 
         expect(sendRequest).toHaveBeenCalledWith({
             requestType: ShellAPIGui.GuiMebReadBackupContent,
             parameters: {
                 args: {
+                    moduleSessionId: "session-1",
                     backupHomePath: "/backups",
                     activityId: "activity:v1:logs/backup.log",
                 },

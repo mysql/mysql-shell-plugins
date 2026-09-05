@@ -440,6 +440,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbGetSchemaObject]: {};
     [ShellAPIGui.GuiDbGetTableObject]: { result: ITableObjectInfo; };
     [ShellAPIGui.GuiDbStartSession]: { result: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiDbStartOfflineSession]: { result: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbCloseSession]: {};
     [ShellAPIGui.GuiDbReconnect]: {};
     [ShellAPIGui.GuiSqlEditorIsGuiModuleBackend]: { result: boolean; };

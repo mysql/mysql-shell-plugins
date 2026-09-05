@@ -27,7 +27,9 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import type { DataCallback } from "../../../communication/MessageScheduler.js";
-import type { IOpenConnectionData, IShellPasswordFeedbackRequest, ShellAPIGui } from "../../../communication/ProtocolGui.js";
+import type {
+    IOpenConnectionData, IShellPasswordFeedbackRequest, ShellAPIGui,
+} from "../../../communication/ProtocolGui.js";
 import type {
     IMrsAuthAppData, IMrsContentFileData, IMrsContentSetData, IMrsRouterData, IMrsRouterService, IMrsSchemaData,
     IMrsServiceData, IMrsStatusData, IMrsUserData,
@@ -348,8 +350,12 @@ describe("ConnectionDataModel", () => {
         const connection = dataModel.createConnectionEntry(connectionDetailsMock1[0]);
 
         const offlineConnection = dataModel.createConnectionEntry(connection.details);
-        offlineConnection.initializeOffline();
+        const startOfflineSession = vi.spyOn(offlineConnection.backend, "startOfflineSession")
+            .mockResolvedValue(undefined);
+        await offlineConnection.initializeOffline();
 
+        expect(startOfflineSession).toHaveBeenCalledWith(
+            `CDM_${offlineConnection.id}`, offlineConnection.details.id);
         expect(offlineConnection).not.toBe(connection);
         expect(offlineConnection.details).toBe(connection.details);
         expect(offlineConnection.isOpen).toBe(false);
@@ -359,6 +365,9 @@ describe("ConnectionDataModel", () => {
         expect(offlineConnection.adminEntry?.pages.map((page) => {
             return page.pageType;
         })).toEqual(["serverStatus", "enterpriseBackup"]);
+        expect(startOfflineSession).toHaveBeenCalledWith(
+            `CDM_${offlineConnection.id}`, connection.details.id,
+        );
     });
 
     it("Refreshing entries", async () => {
@@ -422,7 +431,7 @@ describe("ConnectionDataModel", () => {
             await dataModel.reloadConnections();
             const connection = dataModel.roots.find((entry) => {
                 return entry.type === CdmEntityType.Connection;
-            }) as ICdmConnectionEntry | undefined;
+            });
 
             expect(connection).toBeDefined();
             await connection?.close();

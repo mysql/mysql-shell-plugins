@@ -93,6 +93,17 @@ afterEach(() => {
 });
 
 describe("EnterpriseBackup", () => {
+    it("loads offline status through the virtual module session", async () => {
+        const offlineConnection = { ...connection, isOffline: true } as ICdmConnectionEntry;
+        const getStatus = vi.spyOn(ShellInterface.meb, "getStatus").mockResolvedValue(status);
+
+        render(<EnterpriseBackup connection={offlineConnection} />);
+
+        await waitFor(() => {
+            expect(getStatus).toHaveBeenCalledWith("session-1", "-");
+        });
+    });
+
     it("shows the preview notice on the configured MEB page", async () => {
         vi.spyOn(ShellInterface.meb, "getSetupState").mockResolvedValue(setupState);
         vi.spyOn(ShellInterface.meb, "getStatus").mockResolvedValue(status);

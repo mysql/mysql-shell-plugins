@@ -517,8 +517,8 @@ class ShellGuiStdioBridge:
             kwargs = {**args, **kwargs}
 
             request_filters: list[LogFilter] = []
-            if cmd in self._web_functions:
-                definition = self._web_functions[cmd]
+            definition = self._web_functions.get(cmd)
+            if definition is not None:
                 hints = typing.get_type_hints(definition.function)
 
                 for param_name, expected_type in hints.items():
@@ -580,6 +580,9 @@ class ShellGuiStdioBridge:
                 raise Exception(
                     f"Object '{'.'.join(found_objects)}' has no member function named '{function_name}'"
                 )
+
+            if definition is not None:
+                func = definition.function
 
             f_args = {}
             if func:
@@ -652,7 +655,6 @@ class ShellGuiStdioBridge:
                     "gui.sql_editor.set_current_schema",
                     "gui.sql_editor.get_auto_commit",
                     "gui.sql_editor.set_auto_commit",
-                    "gui.mysql.*",
                 ]
                 normalized_cmd = ".".join(found_objects + [function_name])
                 if isinstance(module_session, SqlEditorModuleSession) and any(

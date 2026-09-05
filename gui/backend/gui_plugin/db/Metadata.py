@@ -23,13 +23,10 @@
 
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 
-import gui_plugin.core.Context as context
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from gui_plugin.db import backend
-
-
 @plugin_function("gui.db.getObjectsTypes", shell=True, web=True)
 def get_objects_types(session):
     """Returns the database objects supported by a DBMS
@@ -218,6 +215,21 @@ def start_session(connection, password=None):
 
     new_session = DbModuleSession()
     new_session.open_connection(connection, password)
+
+
+@plugin_function("gui.db.startOfflineSession", shell=False, web=True)
+def start_offline_session(connection_id):
+    """Creates a profile-bound module session for offline administration.
+
+    Args:
+        connection_id (int): The saved connection to bind to the module session.
+    Returns:
+        None
+    """
+    new_session = DbModuleSession()
+    new_session.open_offline_connection(connection_id)
+
+    return {"module_session_id": new_session.module_session_id}
 
 
 @plugin_function("gui.db.closeSession", shell=False, web=True)

@@ -203,6 +203,8 @@ export enum ShellAPIGui {
     GuiDbGetColumnsMetadata = "gui.db.get_columns_metadata",
     /** Starts a DB Session */
     GuiDbStartSession = "gui.db.start_session",
+    /** Creates a profile-bound module session for offline administration. */
+    GuiDbStartOfflineSession = "gui.db.start_offline_session",
     /** Closes the DB Session */
     GuiDbCloseSession = "gui.db.close_session",
     /** Reconnects the DB Session */
@@ -886,6 +888,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbGetTableObject]: { args: { moduleSessionId: string; type: string; schemaName: string; tableName: string; name: string; }; };
     [ShellAPIGui.GuiDbGetColumnsMetadata]: { args: { moduleSessionId: string; names: unknown[]; }; };
     [ShellAPIGui.GuiDbStartSession]: { args: { connection: IShellDbConnection | number; password?: string; }; };
+    [ShellAPIGui.GuiDbStartOfflineSession]: { args: { connectionId: number; }; };
     [ShellAPIGui.GuiDbCloseSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbReconnect]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { args: { moduleSessionId: string; schemaName: string; }; };
@@ -947,7 +950,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiMysqlCreateUser]: { args: { options: IMySQLUser; moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlDeleteUser]: { args: { user: string; host: string; moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlUpdateUser]: { args: { options: IMySQLUser; moduleSessionId?: string; }; };
-    [ShellAPIGui.GuiMebGetStatus]: { args: { backupHomePath?: string | null; }; };
+    [ShellAPIGui.GuiMebGetStatus]: { args: { moduleSessionId: string; backupHomePath?: string | null; }; };
     [ShellAPIGui.GuiMebGetSetupState]: { args: { moduleSessionId: string; backupHomePath?: string | null; }; };
     [ShellAPIGui.GuiMebValidateLocalBackupAccess]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiMebValidateBackupHome]: { args: { moduleSessionId: string; backupHomePath: string; }; };
@@ -960,15 +963,15 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiMebSaveProfile]: { args: { moduleSessionId: string; backupHomePath: string; profile: IMebBackupProfile; }; };
     [ShellAPIGui.GuiMebDeleteProfile]: { args: { moduleSessionId: string; backupHomePath: string; profileUuid: string; }; };
     [ShellAPIGui.GuiMebStartProfileExecution]: { args: { moduleSessionId: string; backupHomePath: string; profileUuid: string; backupMode: string; }; };
-    [ShellAPIGui.GuiMebDeleteBackup]: { args: { backupHomePath: string; activityId: string; }; };
-    [ShellAPIGui.GuiMebVerifyBackup]: { args: { backupHomePath: string; activityId: string; }; };
-    [ShellAPIGui.GuiMebApplyBackupLogs]: { args: { backupHomePath: string; activityId: string; }; };
-    [ShellAPIGui.GuiMebRestoreBackup]: { args: { backupHomePath: string; activityId: string; operationId: string; force?: boolean; }; };
-    [ShellAPIGui.GuiMebGetRestoreProgress]: { args: { backupHomePath: string; operationId: string; }; };
-    [ShellAPIGui.GuiMebAbortBackupRestore]: { args: { backupHomePath: string; operationId: string; }; };
-    [ShellAPIGui.GuiMebReadBackupContent]: { args: { backupHomePath: string; activityId: string; }; };
-    [ShellAPIGui.GuiMebGetBackupPath]: { args: { backupHomePath: string; activityId: string; }; };
-    [ShellAPIGui.GuiMebReadLog]: { args: { backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebDeleteBackup]: { args: { moduleSessionId: string; backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebVerifyBackup]: { args: { moduleSessionId: string; backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebApplyBackupLogs]: { args: { moduleSessionId: string; backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebRestoreBackup]: { args: { moduleSessionId: string; backupHomePath: string; activityId: string; operationId: string; force?: boolean; }; };
+    [ShellAPIGui.GuiMebGetRestoreProgress]: { args: { moduleSessionId: string; backupHomePath: string; operationId: string; }; };
+    [ShellAPIGui.GuiMebAbortBackupRestore]: { args: { moduleSessionId: string; backupHomePath: string; operationId: string; }; };
+    [ShellAPIGui.GuiMebReadBackupContent]: { args: { moduleSessionId: string; backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebGetBackupPath]: { args: { moduleSessionId: string; backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebReadLog]: { args: { moduleSessionId: string; backupHomePath: string; activityId: string; }; };
     [ShellAPIGui.GuiDebuggerIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiDebuggerGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiDebuggerGetScripts]: {};
@@ -1418,6 +1421,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbGetSchemaObject]: {};
     [ShellAPIGui.GuiDbGetTableObject]: { result: ITableObjectInfo; };
     [ShellAPIGui.GuiDbStartSession]: { result: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiDbStartOfflineSession]: { result: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbCloseSession]: {};
     [ShellAPIGui.GuiDbReconnect]: {};
     [ShellAPIGui.GuiSqlEditorIsGuiModuleBackend]: { result: boolean; };

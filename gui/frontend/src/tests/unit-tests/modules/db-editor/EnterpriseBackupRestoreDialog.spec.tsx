@@ -39,6 +39,7 @@ const renderDialog = (onBusyChange = vi.fn(), onStatusChange = vi.fn()) => {
         backupHomePath="/backups"
         datadir="/var/lib/mysql"
         disabled={false}
+        moduleSessionId="session-1"
         restoreDetails={{
             backupType: "Full",
             profile: "Nightly",
@@ -57,13 +58,14 @@ afterEach(() => {
 
 describe("EnterpriseBackupRestoreDialog", () => {
     it("loads and displays restore metadata", async () => {
-        vi.spyOn(ShellInterface.meb, "readBackupContent").mockResolvedValue(backupContent);
+        const readBackupContent = vi.spyOn(ShellInterface.meb, "readBackupContent").mockResolvedValue(backupContent);
 
         renderDialog();
 
         expect(await screen.findByText("uuid:1-10")).toBeTruthy();
         expect(screen.getByText("binlog.000001:123")).toBeTruthy();
         expect(screen.getByText("/var/lib/mysql")).toBeTruthy();
+        expect(readBackupContent).toHaveBeenCalledWith("session-1", "/backups", "backup-1");
     });
 
     it("reports a successful restore and stops polling", async () => {

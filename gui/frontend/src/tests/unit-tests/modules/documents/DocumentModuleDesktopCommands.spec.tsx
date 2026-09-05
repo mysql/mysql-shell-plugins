@@ -85,6 +85,7 @@ import { desktopCommandRegistry } from "../../../../supplement/DesktopCommandReg
 import { appParameters } from "../../../../supplement/AppParameters.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import { Settings } from "../../../../supplement/Settings/Settings.js";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { DBType, type IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { RunMode, webSession } from "../../../../supplement/WebSession.js";
 import { LoadingState } from "../../../../script-execution/index.js";
@@ -4273,6 +4274,65 @@ describe("Document module desktop commands", () => {
         expect(addConnectionWorkspaceSpy).not.toHaveBeenCalled();
         expect(module.state.connectionWorkspaces).toHaveLength(1);
         expect(module.state.selectedPage).toBe(userPage.id);
+    });
+
+    it("probes for offline status only after the real connection fails", async () => {
+        const module = new TestDocumentModule({});
+        const localDetails = {
+            ...connectionDetails,
+            options: {
+                ...connectionDetails.options,
+                host: "localhost",
+                port: 3306,
+            },
+        };
+        const entry = {
+            ...createElectronWorkspaceConnection().connection,
+            details: localDetails,
+        };
+        const events: string[] = [];
+        const openedConnection = {
+            ...entry,
+            initialize: vi.fn().mockImplementation(() => {
+                events.push("connect");
+
+                return Promise.reject(new Error("Connection failed"));
+            }),
+            initializeServiceOnly: vi.fn().mockResolvedValue(true),
+        };
+        const probeResult = {
+            kind: "tcp" as const,
+            status: "unavailable" as const,
+            target: "localhost:3306",
+        };
+        const testModule = module as unknown as {
+            connectionsDataModel: {
+                createConnectionEntry: (details: IConnectionDetails) => typeof openedConnection;
+            };
+            shouldOpenOfflineAdministrationWorkspace: (entry: typeof entry, error: unknown) => boolean;
+            openOfflineAdministrationWorkspace: (
+                entry: typeof entry, suppressAbout: boolean, probe?: typeof probeResult,
+            ) => Promise<string | undefined>;
+            activateConnectionWorkspace: (
+                entry: typeof entry, createNewWorkspace: boolean, suppressAbout: boolean,
+                initialEditor: "script", serviceOnly: boolean,
+            ) => Promise<boolean>;
+        };
+
+        vi.spyOn(testModule.connectionsDataModel, "createConnectionEntry").mockReturnValue(openedConnection);
+        vi.spyOn(testModule, "shouldOpenOfflineAdministrationWorkspace").mockReturnValue(true);
+        vi.spyOn(ShellInterface.core, "probeLocalConnectionEndpoint").mockImplementation(() => {
+            events.push("probe");
+
+            return Promise.resolve(probeResult);
+        });
+        const openOfflineWorkspace = vi.spyOn(testModule, "openOfflineAdministrationWorkspace")
+            .mockResolvedValue(undefined);
+
+        await testModule.activateConnectionWorkspace(entry, false, false, "script", false);
+
+        expect(events).toEqual(["connect", "probe"]);
+        expect(openOfflineWorkspace).toHaveBeenCalledWith(entry, false, probeResult);
     });
 
     it("opens a new script workspace from Home instead of reselecting an existing notebook", async () => {

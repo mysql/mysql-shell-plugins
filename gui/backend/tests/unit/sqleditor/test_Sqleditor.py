@@ -34,6 +34,7 @@ from gui_plugin import db_connections, sql_editor
 import gui_plugin.sql_editor.SqlEditor as sql_editor_module
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
+from gui_plugin.users import UserManagement
 from tests.lib.MockWebSession import MockWebSession
 from tests.lib.utils import backend_callback, backend_callback_with_pending
 
@@ -80,6 +81,22 @@ def params():
     parameters = Parameters()
     parameters._connection_id = None
     parameters._web_session = MockWebSession()
+    user_id = UserManagement.create_user(
+        f"sqleditor_{uuid.uuid4().hex}", "unused", role="User",
+        be_session=parameters._web_session.db,
+    )
+    profile_id = UserManagement.add_profile(
+        user_id,
+        {
+            "name": "SQL editor test profile",
+            "description": "",
+            "options": {},
+        },
+        be_session=parameters._web_session.db,
+    )
+    parameters._web_session.user_id = user_id
+    parameters._web_session.session_user_id = user_id
+    parameters._web_session.session_active_profile_id = profile_id
 
     @backend_callback(1)
     def open_connection_cb(msg_type, msg, request_id, values):
@@ -112,7 +129,7 @@ def params():
     del connection_options["portStr"]
 
     result = db_connections.add_db_connection(
-        1,
+        profile_id,
         {
             "db_type": "MySQL",
             "caption": "This is a test MySQL database",

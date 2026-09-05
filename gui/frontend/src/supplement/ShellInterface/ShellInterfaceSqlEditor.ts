@@ -150,6 +150,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     public mrs: ShellInterfaceMrs = new ShellInterfaceMrs();
 
     private serviceOnlySession = false;
+    private offlineSession = false;
     private performanceSchemaAvailable?: boolean;
     private performanceSchemaAvailabilityProbe?: Promise<boolean>;
     private performanceReportCapabilities?: IPerformanceReportCapabilities;
@@ -174,6 +175,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     public override async startSession(id: string): Promise<void> {
         this.clearWorkspaceCaches();
         this.serviceOnlySession = false;
+        this.offlineSession = false;
         this.moduleSessionLookupId = `sqlEditor.${id}`;
         this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
 
@@ -202,10 +204,32 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
         password?: string): Promise<void> {
         this.clearWorkspaceCaches();
         this.serviceOnlySession = true;
+        this.offlineSession = false;
         this.moduleSessionLookupId = `dbSession.${id}`;
         const response = await this.interactive.sendInteractiveRequest({
             requestType: ShellAPIGui.GuiDbStartSession,
             parameters: { args: { connection, password } },
+        });
+        webSession.setModuleSessionId(this.moduleSessionLookupId, response.result.moduleSessionId);
+        this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
+    }
+
+    /**
+     * Starts a profile-bound session for offline administration pages.
+     *
+     * @param id A value identifying the connection workspace.
+     * @param connection The ID of the stored connection to bind to this session.
+     *
+     * @returns A promise which resolves when the session is bound.
+     */
+    public async startOfflineSession(id: string, connection: number): Promise<void> {
+        this.clearWorkspaceCaches();
+        this.serviceOnlySession = false;
+        this.offlineSession = true;
+        this.moduleSessionLookupId = `offlineDbSession.${id}`;
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbStartOfflineSession,
+            parameters: { args: { connectionId: connection } },
         });
         webSession.setModuleSessionId(this.moduleSessionLookupId, response.result.moduleSessionId);
         this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
@@ -218,9 +242,10 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
      */
     public override async closeSession(): Promise<void> {
         try {
-            if (this.serviceOnlySession) {
+            if (this.serviceOnlySession || this.offlineSession) {
                 await super.closeSession();
                 this.serviceOnlySession = false;
+                this.offlineSession = false;
 
                 return;
             }

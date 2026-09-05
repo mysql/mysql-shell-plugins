@@ -338,24 +338,24 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
         path: string,
         fallbackConfiguration: IMebConfiguration,
     ): Promise<IMebSetupState | undefined> => {
+        if (!moduleSessionId) {
+            setSetupStateLoading(false);
+            setLoadError("Open a MySQL connection before configuring Enterprise Backup.");
+
+            return undefined;
+        }
+
         if (offline) {
             setSetupStateLoading(true);
             setLoadError(undefined);
             try {
-                updateCachedStatus(await ShellInterface.meb.getStatus(path.trim() || undefined));
+                updateCachedStatus(await ShellInterface.meb.getStatus(moduleSessionId, path.trim() || undefined));
             } catch (reason: unknown) {
                 const message = convertErrorToString(reason);
                 setLoadError(message);
             } finally {
                 setSetupStateLoading(false);
             }
-
-            return undefined;
-        }
-
-        if (!moduleSessionId) {
-            setSetupStateLoading(false);
-            setLoadError("Open a MySQL connection before configuring Enterprise Backup.");
 
             return undefined;
         }
@@ -390,7 +390,8 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
     useEffect(() => {
         const backupHomePath = initialConfiguration.backupHomePath.trim();
         const localConnection = isLocalhostConnection(connection);
-        const ready = (offline && backupHomePath) || (!offline && moduleSessionId && localConnection);
+        const ready = moduleSessionId !== undefined
+            && ((offline && backupHomePath) || (!offline && localConnection));
         const loadKey = `${offline}:${moduleSessionId ?? ""}:${localConnection}:${backupHomePath}`;
         if (ready && initialLoadKey.current !== loadKey) {
             initialLoadKey.current = loadKey;
@@ -479,7 +480,10 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
         let cancelled = false;
         const refreshStatus = async (): Promise<void> => {
             try {
-                const nextStatus = await ShellInterface.meb.getStatus(backupHomePath);
+                if (!moduleSessionId) {
+                    return;
+                }
+                const nextStatus = await ShellInterface.meb.getStatus(moduleSessionId, backupHomePath);
 
                 if (!cancelled) {
                     updateCachedStatus(nextStatus);
@@ -497,7 +501,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
             cancelled = true;
             clearInterval(interval);
         };
-    }, [configuration.backupHomePath, hasConfiguredBackupHome, updateCachedStatus, wizardActive]);
+    }, [configuration.backupHomePath, hasConfiguredBackupHome, moduleSessionId, updateCachedStatus, wizardActive]);
 
     const renderLocalhostNotice = (): ComponentChild => {
         return (
@@ -653,7 +657,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
             return;
         }
 
-        if (!backupHomePath || !activityId) {
+        if (!moduleSessionId || !backupHomePath || !activityId) {
             void ui.showInformationMessage("No mysqlbackup log file is available for the current backup profiles.", {});
 
             return;
@@ -661,7 +665,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
 
         setOpeningLog(true);
         try {
-            const content = await ShellInterface.meb.readLog(backupHomePath, activityId);
+            const content = await ShellInterface.meb.readLog(moduleSessionId, backupHomePath, activityId);
             setLogContent(content);
             setLogDialogCaption("mysqlbackup Log");
             logDialogRef.current?.open();
@@ -680,7 +684,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
             return;
         }
 
-        if (!backupHomePath || !activityId) {
+        if (!moduleSessionId || !backupHomePath || !activityId) {
             void ui.showErrorMessage("Select a recent backup activity entry first.", {});
 
             return;
@@ -689,6 +693,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
         setOpeningBackupContent(true);
         try {
             const content = await ShellInterface.meb.readBackupContent(
+                moduleSessionId,
                 backupHomePath,
                 activityId,
             );
@@ -706,13 +711,17 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
     };
 
     const copyActivityBackupPath = async (activityId: string): Promise<void> => {
-        if (activityCommand !== undefined || !backupHomePath || !activityId) {
+        if (activityCommand !== undefined || !moduleSessionId || !backupHomePath || !activityId) {
             return;
         }
 
         setActivityCommand(`copyPath:${activityId}`);
         try {
-            requisitions.writeToClipboard(await ShellInterface.meb.getBackupPath(backupHomePath, activityId));
+            requisitions.writeToClipboard(await ShellInterface.meb.getBackupPath(
+                moduleSessionId,
+                backupHomePath,
+                activityId,
+            ));
             void ui.showInformationMessage("Backup path copied to the system clipboard.", {});
         } catch (reason: unknown) {
             const message = convertErrorToString(reason);
@@ -731,7 +740,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
     };
 
     const applyBackupLogs = async (activityId: string): Promise<void> => {
-        if (activityCommandsDisabled || !backupHomePath || activityCommand !== undefined) {
+        if (activityCommandsDisabled || !moduleSessionId || !backupHomePath || activityCommand !== undefined) {
             return;
         }
         const response = await ui.confirm("Apply logs to this backup?", "Apply Logs", "Cancel");
@@ -740,7 +749,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
         }
         setActivityCommand(`applyLogs:${activityId}`);
         try {
-            updateCachedStatus(await ShellInterface.meb.applyBackupLogs(backupHomePath, activityId));
+            updateCachedStatus(await ShellInterface.meb.applyBackupLogs(moduleSessionId, backupHomePath, activityId));
             void ui.showInformationMessage("Backup logs applied.", {});
         } catch (reason: unknown) {
             const message = convertErrorToString(reason);
@@ -751,7 +760,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
     };
 
     const deleteActivityEntry = async (activityId: string): Promise<void> => {
-        if (activityCommandsDisabled || !backupHomePath || activityCommand !== undefined) {
+        if (activityCommandsDisabled || !moduleSessionId || !backupHomePath || activityCommand !== undefined) {
             return;
         }
         const response = await ui.confirm(
@@ -765,7 +774,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
 
         setActivityCommand(`deleteEntry:${activityId}`);
         try {
-            updateCachedStatus(await ShellInterface.meb.deleteBackup(backupHomePath, activityId));
+            updateCachedStatus(await ShellInterface.meb.deleteBackup(moduleSessionId, backupHomePath, activityId));
             void ui.showInformationMessage("Activity entry deleted.", {});
         } catch (reason: unknown) {
             const message = convertErrorToString(reason);
@@ -776,7 +785,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
     };
 
     const runActivityBackupOperation = async (operation: "delete" | "verify", activityId: string): Promise<void> => {
-        if (activityCommandsDisabled || !backupHomePath || !activityId) {
+        if (activityCommandsDisabled || !moduleSessionId || !backupHomePath || !activityId) {
             void ui.showErrorMessage("Select a recent backup activity entry first.", {});
 
             return;
@@ -801,10 +810,10 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
         setActivityCommand(commandKey);
         try {
             if (operation === "delete") {
-                updateCachedStatus(await ShellInterface.meb.deleteBackup(backupHomePath, activityId));
+                updateCachedStatus(await ShellInterface.meb.deleteBackup(moduleSessionId, backupHomePath, activityId));
                 void ui.showInformationMessage("Backup was deleted.", {});
             } else {
-                setLogContent(await ShellInterface.meb.verifyBackup(backupHomePath, activityId));
+                setLogContent(await ShellInterface.meb.verifyBackup(moduleSessionId, backupHomePath, activityId));
                 setLogDialogCaption("Backup Verification");
                 logDialogRef.current?.open();
             }
@@ -1709,11 +1718,12 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
                 }}
             />
 
-            {restoreActivityId && <EnterpriseBackupRestoreDialog
+            {restoreActivityId && moduleSessionId && <EnterpriseBackupRestoreDialog
                 activityId={restoreActivityId}
                 backupHomePath={backupHomePath}
                 datadir={serverInfo.datadir}
                 disabled={restoreCommandsDisabled || activityCommand !== undefined}
+                moduleSessionId={moduleSessionId}
                 restoreDetails={restoreActivityDetails}
                 onBusyChange={(busy) => {
                     setActivityCommand(busy ? `restore:${restoreActivityId}` : undefined);

@@ -25,6 +25,10 @@ from __future__ import annotations
 
 from mysqlsh.plugin_manager.registrar import plugin_function
 
+import gui_plugin.core.Error as Error
+from gui_plugin.core.Error import MSGException
+from gui_plugin.core.modules.DbModuleSession import DbModuleSession
+
 from .meb.backup_home import (
     backup_path_for_activity,
     get_status as get_backup_home_status,
@@ -65,17 +69,33 @@ from .meb.setup import (
 )
 
 
+def _require_bound_module_session(module_session: object) -> None:
+    """Ensures a local MEB operation belongs to the active user profile."""
+    if not isinstance(module_session, DbModuleSession):
+        raise MSGException(
+            Error.CORE_PERMISSION_DENIED,
+            "A MySQL module session is required for this operation.",
+        )
+
+    module_session.get_bound_connection_id()
+
+
 @plugin_function("gui.meb.getStatus", shell=False, cli=False, web=True)
-def get_status(backup_home_path: str | None = None) -> MebStatus:
+def get_status(
+    module_session: object,
+    backup_home_path: str | None = None,
+) -> MebStatus:
     """Returns local MySQL Enterprise Backup configuration and profile status.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
 
     Returns:
         MebStatus: Local MySQL Enterprise Backup status information.
     """
 
+    _require_bound_module_session(module_session)
     return get_backup_home_status(backup_home_path)
 
 
@@ -315,12 +335,14 @@ def start_profile_execution(
 
 @plugin_function("gui.meb.deleteBackup", shell=False, cli=False, web=True)
 def delete_backup(
+    module_session: object,
     backup_home_path: str,
     activity_id: str,
 ) -> MebStatus:
     """Deletes backup data associated with a recent activity log entry.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
         activity_id (str): Opaque identifier returned in recent activity.
 
@@ -328,17 +350,20 @@ def delete_backup(
         MebStatus: Refreshed local MySQL Enterprise Backup status information.
     """
 
+    _require_bound_module_session(module_session)
     return delete_meb_activity_backup(backup_home_path, activity_id)
 
 
 @plugin_function("gui.meb.verifyBackup", shell=False, cli=False, web=True)
 def verify_backup(
+    module_session: object,
     backup_home_path: str,
     activity_id: str,
 ) -> MebLogContent:
     """Runs mysqlbackup validation and returns its direct output.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
         activity_id (str): Opaque identifier returned in recent activity.
 
@@ -346,17 +371,20 @@ def verify_backup(
         MebLogContent: Verification output for display.
     """
 
+    _require_bound_module_session(module_session)
     return verify_meb_activity_backup(backup_home_path, activity_id)
 
 
 @plugin_function("gui.meb.applyBackupLogs", shell=False, cli=False, web=True)
 def apply_backup_logs(
+    module_session: object,
     backup_home_path: str,
     activity_id: str,
 ) -> MebStatus:
     """Applies pending redo logs to a recent activity backup.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
         activity_id (str): Opaque identifier returned in recent activity.
 
@@ -364,11 +392,13 @@ def apply_backup_logs(
         MebStatus: Refreshed local MySQL Enterprise Backup status information.
     """
 
+    _require_bound_module_session(module_session)
     return apply_meb_activity_backup_logs(backup_home_path, activity_id)
 
 
 @plugin_function("gui.meb.restoreBackup", shell=False, cli=False, web=True)
 def restore_backup(
+    module_session: object,
     backup_home_path: str,
     activity_id: str,
     operation_id: str,
@@ -377,6 +407,7 @@ def restore_backup(
     """Restores local backup data associated with a recent activity log entry.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
         activity_id (str): Opaque identifier returned in recent activity.
         operation_id (str): Unique identifier correlating progress and abort requests.
@@ -387,17 +418,20 @@ def restore_backup(
             and refreshed status on success.
     """
 
+    _require_bound_module_session(module_session)
     return restore_meb_activity_backup(backup_home_path, activity_id, operation_id, force)
 
 
 @plugin_function("gui.meb.getRestoreProgress", shell=False, cli=False, web=True)
 def get_restore_progress(
+    module_session: object,
     backup_home_path: str,
     operation_id: str,
 ) -> MebRestoreProgress:
     """Returns live output and state for a matching restore operation.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
         operation_id (str): Unique restore operation identifier.
 
@@ -405,17 +439,20 @@ def get_restore_progress(
         MebRestoreProgress: Current restore state and bounded mysqlbackup output.
     """
 
+    _require_bound_module_session(module_session)
     return get_meb_activity_restore_progress(backup_home_path, operation_id)
 
 
 @plugin_function("gui.meb.abortBackupRestore", shell=False, cli=False, web=True)
 def abort_backup_restore(
+    module_session: object,
     backup_home_path: str,
     operation_id: str,
 ) -> MebRestoreProgress:
     """Aborts the matching active restore operation.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
         operation_id (str): Unique restore operation identifier.
 
@@ -423,45 +460,60 @@ def abort_backup_restore(
         MebRestoreProgress: Aborting state and current bounded mysqlbackup output.
     """
 
+    _require_bound_module_session(module_session)
     return abort_meb_activity_backup_restore(backup_home_path, operation_id)
 
 
 @plugin_function("gui.meb.readBackupContent", shell=False, cli=False, web=True)
 def read_backup_content(
+    module_session: object,
     backup_home_path: str,
     activity_id: str,
 ) -> MebBackupContent:
     """Reads the table contents represented by a recent activity backup.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
         activity_id (str): Opaque identifier returned in recent activity.
     Returns:
         MebBackupContent: Backup table content and restore impact rows.
     """
 
+    _require_bound_module_session(module_session)
     return read_meb_activity_backup_content(None, backup_home_path, activity_id)
 
 
 @plugin_function("gui.meb.getBackupPath", shell=False, cli=False, web=True)
-def get_backup_path(backup_home_path: str, activity_id: str) -> str:
+def get_backup_path(
+    module_session: object,
+    backup_home_path: str,
+    activity_id: str,
+) -> str:
     """Returns the local directory path represented by a recent activity backup.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
         activity_id (str): Opaque identifier returned in recent activity.
     Returns:
         str: Canonical local backup directory path.
     """
 
+    _require_bound_module_session(module_session)
     return backup_path_for_activity(backup_home_path, activity_id)
 
 
 @plugin_function("gui.meb.readLog", shell=False, cli=False, web=True)
-def read_log(backup_home_path: str, activity_id: str) -> MebLogContent:
+def read_log(
+    module_session: object,
+    backup_home_path: str,
+    activity_id: str,
+) -> MebLogContent:
     """Reads a mysqlbackup log file discovered below a configured backup home.
 
     Args:
+        module_session (object): The profile-bound MySQL module session.
         backup_home_path (str): The local backup home directory.
         activity_id (str): Opaque identifier returned in recent activity.
 
@@ -469,4 +521,5 @@ def read_log(backup_home_path: str, activity_id: str) -> MebLogContent:
         MebLogContent: Activity identifier and log content.
     """
 
+    _require_bound_module_session(module_session)
     return read_backup_home_log(backup_home_path, activity_id)

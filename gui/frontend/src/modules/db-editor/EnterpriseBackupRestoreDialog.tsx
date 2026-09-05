@@ -37,6 +37,7 @@ export interface IEnterpriseBackupRestoreDialogProps {
     backupHomePath: string;
     datadir: string;
     disabled: boolean;
+    moduleSessionId: string;
     restoreDetails?: IMebRestoreActivityDetails;
     onBusyChange: (busy: boolean) => void;
     onStatusChange: (status: IMebStatus) => void;
@@ -49,6 +50,7 @@ export const EnterpriseBackupRestoreDialog = (props: IEnterpriseBackupRestoreDia
         backupHomePath,
         datadir,
         disabled,
+        moduleSessionId,
         restoreDetails,
         onBusyChange,
         onStatusChange,
@@ -83,7 +85,7 @@ export const EnterpriseBackupRestoreDialog = (props: IEnterpriseBackupRestoreDia
         const requestId = ++metadataRequestId.current;
         dialogRef.current?.open({ closeOnEscape: false });
 
-        void ShellInterface.meb.readBackupContent(backupHomePath, activityId).then((content) => {
+        void ShellInterface.meb.readBackupContent(moduleSessionId, backupHomePath, activityId).then((content) => {
             if (metadataRequestId.current === requestId) {
                 setMetadata({ ...content, rows: filterMebContentRows(content.rows) });
             }
@@ -98,7 +100,7 @@ export const EnterpriseBackupRestoreDialog = (props: IEnterpriseBackupRestoreDia
         return () => {
             ++metadataRequestId.current;
         };
-    }, [activityId, backupHomePath]);
+    }, [activityId, backupHomePath, moduleSessionId]);
 
     useEffect(() => {
         const element = outputRef.current;
@@ -142,6 +144,7 @@ export const EnterpriseBackupRestoreDialog = (props: IEnterpriseBackupRestoreDia
         onBusyChange(true);
 
         const restorePromise: Promise<IMebRestoreResult> = ShellInterface.meb.restoreBackup(
+            moduleSessionId,
             backupHomePath,
             activityId,
             nextOperationId,
@@ -155,7 +158,11 @@ export const EnterpriseBackupRestoreDialog = (props: IEnterpriseBackupRestoreDia
             }
             progressRequestActive.current = true;
             try {
-                const progress = await ShellInterface.meb.getRestoreProgress(backupHomePath, nextOperationId);
+                const progress = await ShellInterface.meb.getRestoreProgress(
+                    moduleSessionId,
+                    backupHomePath,
+                    nextOperationId,
+                );
                 if (!mounted.current) {
                     return;
                 }
@@ -232,7 +239,11 @@ export const EnterpriseBackupRestoreDialog = (props: IEnterpriseBackupRestoreDia
 
         setDialogState("aborting");
         try {
-            const progress = await ShellInterface.meb.abortBackupRestore(backupHomePath, operationId);
+            const progress = await ShellInterface.meb.abortBackupRestore(
+                moduleSessionId,
+                backupHomePath,
+                operationId,
+            );
             if (progress.output) {
                 setOutput((current) => {
                     return progress.output.length >= current.length ? progress.output : current;

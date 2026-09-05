@@ -789,7 +789,7 @@ def test_stdio_transport_routes_sql_editor_execute_to_user_session(monkeypatch):
     assert started_requests[0].kwargs["session"] is not service_session
 
 
-def test_stdio_transport_routes_mysql_commands_to_user_session(monkeypatch):
+def test_stdio_transport_routes_mysql_commands_to_service_session(monkeypatch):
     started_requests = []
 
     class FakeRequestHandler:
@@ -842,8 +842,64 @@ def test_stdio_transport_routes_mysql_commands_to_user_session(monkeypatch):
     )
 
     assert len(started_requests) == 1
-    assert started_requests[0].kwargs["session"] is user_session
-    assert started_requests[0].kwargs["session"] is not service_session
+    assert started_requests[0].kwargs["session"] is service_session
+
+
+def test_stdio_transport_injects_module_session_for_error_log_export(monkeypatch):
+    started_requests = []
+
+    class FakeRequestHandler:
+        def __init__(self, request_id, func, kwargs, web_handler, lock_session=False):
+            self.request_id = request_id
+            self.func = func
+            self.kwargs = kwargs
+            self.web_handler = web_handler
+            self.lock_session = lock_session
+
+        def run(self):
+            return None
+
+        def start(self):
+            started_requests.append(self)
+
+    class FakeSqlEditorModuleSession(SqlEditorModuleSession):
+        def __del__(self):
+            pass
+
+    def export_error_logs(target_path, module_session):
+        return None
+
+    monkeypatch.setattr(StdioBridgeModule, "RequestHandler", FakeRequestHandler)
+    monkeypatch.setattr(logger, "debug2", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        StdioBridgeModule.gui,
+        "mysql",
+        SimpleNamespace(export_error_logs=export_error_logs),
+        raising=False,
+    )
+
+    bridge = ShellGuiStdioBridge(stdin=io.StringIO(""), stdout=io.StringIO())
+    module_session = object.__new__(FakeSqlEditorModuleSession)
+    user_session = DbSession("user", False, {})
+    service_session = DbSession("service", False, {})
+    module_session._db_user_session = user_session
+    module_session._db_service_session = service_session
+    bridge._module_sessions["module"] = module_session
+
+    bridge.process_message(
+        {
+            "request": "execute",
+            "request_id": "mysql-export-error-logs",
+            "command": "gui.mysql.export_error_logs",
+            "args": {
+                "module_session_id": "module",
+                "target_path": "/tmp/error.log",
+            },
+        }
+    )
+
+    assert len(started_requests) == 1
+    assert started_requests[0].kwargs["module_session"] is module_session
 
 
 def test_stdio_transport_keeps_db_execute_on_service_session(monkeypatch):
@@ -893,6 +949,52 @@ def test_stdio_transport_keeps_db_execute_on_service_session(monkeypatch):
     assert len(started_requests) == 1
     assert started_requests[0].kwargs["session"] is service_session
     assert started_requests[0].kwargs["session"] is not user_session
+
+
+def test_stdio_transport_routes_offline_meb_commands_to_module_session(monkeypatch):
+    started_requests = []
+
+    class FakeRequestHandler:
+        def __init__(self, request_id, func, kwargs, web_handler, lock_session=False):
+            self.request_id = request_id
+            self.func = func
+            self.kwargs = kwargs
+            self.web_handler = web_handler
+            self.lock_session = lock_session
+
+        def run(self):
+            return None
+
+        def start(self):
+            started_requests.append(self)
+
+    class FakeOfflineModuleSession(SqlEditorModuleSession):
+        def __del__(self):
+            pass
+
+    monkeypatch.setattr(StdioBridgeModule, "RequestHandler", FakeRequestHandler)
+    monkeypatch.setattr(logger, "debug2", lambda *_args, **_kwargs: None)
+
+    bridge = ShellGuiStdioBridge(stdin=io.StringIO(""), stdout=io.StringIO())
+    module_session = object.__new__(FakeOfflineModuleSession)
+    module_session._db_service_session = None
+    bridge._module_sessions["module"] = module_session
+
+    bridge.process_message(
+        {
+            "request": "execute",
+            "request_id": "meb-get-status",
+            "command": "gui.meb.get_status",
+            "args": {
+                "module_session_id": "module",
+                "backup_home_path": "/backups",
+            },
+        }
+    )
+
+    assert len(started_requests) == 1
+    assert started_requests[0].kwargs.get("module_session") is module_session
+    assert started_requests[0].kwargs["backup_home_path"] == "/backups"
 
 
 def test_stdio_transport_forgets_completed_request_threads(monkeypatch):

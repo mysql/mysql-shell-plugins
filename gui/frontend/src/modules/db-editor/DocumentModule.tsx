@@ -137,6 +137,7 @@ import { ISchemaDiagramPersistentState, SchemaDiagramDesigner } from "./DiagramD
 import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
 import {
     isClientConnectionError, isLocalOfflineConnectionCandidate, localServerProbeFromBackend,
+    type IOfflineProbeResult,
 } from "./OfflineAdministration.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
@@ -3536,13 +3537,7 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                     const probe = await localServerProbeFromBackend(entry.details, (kind, target, port) => {
                         return ShellInterface.core.probeLocalConnectionEndpoint(kind, target, port);
                     });
-                    const offlineEntry = this.connectionsDataModel.createConnectionEntry(entry.details);
-                    offlineEntry.initializeOffline(probe);
-                    const pageId = uuid();
-
-                    this.serviceOnlyConnectionPages.add(pageId);
-                    await this.addConnectionWorkspace(offlineEntry, suppressAbout, "none", pageId);
-                    selectedPage = this.openOfflineServerStatusPage(offlineEntry, pageId);
+                    selectedPage = await this.openOfflineAdministrationWorkspace(entry, suppressAbout, probe);
                 } else {
                     void ui.showErrorMessage(convertErrorToString(error), {});
                 }
@@ -3564,11 +3559,28 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
     };
 
     private shouldOpenOfflineAdministrationWorkspace(entry: ICdmConnectionEntry, error: unknown): boolean {
-        return this.isElectronWorkspaceLayout()
-            && this.getResolvedSelectedWorkspaceId() === homeWorkspaceId
-            && isLocalOfflineConnectionCandidate(entry.details)
+        return this.canOpenOfflineAdministrationWorkspace(entry)
             && isClientConnectionError(error);
     }
+
+    private canOpenOfflineAdministrationWorkspace(entry: ICdmConnectionEntry): boolean {
+        return this.isElectronWorkspaceLayout()
+            && this.getResolvedSelectedWorkspaceId() === homeWorkspaceId
+            && isLocalOfflineConnectionCandidate(entry.details);
+    }
+
+    private openOfflineAdministrationWorkspace = async (
+        entry: ICdmConnectionEntry, suppressAbout: boolean, probe?: IOfflineProbeResult,
+    ): Promise<string | undefined> => {
+        const offlineEntry = this.connectionsDataModel.createConnectionEntry(entry.details);
+        await offlineEntry.initializeOffline(probe);
+        const pageId = uuid();
+
+        this.serviceOnlyConnectionPages.add(pageId);
+        await this.addConnectionWorkspace(offlineEntry, suppressAbout, "none", pageId);
+
+        return this.openOfflineServerStatusPage(offlineEntry, pageId);
+    };
 
     private openOfflineServerStatusPage(connection: ICdmConnectionEntry, pageId: string): string | undefined {
         const page = connection.adminEntry?.pages.find((candidate) => {

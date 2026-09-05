@@ -640,8 +640,8 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
     /** Opens only this connection's DB service session. */
     initializeServiceOnly(callback?: ProgressCallback): Promise<boolean>;
 
-    /** Initializes this entry for offline administration pages without opening a DB session. */
-    initializeOffline(probe?: IConnectionOfflineProbe): boolean;
+    /** Initializes this entry for offline administration pages with a profile-bound module session. */
+    initializeOffline(probe?: IConnectionOfflineProbe): Promise<boolean>;
 }
 
 /** Connections can be grouped together and this is the entry for such groups. */
