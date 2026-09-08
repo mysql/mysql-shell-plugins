@@ -1916,6 +1916,9 @@ def _read_backup_variables(backup_dir: Path) -> dict[str, str]:
 
 
 def _read_restore_base_defaults(backup_dir: Path, datadir: str) -> str:
+    if os.name == "nt":
+        datadir = datadir.replace("\\", "/")
+
     defaults_path = backup_dir / "backup-my.cnf"
     try:
         file_stat = defaults_path.lstat()

@@ -1561,6 +1561,42 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(response["result"]["output"], "Validate backup directory operation completed successfully.\n")
         self.assertFalse((backup_home / "logs").exists())
 
+    def test_windows_restore_defaults_file_uses_forward_slashes_for_datadir(self) -> None:
+        cases = [
+            (
+                None,
+                "[mysqld]\ndatadir = C:/Users/lroot/sandbox/db/26.7.0/data\n",
+            ),
+            (
+                "[mysqld]\nport = 3306\n",
+                "[mysqld]\nport = 3306\n\ndatadir = C:/Users/lroot/sandbox/db/26.7.0/data\n",
+            ),
+        ]
+        with tempfile.TemporaryDirectory() as temporary:
+            for index, (base_defaults, expected) in enumerate(cases):
+                with self.subTest(base_defaults=base_defaults):
+                    backup_dir = Path(temporary) / f"backup-{index}"
+                    backup_dir.mkdir()
+
+                    if base_defaults is not None:
+                        (backup_dir / "backup-my.cnf").write_text(
+                            base_defaults,
+                            encoding="utf-8",
+                        )
+
+                    windows_os = mock.Mock(wraps=helper.os)
+                    windows_os.name = "nt"
+                    with mock.patch.object(helper, "os", windows_os):
+                        defaults_file = helper._write_restore_defaults_file(
+                            backup_dir,
+                            r"C:\Users\lroot\sandbox\db\26.7.0\data",
+                        )
+
+                    self.assertEqual(
+                        defaults_file.read_text(encoding="utf-8"),
+                        expected,
+                    )
+
     def test_backups_restore_dry_run_emits_restore_process_plan(self) -> None:
         root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
         backup_dir = backup_home / "nightly" / "20260506T010203Z"
