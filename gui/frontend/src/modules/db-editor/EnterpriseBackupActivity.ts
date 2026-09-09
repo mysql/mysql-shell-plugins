@@ -19,6 +19,24 @@ export interface IMebRestoreActivityDetails {
     timestamp: string;
 }
 
+export interface IMebBackupActivityCapabilities {
+    canRestore: boolean;
+    canApplyLogs: boolean;
+}
+
+export const mebBackupActivityCapabilities = (
+    activity: IMebActivityItem,
+): IMebBackupActivityCapabilities => {
+    const completed = activity.isBackup && activity.status === "Completed OK";
+    const isIncremental = activity.backupType === "Incremental Backup";
+
+    return {
+        canRestore: completed && (activity.applyLogDone === true
+            || (isIncremental && activity.applyLogDone === false)),
+        canApplyLogs: completed && !isIncremental && activity.applyLogDone === false,
+    };
+};
+
 export const filterMebActivityItems = (
     items: IMebActivityItem[],
     backupsOnly: boolean,

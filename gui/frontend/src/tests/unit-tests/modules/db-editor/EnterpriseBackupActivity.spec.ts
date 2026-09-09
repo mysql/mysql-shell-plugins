@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import {
     filterMebActivityItems,
     formatMebBinlogPosition,
+    mebBackupActivityCapabilities,
     mebRestoreActivityDetails,
 } from "../../../../modules/db-editor/EnterpriseBackupActivity.js";
 import type { IMebActivityItem } from "../../../../supplement/ShellInterface/ShellInterfaceMeb.js";
@@ -28,6 +29,7 @@ const activity = (profile: string, profileId: string, isBackup: boolean): IMebAc
         status: "Completed OK",
         backupType: isBackup ? "Full Backup" : "Verify",
         isBackup,
+        applyLogDone: null,
     };
 };
 
@@ -60,5 +62,34 @@ describe("EnterpriseBackup activity filters", () => {
         expect(formatMebBinlogPosition("binlog.000042", "98765")).toBe("binlog.000042:98765");
         expect(formatMebBinlogPosition(undefined, "98765")).toBe("--");
         expect(formatMebBinlogPosition("binlog.000042", undefined)).toBe("--");
+    });
+});
+
+describe("EnterpriseBackup activity capabilities", () => {
+    it.each([
+        ["Full Backup", true, true, false],
+        ["Full Backup", false, false, true],
+        ["Full Backup", null, false, false],
+        ["Incremental Backup", true, true, false],
+        ["Incremental Backup", false, true, false],
+        ["Incremental Backup", null, false, false],
+    ] as const)("maps %s with applyLogDone=%s to restore=%s and applyLogs=%s", (
+        backupType,
+        applyLogDone,
+        canRestore,
+        canApplyLogs,
+    ) => {
+        expect(mebBackupActivityCapabilities({
+            ...activity("Nightly", "profile-1", true),
+            backupType,
+            applyLogDone,
+        })).toEqual({ canRestore, canApplyLogs });
+    });
+
+    it("does not expose backup operations for non-backup activity", () => {
+        expect(mebBackupActivityCapabilities({
+            ...activity("Nightly", "profile-1", false),
+            applyLogDone: true,
+        })).toEqual({ canRestore: false, canApplyLogs: false });
     });
 });

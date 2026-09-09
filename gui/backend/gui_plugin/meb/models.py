@@ -163,6 +163,7 @@ class MebActivityItem:
     status: Optional[str] = None
     backupType: Optional[str] = None
     isBackup: bool = False
+    applyLogDone: Optional[bool] = None
 
 
 @dataclass

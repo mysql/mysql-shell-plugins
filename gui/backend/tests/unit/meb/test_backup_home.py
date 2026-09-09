@@ -424,6 +424,94 @@ class MebBackupHomeTests(unittest.TestCase):
             self.assertEqual(status.recentActivity[0].backupType, "Full Backup")
             self.assertEqual(status.recentActivity[0].size, "1.5 KB")
 
+    def test_build_status_tracks_apply_log_state_from_backup_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home = Path(temporary) / "backup-home"
+            log_dir = backup_home / "logs"
+            backup_dir = backup_home / "nightly"
+            artifact = backup_dir / local_artifact_name("20260618T120000Z")
+            write_backup_variables(artifact, is_incremental=False, start_lsn=0, end_lsn=100)
+            variables_path = artifact / "meta" / "backup_variables.txt"
+            variables_path.write_text(
+                f"{variables_path.read_text(encoding='utf-8')}apply_log_done=0\n",
+                encoding="utf-8",
+            )
+            log_dir.mkdir()
+            log_file = log_dir / "20260618T120000Z-profile-1-full-test.log"
+            log_file.write_text(completed_backup_log(artifact), encoding="utf-8")
+
+            pending_status = build_status(
+                backup_home.as_posix(),
+                {},
+                [MebBackupProfileInfo(uuid="profile-1", label="Nightly", destination=backup_dir.as_posix())],
+            )
+
+            variables_path.write_text(
+                variables_path.read_text(encoding="utf-8").replace("apply_log_done=0", "apply_log_done=1"),
+                encoding="utf-8",
+            )
+            prepared_status = build_status(
+                backup_home.as_posix(),
+                {},
+                [MebBackupProfileInfo(uuid="profile-1", label="Nightly", destination=backup_dir.as_posix())],
+            )
+
+            self.assertEqual(pending_status.recentActivity[0].status, "Completed OK")
+            self.assertFalse(pending_status.recentActivity[0].applyLogDone)
+            self.assertEqual(prepared_status.recentActivity[0].status, "Completed OK")
+            self.assertTrue(prepared_status.recentActivity[0].applyLogDone)
+
+    def test_build_status_does_not_infer_apply_log_state_from_invalid_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backup_home = Path(temporary) / "backup-home"
+            log_dir = backup_home / "logs"
+            backup_dir = backup_home / "nightly"
+            artifact = backup_dir / local_artifact_name("20260618T120000Z")
+            write_backup_variables(artifact, is_incremental=False, start_lsn=0, end_lsn=100)
+            variables_path = artifact / "meta" / "backup_variables.txt"
+            log_dir.mkdir()
+            log_file = log_dir / "20260618T120000Z-profile-1-full-test.log"
+            log_file.write_text(completed_backup_log(artifact), encoding="utf-8")
+            profile = MebBackupProfileInfo(
+                uuid="profile-1",
+                label="Nightly",
+                destination=backup_dir.as_posix(),
+            )
+
+            invalid_contents = (
+                b"[backup_variables]\n",
+                b"[backup_variables]\napply_log_done=unexpected\n",
+                b"[backup_variables]\napply_log_done=\xff\n",
+                b"[backup_variables]\napply_log_done=1\n" + b"#" * (64 * 1024),
+            )
+            for content in invalid_contents:
+                with self.subTest(content=content):
+                    variables_path.write_bytes(content)
+
+                    result = build_status(backup_home.as_posix(), {}, [profile])
+
+                    self.assertEqual(result.recentActivity[0].status, "Completed OK")
+                    self.assertIsNone(result.recentActivity[0].applyLogDone)
+
+            target_path = artifact / "actual-backup-variables.txt"
+            target_path.write_text("[backup_variables]\napply_log_done=1\n", encoding="utf-8")
+            variables_path.unlink()
+            variables_path.symlink_to(target_path)
+
+            result = build_status(backup_home.as_posix(), {}, [profile])
+
+            self.assertEqual(result.recentActivity[0].status, "Completed OK")
+            self.assertIsNone(result.recentActivity[0].applyLogDone)
+
+            if hasattr(os, "mkfifo"):
+                variables_path.unlink()
+                os.mkfifo(variables_path)
+
+                result = build_status(backup_home.as_posix(), {}, [profile])
+
+                self.assertEqual(result.recentActivity[0].status, "Completed OK")
+                self.assertIsNone(result.recentActivity[0].applyLogDone)
+
     def test_resolve_activity_returns_log_backup_and_profile_identity(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             backup_home_path = Path(temporary) / "backup-home"

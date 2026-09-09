@@ -1882,13 +1882,21 @@ def _mysqlbackup_validate_plan_for_backup(backup_dir: Path, config: HelperConfig
 
 def _mysqlbackup_apply_log_plan_for_backup(backup_dir: Path, config: HelperConfig) -> ProcessPlan:
     variables = _read_backup_variables(backup_dir)
+
+    if variables.get("is_incremental") == "1":
+        raise HelperError("invalid_request", "apply-log is not supported for incremental backups.")
+
     if variables.get("apply_log_done") == "1":
         raise HelperError("invalid_request", "apply-log is not pending for this backup.")
+
     plan = _mysqlbackup_validate_plan_for_backup(backup_dir, config)
     args = [f"--backup-dir={backup_dir.as_posix()}"]
+
     if variables.get("is_compressed") == "1":
         args.append("--uncompress")
+
     args.append("apply-log")
+
     return replace(plan, args=args, audit_name="backups.applyLog")
 
 

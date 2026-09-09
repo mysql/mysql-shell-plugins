@@ -1668,6 +1668,28 @@ class HelperTests(unittest.TestCase):
         self.assertFalse(response["ok"])
         self.assertEqual(response["error"]["code"], "invalid_request")
 
+    def test_backups_apply_log_rejects_incremental_backup(self) -> None:
+        _root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
+        backup_dir = backup_home / "nightly" / "20260506T010203Z"
+        meta_dir = backup_dir / "meta"
+        meta_dir.mkdir(parents=True)
+        (meta_dir / "backup_variables.txt").write_text(
+            "[backup_variables]\napply_log_done=0\nis_incremental=1\n",
+            encoding="utf-8",
+        )
+
+        response = handle_request({
+            "operation": "backups.applyLog",
+            "dryRun": True,
+            "params": {"backupHome": backup_home.as_posix(), "backupId": "nightly/20260506T010203Z"},
+        }, config, allow_dry_run=True)
+
+        self.assertFalse(response["ok"])
+        self.assertEqual(response["error"], {
+            "code": "invalid_request",
+            "message": "apply-log is not supported for incremental backups.",
+        })
+
     def test_backups_apply_log_ignores_existing_run_lock(self) -> None:
         _root, config, backup_home, _output_dir, _option_file = self.make_job_fixture()
         backup_dir = backup_home / "nightly" / "20260506T010203Z"

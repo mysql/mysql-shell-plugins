@@ -52,6 +52,7 @@ import {
 } from "./EnterpriseBackupValidation.js";
 import {
     filterMebActivityItems,
+    mebBackupActivityCapabilities,
     mebRestoreActivityDetails,
 } from "./EnterpriseBackupActivity.js";
 import {
@@ -1253,21 +1254,24 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
                                     <span>Size</span>
                                     <span />
                                 </div>}
-                                {displayActivity.map(({ time, title, detail, tone, activityId: itemActivityId,
-                                    size, profile, status,
-                                    backupType, isBackup }, index) => {
+                                {displayActivity.map((activity, index) => {
+                                    const { time, title, detail, tone, activityId: itemActivityId,
+                                        size, profile, status, backupType, isBackup } = activity;
                                     const activityId = itemActivityId ?? "";
                                     const canOpenLog = activityId.length > 0;
                                     const canManageBackupData = canOpenLog && status !== "Running"
                                     && status !== "Backup missing";
-                                    const canRestoreBackup = canManageBackupData && status === "Completed OK"
+                                    const capabilities = mebBackupActivityCapabilities(activity);
+                                    const canRestoreBackup = canManageBackupData && capabilities.canRestore
                                     && !restoreCommandsDisabled;
-                                    const canApplyLogs = canManageBackupData && status === "apply-log pending"
+                                    const canApplyLogs = canManageBackupData && capabilities.canApplyLogs
                                     && !activityCommandsDisabled;
                                     const canManageActivityEntry = canOpenLog && status !== "Running";
                                     const canOpenActions = isBackup ? canManageBackupData : canManageActivityEntry;
                                     const relativeTime = activityRelativeTime(time);
-                                    const statusText = status ?? detail;
+                                    const statusText = capabilities.canApplyLogs
+                                        ? "apply-log pending"
+                                        : status ?? detail;
                                     const statusDetail = status !== null && detail !== status ? detail : undefined;
                                     const rowClassName = index === selectedActivityIndex
                                         ? `enterpriseBackupTimelineItem ${tone} selected`

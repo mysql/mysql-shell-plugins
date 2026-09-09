@@ -63,6 +63,7 @@ LOG_ACTIVITY_TAIL_BYTES = 8192
 LOG_ARTIFACT_PATH_HEAD_BYTES = 64 * 1024
 LOG_READ_MAX_BYTES = 1024 * 1024
 PROGRESS_STATE_MAX_BYTES = 64 * 1024
+BACKUP_VARIABLES_MAX_BYTES = 64 * 1024
 BACKUP_SIZE_SCAN_MAX_ENTRIES = 100000
 ACTIVITY_ID_PREFIX = "activity:v1:"
 MANAGER_CONFIG_NAME = "backups.cnf"
@@ -785,6 +786,70 @@ def _matching_backup_artifact(path: str | None, log_path: str) -> str | None:
     return artifact
 
 
+def _read_bounded_regular_file(path: str, byte_limit: int) -> bytes | None:
+    try:
+        path_stat = os.lstat(path)
+    except OSError:
+        return None
+    if (
+        not stat.S_ISREG(path_stat.st_mode)
+        or getattr(path_stat, "st_nlink", 1) > 1
+        or path_stat.st_size > byte_limit
+    ):
+        return None
+
+    flags = os.O_RDONLY
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    if hasattr(os, "O_NONBLOCK"):
+        flags |= os.O_NONBLOCK
+
+    fd = None
+    try:
+        fd = os.open(path, flags)
+        file_stat = os.fstat(fd)
+        if (
+            not os.path.samestat(path_stat, file_stat)
+            or not stat.S_ISREG(file_stat.st_mode)
+            or getattr(file_stat, "st_nlink", 1) > 1
+        ):
+            return None
+        data = os.read(fd, byte_limit + 1)
+    except OSError:
+        return None
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+    return data if len(data) <= byte_limit else None
+
+
+def _backup_apply_log_done(path: str) -> bool | None:
+    variables_path = os.path.join(path, "meta", "backup_variables.txt")
+    data = _read_bounded_regular_file(variables_path, BACKUP_VARIABLES_MAX_BYTES)
+    if data is None:
+        return None
+
+    parser = configparser.RawConfigParser()
+    try:
+        parser.read_string(data.decode("utf-8"))
+    except (UnicodeDecodeError, configparser.Error):
+        return None
+
+    if not parser.has_section("backup_variables"):
+        return None
+
+    value = parser.get("backup_variables", "apply_log_done", fallback=None)
+    if value == "1":
+        return True
+    if value == "0":
+        return False
+
+    return None
+
+
 def _profile_for_log(log_path: str, profiles: list[MebBackupProfileInfo]) -> MebBackupProfileInfo | None:
     name = os.path.basename(log_path)
     matches = [
@@ -1276,16 +1341,21 @@ def _collect_log_activity(
         profile = _profile_for_log(path, profiles)
         size = _activity_backup_size(path, root, profiles)
         activity_type = _activity_backup_type(path, profiles)
+        apply_log_done = None
         if (
             profile is not None
             and profile.storageType == "local"
             and activity_type in {"Full Backup", "Incremental Backup"}
             and status == "Completed OK"
-            and size is None
         ):
-            detail = "Backup log exists, but backup files were not found"
-            status = "Backup missing"
-            tone = "warn"
+            if size is None:
+                detail = "Backup log exists, but backup files were not found"
+                status = "Backup missing"
+                tone = "warn"
+            else:
+                artifact = _matching_backup_artifact(profile.destination, path)
+                if artifact is not None:
+                    apply_log_done = _backup_apply_log_done(artifact)
 
         from datetime import datetime
         activity.append(MebActivityItem(
@@ -1300,6 +1370,7 @@ def _collect_log_activity(
             status=status,
             backupType=activity_type,
             isBackup=activity_type in {"Full Backup", "Incremental Backup"},
+            applyLogDone=apply_log_done,
         ))
 
     return activity

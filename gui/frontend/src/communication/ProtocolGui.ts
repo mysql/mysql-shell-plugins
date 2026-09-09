@@ -636,7 +636,8 @@ export interface IMebActivityItem {
     profileId: string | null,
     status: string | null,
     backupType: string | null,
-    isBackup: boolean
+    isBackup: boolean,
+    applyLogDone: boolean | null
 }
 
 export interface IMebStatus {
