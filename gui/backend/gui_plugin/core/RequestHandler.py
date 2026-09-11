@@ -215,6 +215,23 @@ class RequestHandler(Thread):
                 self._kwargs["session"].notify_task_execution_state(None, "finished")
                 self._kwargs["session"].release()
 
+        # A provisional result must not mask an asynchronous failure or cancellation.
+        if hasattr(self._thread_context, "completion_event"):
+            if self._thread_context.completion_event.has_errors:
+                self._confirm_complete = False
+                for error in self._thread_context.completion_event.get_errors():
+                    self.web_handler.send_command_response(
+                        self.request_id, Response.exception(error), completed=True
+                    )
+
+                return
+            elif self._thread_context.completion_event.is_cancelled:
+                self._confirm_complete = False
+                self.web_handler.send_command_response(
+                    self.request_id, Response.cancelled(""), completed=True
+                )
+                return
+
         if result is not None:
             if isinstance(result, dict) and "request_state" in result:
                 self._confirm_complete = result["request_state"]["type"] != "ERROR"
@@ -231,19 +248,6 @@ class RequestHandler(Thread):
                 self.web_handler.send_command_response(
                     self.request_id, Response.pending(msg="", args={"result": result})
                 )
-        elif hasattr(self._thread_context, "completion_event"):
-            if self._thread_context.completion_event.has_errors:
-                self._confirm_complete = False
-                for error in self._thread_context.completion_event.get_errors():
-                    self.web_handler.send_command_response(
-                        self.request_id, Response.exception(error), completed=True
-                    )
-            elif self._thread_context.completion_event.is_cancelled:
-                self._confirm_complete = False
-                self.web_handler.send_command_response(
-                    self.request_id, Response.cancelled(""), completed=True
-                )
-
         # This is the case of any plugin function that does not fail but
         # does not return anything, we should return an OK response anyway
         # to confirm it completed
