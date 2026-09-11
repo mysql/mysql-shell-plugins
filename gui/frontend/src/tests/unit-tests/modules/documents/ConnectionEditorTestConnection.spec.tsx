@@ -69,6 +69,8 @@ describe("ConnectionEditor", (): void => {
                 ["ssl", { values: {
                     sslMode: { value: "Disable" }, sslCaFile: { value: "" }, sslCertFile: { value: "" },
                     sslKeyFile: { value: "" }, sslCipher: { value: "" },
+                    tlsKex: { value: undefined },
+                    forcePqc: { value: undefined }, usePqcSign: { value: undefined },
                 } }],
             ]),
         } as unknown as IDialogValues;

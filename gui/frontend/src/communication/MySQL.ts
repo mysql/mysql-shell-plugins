@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -137,6 +137,15 @@ export interface IMySQLConnectionOptions {
 
     /** Comma separated list of protocols permitted for secure connections. */
     "tls-version"?: string;
+
+    /** Colon-separated, case-sensitive TLS key-exchange group names. */
+    "tls-kex"?: string;
+
+    /** Requires a PQC-capable key exchange when negotiating TLS. */
+    "force-pqc"?: boolean;
+
+    /** Allows advertisement of PQC-capable TLS handshake signatures. */
+    "use-pqc-sign"?: boolean;
 
     /** List of TLS v1.3 ciphers to use. Same format as for field sslCipher. */
     "tls-ciphers"?: string;

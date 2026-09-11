@@ -26,7 +26,7 @@
 import { ComponentChild, createRef, type JSX } from "preact";
 
 import {
-    DialogResponseClosure, DialogType, IDictionary, IServicePasswordRequest,
+    DialogResponseClosure, DialogType, IDictionary, IServicePasswordRequest, MessageType,
 } from "../../app-logic/general-types.js";
 import {
     IMySQLConnectionOptions, MySQLConnCompression, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode,
@@ -111,6 +111,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     public static override contextType = DocumentContext;
 
     private static readonly maxTags = 4;
+
+    private static readonly mysqlTlsOptionKeys = [
+        "ssl-mode", "tls-kex", "force-pqc", "use-pqc-sign",
+    ] as const;
 
     private editorRef = createRef<ValueEditDialog>();
     private badgeEditorRef = createRef<ValueEditDialog>();
@@ -369,6 +373,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 }
             }
         } else if (isMySQL) {
+            Object.assign(result.messages, this.validateTlsOptions(values));
+
             const isSocketConnection = mysqlDetailsSection.scheme.value === mysqlSocketProtocol;
             if (closing) {
                 const host = mysqlDetailsSection.hostName.value as string;
@@ -401,6 +407,115 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         return Promise.resolve(result);
     };
 
+    private pqcBooleanValue(value: unknown): boolean | string | undefined {
+        if (value === undefined) {
+            return undefined;
+        }
+
+        if (typeof value === "boolean") {
+            return value;
+        }
+
+        const text = String(value);
+        switch (text.toLowerCase()) {
+            case "true":
+            case "1":
+                return true;
+
+            case "false":
+            case "0":
+                return false;
+
+            default:
+                return text;
+        }
+    }
+
+    private mysqlTlsOptions(values: IDialogValues): Pick<IMySQLConnectionOptions,
+        typeof ConnectionEditor.mysqlTlsOptionKeys[number]> {
+        const ssl = values.sections.get("ssl")!.values;
+        const mode = [...ConnectionEditor.#mysqlSslModeMap].find(([, caption]) => {
+            return caption === ssl.sslMode.value;
+        })?.[0];
+        if (mode === MySQLSslMode.Disabled) {
+            return { "ssl-mode": mode };
+        }
+
+        const forcePqc = this.pqcBooleanValue(ssl.forcePqc.value);
+        const usePqcSign = this.pqcBooleanValue(ssl.usePqcSign.value);
+
+        return {
+            "ssl-mode": mode,
+            "tls-kex": ssl.tlsKex.value as string || undefined,
+            "force-pqc": typeof forcePqc === "boolean" ? forcePqc : undefined,
+            "use-pqc-sign": typeof usePqcSign === "boolean" ? usePqcSign : undefined,
+        };
+    }
+
+    private handleTlsOptionsChange = (_value: string | boolean, dialog: ValueEditDialog): void => {
+        const values = dialog.getDialogValues();
+        const ssl = values.sections.get("ssl")!.values;
+        const options = this.mysqlTlsOptions(values);
+
+        for (const key of ["tlsKex", "forcePqc", "usePqcSign"]) {
+            const field = ssl[key];
+            field.options = field.options?.filter((option) => {
+                return option !== CommonDialogValueOption.Disabled;
+            }) ?? [];
+
+            if (options["ssl-mode"] === MySQLSslMode.Disabled) {
+                field.options.push(CommonDialogValueOption.Disabled);
+            }
+        }
+
+        const showWarning = options["force-pqc"] === true && options["ssl-mode"] === MySQLSslMode.Preferred;
+        ssl.forcePqcWarning.options = [CommonDialogValueOption.Grouped];
+
+        if (!showWarning) {
+            ssl.forcePqcWarning.options.push(CommonDialogValueOption.Hidden);
+        }
+
+        dialog.setDialogValues(values);
+    };
+
+    private validateTlsOptions(values: IDialogValues): Record<string, string> {
+        const ssl = values.sections.get("ssl")!.values;
+        const messages: Record<string, string> = {};
+        const options = this.mysqlTlsOptions(values);
+
+        if (options["ssl-mode"] === undefined) {
+            messages.sslMode = "Select a valid SSL mode.";
+        }
+
+        if (options["ssl-mode"] !== MySQLSslMode.Disabled) {
+            const forcePqc = this.pqcBooleanValue(ssl.forcePqc.value);
+            const usePqcSign = this.pqcBooleanValue(ssl.usePqcSign.value);
+
+            if (typeof forcePqc === "string") {
+                messages.forcePqc = "Enter true, false, 1 or 0.";
+            }
+
+            if (typeof usePqcSign === "string") {
+                messages.usePqcSign = "Enter true, false, 1 or 0.";
+            }
+        }
+
+        const extra = values.sections.get("mysqlAdvanced")!.values.extraOptions.value;
+        if (extra && typeof extra === "object") {
+            const duplicates = Object.keys(extra).filter((key) => {
+                return ConnectionEditor.mysqlTlsOptionKeys.some((option) => {
+                    return option === key.toLowerCase();
+                });
+            });
+
+            if (duplicates.length > 0) {
+                messages.extraOptions = `Configure ${duplicates.join(", ")} in the SSL tab instead.`;
+            }
+        }
+
+        return messages;
+    }
+
     private handleOptionsDialogClose = (closure: DialogResponseClosure, values: IDialogValues,
         data?: IDictionary): void => {
         if (closure === DialogResponseClosure.Accept) {
@@ -417,6 +532,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
             const isSqlite = generalSection.databaseType.value === "Sqlite";
             const isMySQL = generalSection.databaseType.value === "MySQL";
+            if (isMySQL && Object.keys(this.validateTlsOptions(values)).length > 0) {
+                return;
+            }
+
             const mysqlConnectionMethod = mysqlDetailsSection.scheme.value as string;
             const isSocketConnection = isMySQL && mysqlConnectionMethod === mysqlSocketProtocol;
             const useSSH = isMySQL && mysqlConnectionMethod === mysqlSshTunnelMethod;
@@ -480,16 +599,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         sshKeyFilePublic = mdsBastionSection.sshPublicKeyFile.value;
                     }
 
-                    const useSsl = mysqlSslSection.sslMode.value !== MySQLSslMode.Disabled;
-                    let mode: MySQLSslMode | undefined;
-                    if (useSsl) {
-                        ConnectionEditor.#mysqlSslModeMap.forEach((value: string, key: MySQLSslMode) => {
-                            if (value === mysqlSslSection.sslMode.value) {
-                                mode = key;
-                            }
-                        });
-                    }
-
                     const compressionAlgorithms = Array.isArray(mysqlAdvancedSection.compressionAlgorithms.value)
                         ? mysqlAdvancedSection.compressionAlgorithms.value.join(",")
                         : undefined;
@@ -503,8 +612,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         "user": mysqlDetailsSection.userName.value as string,
                         "schema": mysqlDetailsSection.defaultSchema.value as string,
 
-                        // "useSSL": useSsl ? undefined : "no",
-                        "ssl-mode": mode,
+                        ...this.mysqlTlsOptions(values),
                         "ssl-ca": mysqlSslSection.sslCaFile.value as string,
                         "ssl-cert": mysqlSslSection.sslCertFile.value as string,
                         "ssl-key": mysqlSslSection.sslKeyFile.value as string,
@@ -531,7 +639,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         "mysql-db-system-id": details.useMHS
                             ? mdsBastionSection.mysqlDbSystemId.value as string : undefined,
                         "disable-heat-wave-check": mysqlAdvancedSection.disableHeatwaveCheck.value as boolean,
-                        "extra-options": mysqlAdvancedSection.extraOptions.value as string,
+                        "extra-options": mysqlAdvancedSection.extraOptions.value as Record<string, string>,
                         /* eslint-enabled @typescript-eslint/naming-convention */
                     };
 
@@ -580,6 +688,13 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         const useMHS = mysqlConnectionMethod === mysqlBastionMethod;
 
         if (dbType === DBType.MySQL) {
+            const tlsErrors = this.validateTlsOptions(values);
+            if (Object.keys(tlsErrors).length > 0) {
+                void ui.showErrorMessage(Object.values(tlsErrors).join("\n"), {});
+
+                return;
+            }
+
             const user = mysqlDetailsSection.userName.value as string;
             const host = mysqlDetailsSection.hostName.value as string;
             if (!user || (!isSocketConnection && !host)) {
@@ -603,16 +718,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 otherParameters: sqliteAdvancedSection.otherParameters.value,
             } as ISqliteConnectionOptions;
         } else {
-            const useSsl = mysqlSslSection.sslMode.value !== MySQLSslMode.Disabled;
-            let sslMode: MySQLSslMode | undefined;
-            if (useSsl) {
-                ConnectionEditor.#mysqlSslModeMap.forEach((value: string, key: MySQLSslMode) => {
-                    if (value === mysqlSslSection.sslMode.value) {
-                        sslMode = key;
-                    }
-                });
-            }
-
             const sshKeyFile = useMHS
                 ? mdsBastionSection.sshKeyFile.value
                 : (useSSH ? mysqlSshSection.sshKeyFile.value : undefined);
@@ -627,7 +732,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 socket: isSocketConnection ? mysqlDetailsSection.port.value as string || undefined : undefined,
                 user: mysqlDetailsSection.userName.value as string,
                 schema: mysqlDetailsSection.defaultSchema.value as string,
-                "ssl-mode": sslMode,
+                ...this.mysqlTlsOptions(values),
                 "ssl-ca": mysqlSslSection.sslCaFile.value as string,
                 "ssl-cert": mysqlSslSection.sslCertFile.value as string,
                 "ssl-key": mysqlSslSection.sslKeyFile.value as string,
@@ -779,6 +884,17 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 host: "localhost",
             };
         }
+
+        const sslMode = String(optionsMySQL["ssl-mode"] ?? MySQLSslMode.Preferred).toUpperCase() as MySQLSslMode;
+        const sslModeCaption = ConnectionEditor.#mysqlSslModeMap.get(sslMode) ?? String(optionsMySQL["ssl-mode"]);
+        const sslModeChoices = Array.from(ConnectionEditor.#mysqlSslModeMap.values());
+        if (!sslModeChoices.includes(sslModeCaption)) {
+            sslModeChoices.push(sslModeCaption);
+        }
+
+        const forcePqc = this.pqcBooleanValue(optionsMySQL["force-pqc"]);
+        const usePqcSign = this.pqcBooleanValue(optionsMySQL["use-pqc-sign"]);
+        const tlsControlOptions = sslMode === MySQLSslMode.Disabled ? [CommonDialogValueOption.Disabled] : [];
 
         const selectedMySQLMethod = optionsMySQL.socket !== undefined
             ? mysqlSocketProtocol
@@ -1037,9 +1153,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 sslMode: {
                     type: "choice",
                     caption: "SSL Mode",
-                    value: ConnectionEditor.#mysqlSslModeMap
-                        .get(optionsMySQL["ssl-mode"] ?? MySQLSslMode.Preferred),
-                    choices: Array.from(ConnectionEditor.#mysqlSslModeMap.values()),
+                    value: sslModeCaption,
+                    choices: sslModeChoices,
+                    onChange: this.handleTlsOptionsChange,
                     horizontalSpan: 3,
                 },
                 sslCipher: {
@@ -1065,6 +1181,53 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     caption: "Path to Client Key file for SSL",
                     value: optionsMySQL["ssl-key"],
                     horizontalSpan: 8,
+                },
+                pqcTitle: {
+                    type: "description",
+                    caption: "Post-Quantum Cryptography",
+                    horizontalSpan: 8,
+                    options: [CommonDialogValueOption.NewGroup, CommonDialogValueOption.Grouped],
+                },
+                tlsKex: {
+                    type: "text",
+                    label: "TLS key-exchange groups",
+                    value: optionsMySQL["tls-kex"],
+                    placeholder: "Client default",
+                    description: "Optional, case-sensitive, colon-separated names, e.g. X25519MLKEM768:X25519. "
+                        + "PQC and classical groups are supported; availability depends on the client and server.",
+                    horizontalSpan: 8,
+                    options: [CommonDialogValueOption.Grouped, ...tlsControlOptions],
+                },
+                forcePqc: {
+                    ...(typeof forcePqc === "string"
+                        ? { type: "text", value: forcePqc } as const
+                        : { type: "boolean", value: forcePqc } as const),
+                    label: "Require PQC key exchange",
+                    description: "When TLS is used, this option enforces TLSv1.3 and PQC key exchange automatically. "
+                        + "Select an SSL Mode that requires encryption to prevent unencrypted connections.",
+                    onChange: this.handleTlsOptionsChange,
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.Grouped, ...tlsControlOptions],
+                },
+                forcePqcWarning: {
+                    type: "description",
+                    messageType: MessageType.Warning,
+                    value: "SSL Mode Preferred may allow an unencrypted connection. "
+                        + "Select an SSL Mode that requires encryption to guarantee PQC protection.",
+                    horizontalSpan: 8,
+                    options: [CommonDialogValueOption.Grouped,
+                        ...((forcePqc === true && sslMode === MySQLSslMode.Preferred)
+                            ? [] : [CommonDialogValueOption.Hidden])],
+                },
+                usePqcSign: {
+                    ...(typeof usePqcSign === "string"
+                        ? { type: "text", value: usePqcSign } as const
+                        : { type: "boolean", value: usePqcSign } as const),
+                    label: "Allow PQC handshake signatures",
+                    description: "Allows PQC signatures to be advertised; "
+                        + "a classical signature may still be selected.",
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.Grouped, ...tlsControlOptions],
                 },
             },
         };

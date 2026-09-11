@@ -120,6 +120,9 @@ export interface IDescriptionDialogValue extends IBaseDialogValue {
     type: "description";
 
     value?: string;
+
+    /** Renders the description as a message of the given type. */
+    messageType?: MessageType;
 }
 
 /**
@@ -142,6 +145,9 @@ export interface IStringInputDialogValue extends IBaseDialogValue {
     type: "text";
 
     value?: string;
+
+    /** Label rendered above the input, including when the value is grouped. */
+    label?: string;
 
     /** Text to be shown in the input field, if no value is set yet. */
     placeholder?: string;
@@ -1199,13 +1205,22 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
             if (entry.value.type === "description") {
                 const text = entry.value.value ?? entry.value.caption;
-                result.push(
-                    <Label
-                        key={entry.key}
-                        className="description"
-                        caption={text?.toLocaleString()}
-                    />,
-                );
+
+                if (entry.value.messageType !== undefined) {
+                    result.push(
+                        <Message key={entry.key} type={entry.value.messageType}>
+                            {text?.toLocaleString()}
+                        </Message>,
+                    );
+                } else {
+                    result.push(
+                        <Label
+                            key={entry.key}
+                            className="description"
+                            caption={text?.toLocaleString()}
+                        />,
+                    );
+                }
             } else {
                 // If the entry is part of a relation take its value from there or do not render it,
                 // if there's no valid value for it there.
@@ -1510,6 +1525,17 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     }
 
                     default: { // Text input.
+                        if (entry.value.label) {
+                            result.push(
+                                <Label
+                                    id={`${key}Label`}
+                                    key={`${key}Label`}
+                                    className="valueTitle"
+                                    caption={entry.value.label}
+                                />,
+                            );
+                        }
+
                         const className = this.getEffectiveClassNames(["inputWithProgress"]);
                         let progress;
                         if (entry.value.showLoading) {
@@ -1531,6 +1557,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                                     key={key}
                                     className="valueEditor"
                                     value={value as string}
+                                    aria-labelledby={entry.value.label ? `${key}Label` : undefined}
                                     onChange={this.handleInputChange.bind(this, sectionId)}
                                     onConfirm={this.acceptOnConfirm}
                                     onBlur={this.onBlur.bind(this, sectionId)}
