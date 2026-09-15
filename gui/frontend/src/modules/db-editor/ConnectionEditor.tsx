@@ -65,6 +65,8 @@ const globalDefaultEditor = "Default";
 const mysqlSocketProtocol = "mysql (socket/pipe)";
 const mysqlSshTunnelMethod = "mysql + SSH tunnel";
 const mysqlBastionMethod = "mysql + OCI Bastion";
+const sshAgentAuthentication = "SSH Agent";
+const sshKeyFileAuthentication = "Private Key File";
 
 const connectionMethodDiagram = (method: string): string => {
     switch (method) {
@@ -467,7 +469,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     } as ISqliteConnectionOptions;
                 } else if (isMySQL) {
                     let sshKeyFile;
-                    if (details.useSSH && mysqlSshSection.sshKeyFile.value !== "") {
+                    if (details.useSSH && mysqlSshSection.sshAuthentication.value === sshKeyFileAuthentication
+                        && mysqlSshSection.sshKeyFile.value !== "") {
                         sshKeyFile = mysqlSshSection.sshKeyFile.value;
                     }
 
@@ -615,7 +618,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
             const sshKeyFile = useMHS
                 ? mdsBastionSection.sshKeyFile.value
-                : (useSSH ? mysqlSshSection.sshKeyFile.value : undefined);
+                : (useSSH && mysqlSshSection.sshAuthentication.value === sshKeyFileAuthentication
+                    ? mysqlSshSection.sshKeyFile.value : undefined);
             const compressionAlgorithms = Array.isArray(mysqlAdvancedSection.compressionAlgorithms.value)
                 ? mysqlAdvancedSection.compressionAlgorithms.value.join(",")
                 : undefined;
@@ -1081,10 +1085,35 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     placeholder: "user@host:22",
                     horizontalSpan: 4,
                 },
+                sshAuthentication: {
+                    type: "choice",
+                    caption: "SSH Authentication",
+                    value: optionsMySQL["ssh-identity-file"]
+                        ? sshKeyFileAuthentication : sshAgentAuthentication,
+                    choices: [sshAgentAuthentication, sshKeyFileAuthentication],
+                    description: "SSH Agent uses identities available to MySQL Shell, including hardware-backed keys.",
+                    onChange: (method: string, dialog: ValueEditDialog): void => {
+                        const values = dialog.getDialogValues();
+                        const sshKeyFile = values.sections.get("ssh")?.values.sshKeyFile;
+                        if (!sshKeyFile) {
+                            return;
+                        }
+
+                        sshKeyFile.options = method === sshAgentAuthentication
+                            ? [CommonDialogValueOption.Hidden] : undefined;
+                        if (method === sshAgentAuthentication) {
+                            sshKeyFile.value = "";
+                        }
+                        dialog.setDialogValues(values);
+                    },
+                    horizontalSpan: 4,
+                },
                 sshKeyFile: {
                     type: "resource",
                     caption: "SSH Private Key File",
                     value: optionsMySQL["ssh-identity-file"] ?? "",
+                    options: optionsMySQL["ssh-identity-file"]
+                        ? undefined : [CommonDialogValueOption.Hidden],
                     horizontalSpan: 4,
                 },
                 sshConfigFilePath: {

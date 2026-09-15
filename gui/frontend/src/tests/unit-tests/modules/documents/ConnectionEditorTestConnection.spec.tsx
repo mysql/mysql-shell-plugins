@@ -26,6 +26,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { IDialogValues } from "../../../../components/Dialogs/ValueEditDialog.js";
+import type { IMySQLConnectionOptions } from "../../../../communication/MySQL.js";
 import { ConnectionEditor } from "../../../../modules/db-editor/ConnectionEditor.js";
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
@@ -35,6 +36,35 @@ import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 interface ITestableConnectionEditor {
     testConnection(values: IDialogValues): Promise<void>;
 }
+
+const createMySQLDialogValues = (sshAuthentication = "SSH Agent"): IDialogValues => {
+    return {
+        sections: new Map([
+            ["general", { values: { databaseType: { value: DBType.MySQL } } }],
+            ["information", { values: { caption: { value: "Test" }, description: { value: "" } } }],
+            ["sqliteDetails", { values: {} }],
+            ["sqliteAdvanced", { values: {} }],
+            ["mysqlDetails", { values: {
+                scheme: { value: "mysql" }, userName: { value: "root" }, hostName: { value: "localhost" },
+                port: { value: 3306 }, defaultSchema: { value: "" },
+            } }],
+            ["mdsBastion", { values: {} }],
+            ["ssh", { values: {
+                ssh: { value: "daniel@ssh.example.com:22" }, sshAuthentication: { value: sshAuthentication },
+                sshKeyFile: { value: "C:\\Users\\daniel\\.ssh\\id_ed25519" },
+                sshConfigFilePath: { value: "" },
+            } }],
+            ["mysqlAdvanced", { values: {
+                compressionAlgorithms: { value: [] }, compression: { value: "" }, compressionLevel: { value: 0 },
+                timeout: { value: 10 }, disableHeatwaveCheck: { value: false }, extraOptions: { value: {} },
+            } }],
+            ["ssl", { values: {
+                sslMode: { value: "Disable" }, sslCaFile: { value: "" }, sslCertFile: { value: "" },
+                sslKeyFile: { value: "" }, sslCipher: { value: "" },
+            } }],
+        ]),
+    } as unknown as IDialogValues;
+};
 
 describe("ConnectionEditor", (): void => {
     beforeEach(() => {
@@ -50,28 +80,7 @@ describe("ConnectionEditor", (): void => {
         const requestPasswordSpy = vi.spyOn(uiLayerMock, "requestPassword");
         const editor = new ConnectionEditor({ onAddConnection: vi.fn(), onUpdateConnection: vi.fn() });
         const testableEditor = editor as unknown as ITestableConnectionEditor;
-        const values = {
-            sections: new Map([
-                ["general", { values: { databaseType: { value: DBType.MySQL } } }],
-                ["information", { values: { caption: { value: "Test" }, description: { value: "" } } }],
-                ["sqliteDetails", { values: {} }],
-                ["sqliteAdvanced", { values: {} }],
-                ["mysqlDetails", { values: {
-                    scheme: { value: "mysql" }, userName: { value: "root" }, hostName: { value: "localhost" },
-                    port: { value: 3306 }, defaultSchema: { value: "" },
-                } }],
-                ["mdsBastion", { values: {} }],
-                ["ssh", { values: {} }],
-                ["mysqlAdvanced", { values: {
-                    compressionAlgorithms: { value: [] }, compression: { value: "" }, compressionLevel: { value: 0 },
-                    timeout: { value: 10 }, disableHeatwaveCheck: { value: false }, extraOptions: { value: {} },
-                } }],
-                ["ssl", { values: {
-                    sslMode: { value: "Disable" }, sslCaFile: { value: "" }, sslCertFile: { value: "" },
-                    sslKeyFile: { value: "" }, sslCipher: { value: "" },
-                } }],
-            ]),
-        } as unknown as IDialogValues;
+        const values = createMySQLDialogValues();
 
         await testableEditor.testConnection(values);
 
@@ -80,5 +89,32 @@ describe("ConnectionEditor", (): void => {
         const [connection] = testConnectionSpy.mock.calls[0];
         expect(connection.dbType).toBe(DBType.MySQL);
         expect(connection.options).toMatchObject({ host: "localhost", user: "root" });
+    });
+
+    it("omits the identity file when SSH Agent authentication is selected", async () => {
+        const testConnectionSpy = vi.spyOn(ShellInterface.dbConnections, "testConnection").mockResolvedValue();
+        const editor = new ConnectionEditor({ onAddConnection: vi.fn(), onUpdateConnection: vi.fn() });
+        const values = createMySQLDialogValues();
+        values.sections.get("mysqlDetails")!.values.scheme.value = "mysql + SSH tunnel";
+
+        await (editor as unknown as ITestableConnectionEditor).testConnection(values);
+
+        const [connection] = testConnectionSpy.mock.calls[0];
+        const options = connection.options as IMySQLConnectionOptions;
+        expect(options.ssh).toBe("daniel@ssh.example.com:22");
+        expect(options["ssh-identity-file"]).toBeUndefined();
+    });
+
+    it("uses the selected identity file for private-key authentication", async () => {
+        const testConnectionSpy = vi.spyOn(ShellInterface.dbConnections, "testConnection").mockResolvedValue();
+        const editor = new ConnectionEditor({ onAddConnection: vi.fn(), onUpdateConnection: vi.fn() });
+        const values = createMySQLDialogValues("Private Key File");
+        values.sections.get("mysqlDetails")!.values.scheme.value = "mysql + SSH tunnel";
+
+        await (editor as unknown as ITestableConnectionEditor).testConnection(values);
+
+        const [connection] = testConnectionSpy.mock.calls[0];
+        const options = connection.options as IMySQLConnectionOptions;
+        expect(options["ssh-identity-file"]).toBe("C:\\Users\\daniel\\.ssh\\id_ed25519");
     });
 });
