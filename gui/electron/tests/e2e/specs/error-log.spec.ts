@@ -191,6 +191,17 @@ const logRows = async (page: Page): Promise<string[][]> => {
     });
 };
 
+const expectFilteredLogRows = async (
+    page: Page,
+    matches: (row: string[]) => boolean,
+): Promise<void> => {
+    await expect.poll(async () => {
+        const rows = await logRows(page);
+
+        return rows.length > 0 && rows.every(matches);
+    }, { timeout: 30000 }).toBe(true);
+};
+
 const openErrorLog = async (
     page: Page,
     workbench: ElectronWorkbench,
@@ -250,11 +261,10 @@ test.describe.serial("Server Error Log Viewer", () => {
             await page.locator(".logsFilterChoice", { hasText: priority }).locator("input").check();
             await page.locator("#logsFilterEditor input[type='text']").fill(message.slice(0, 24));
             await page.getByRole("button", { name: "Apply", exact: true }).click();
-            await expect.poll(() => logRows(page)).not.toHaveLength(0);
-            for (const row of await logRows(page)) {
-                expect(row[1]).toBe(priority);
-                expect(row[4].toLowerCase()).toContain(message.slice(0, 24).toLowerCase());
-            }
+            await expectFilteredLogRows(page, (row) => {
+                return row[1] === priority
+                    && row[4]?.toLowerCase().includes(message.slice(0, 24).toLowerCase()) === true;
+            });
 
             await page.getByRole("button", { name: "Reset", exact: true }).click();
             await expect.poll(() => logRows(page)).not.toHaveLength(0);
@@ -296,11 +306,10 @@ test.describe.serial("Server Error Log Viewer", () => {
             await page.locator(".logsFilterChoice", { hasText: fixture.filterSubsystem }).locator("input").check();
             await page.locator("#logsFilterEditor input[type='text']").fill(fixture.filterMessage);
             await page.getByRole("button", { name: "Apply", exact: true }).click();
-            await expect.poll(() => logRows(page)).not.toHaveLength(0);
-            for (const row of await logRows(page)) {
-                expect(row[3]).toBe(fixture.filterSubsystem);
-                expect(row[4]).toContain(fixture.filterMessage);
-            }
+            await expectFilteredLogRows(page, (row) => {
+                return row[3] === fixture.filterSubsystem
+                    && row[4]?.includes(fixture.filterMessage) === true;
+            });
 
             const source = await readFile(fixture.path, "utf8");
             const exportPath = testInfo.outputPath("file-error.log");
