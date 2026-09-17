@@ -44,23 +44,6 @@ exports[`DocumentToolbar tests > Test DocumentToolbar instantiation (HeatWave) 1
       />
     </div>
     <div
-      class="msg divider vertical"
-      style="--thickness: 1px;"
-    />
-    <div
-      class="msg button imageOnly"
-      data-tooltip="Show Chat Options"
-      role="button"
-      tabindex="0"
-    >
-      <div
-        class="msg icon"
-        data-tooltip="inherit"
-        id="ChatOptionsButton"
-        style="mask-image: url("/src/assets/images/chatOptions.svg");"
-      />
-    </div>
-    <div
       class="expander"
     />
     <div

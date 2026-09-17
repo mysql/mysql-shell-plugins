@@ -329,10 +329,5 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsListBucketObjects]: { result: IBucketListObjects; }
     [ShellAPIMds.MdsCreateBucketObjects]: { result: IMdsCreateBucketObjectsResult; };
     [ShellAPIMds.MdsDeleteBucketObject]: {};
-    [ShellAPIMds.MdsGenaiStatus]: { result: IMdsChatStatus; };
-    [ShellAPIMds.MdsGenaiConfigure]: { result: IMdsChatConfigure; };
-    [ShellAPIMds.MdsGenaiChat]: { result: IMdsChatResult; };
     [ShellAPIMds.MdsGenaiLakehouseStatus]: { result: IMdsLakehouseStatus; };
-    [ShellAPIMds.MdsGenaiSaveChatOptions]: {};
-    [ShellAPIMds.MdsGenaiLoadChatOptions]: { result: IMdsChatData };
 }

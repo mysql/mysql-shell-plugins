@@ -38,13 +38,9 @@ import {
 import {
     ITableColumn, type IDbEditorResultSetData, type ISqlEditorHistoryEntry,
 } from "../../communication/ProtocolGui.js";
-import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
-import { ResponseError } from "../../communication/ResponseError.js";
-import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
 import { IScriptExecutionOptions, Range } from "../../components/ui/CodeEditor/index.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
-import { SplitContainer } from "../../components/ui/SplitContainer/SplitContainer.js";
 import { type ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 import {
     OdmEntityType, type IOdmScriptEntry, type IOdmShellSessionEntry, type IOdmStandaloneDocumentEntry,
@@ -57,7 +53,7 @@ import {
     SQLExecutionContext, type IStacktraceInfo
 } from "../../script-execution/SQLExecutionContext.js";
 import {
-    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState,
+    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry,
     currentNotebookVersion,
 } from "../../script-execution/index.js";
 import { appParameters } from "../../supplement/AppParameters.js";
@@ -163,7 +159,6 @@ export interface IConnectionPresentationState extends ISavedEditorState {
     /** Cached data/settings for the performance dashboard. */
     graphData: ISavedGraphData;
 
-    chatOptionsState: IChatOptionsState;
     executionHistory: ISqlEditorHistoryEntry[];
     currentExecutionHistoryIndex: number;
     executionHistoryUnsavedCode?: string;
@@ -225,7 +220,6 @@ interface IConnectionWorkspaceProperties extends IComponentProperties {
     onSaveAdminLakehouseNavigatorState?: (id: string, data: Partial<ILakehouseNavigatorSavedState>) => void;
     onSaveAdminClientConnectionsState?: (id: string, data: Partial<IClientConnectionsSavedState>) => void;
     onSaveAdminEnterpriseBackupState?: (id: string, data: Partial<IEnterpriseBackupSavedState>) => void;
-    onChatOptionsChange?: (id: string, data: Partial<IChatOptionsState>) => void;
     onDesktopRunStateChanged?: () => void;
 }
 
@@ -237,7 +231,6 @@ interface IConnectionWorkspaceState extends IComponentState {
 
     autoCommit?: boolean;
 
-    genAiStatus?: IMdsChatStatus;
 }
 
 /** A list of parameters/options used for query execution. */
@@ -431,7 +424,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
         requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
         requisitions.register("showLakehouseNavigator", this.showLakehouseNavigator);
-        requisitions.register("showChatOptions", this.showChatOptions);
         requisitions.register("selectFile", this.selectFile);
         requisitions.register("sqlTransactionChanged", this.handleTransactionChanged);
 
@@ -452,8 +444,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             // Update the cachedMrsServiceSdk for the first time
             void this.updateMrsServiceSdkCache();
 
-            // Check if HeatWave GenAI Chat is available
-            void this.getGenAiStatus();
         }
     }
 
@@ -486,7 +476,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         requisitions.unregister("editorSaveNotebook", this.editorSaveNotebook);
         requisitions.unregister("editorLoadNotebook", this.editorLoadNotebook);
         requisitions.unregister("showLakehouseNavigator", this.showLakehouseNavigator);
-        requisitions.unregister("showChatOptions", this.showChatOptions);
         requisitions.unregister("selectFile", this.selectFile);
         requisitions.unregister("sqlTransactionChanged", this.handleTransactionChanged);
     }
@@ -641,9 +630,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
     public render(): ComponentChild {
         const { connection, toolbarItems, savedState, onHelpCommand, extraLibs, onDesktopRunStateChanged }
             = this.props;
-        const { standaloneMode, genAiStatus } = this.state;
-
-        const className = this.getEffectiveClassNames(["connectionWorkspaceHost"]);
+        const { standaloneMode } = this.state;
 
         return <DocumentContext.Consumer>{(context) => {
             this.documentDataModel = context?.documentDataModel;
@@ -667,45 +654,10 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                             onEdit={this.handleEdit}
                             onHelpCommand={onHelpCommand}
                             onScriptExecution={this.handleExecution}
-                            onContextLanguageChange={this.handleContextLanguageChange}
                             onNavigateHistory={this.handleNavigateHistory}
                             onDesktopRunStateChanged={onDesktopRunStateChanged}
                         />;
 
-                        const chatOptionsExpanded = savedState.chatOptionsState.chatOptionsExpanded;
-                        let initialSize = 0;
-                        if (savedState.chatOptionsState.chatOptionsWidth > -1) {
-                            initialSize = savedState.chatOptionsState.chatOptionsWidth;
-                        }
-
-                        document = <SplitContainer
-                            className={className}
-                            panes={
-                                [
-                                    {
-                                        id: "notebook",
-                                        minSize: 350,
-                                        snap: false,
-                                        stretch: true,
-                                        resizable: chatOptionsExpanded,
-                                        content: document,
-                                    },
-                                    {
-                                        id: "chatOptions",
-                                        minSize: 340,
-                                        initialSize,
-                                        snap: true,
-                                        collapsed: !chatOptionsExpanded,
-                                        content: chatOptionsExpanded ? (
-                                            <ChatOptions savedState={savedState.chatOptionsState}
-                                                genAiStatus={genAiStatus}
-                                                connectionVersion={connection.details.version}
-                                                onChatOptionsStateChange={this.updateChatOptionsState}
-                                                onAction={this.handleChatAction}
-                                                currentSchema={connection.currentSchema} />) : undefined,
-                                    },
-                                ]}
-                        />;
                         break;
                     }
 
@@ -1455,16 +1407,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         return Promise.resolve(true);
     };
 
-    private showChatOptions = async (_: unknown): Promise<boolean> => {
-        const { savedState, id, onChatOptionsChange } = this.props;
-
-        if (id && onChatOptionsChange) {
-            onChatOptionsChange(id, { chatOptionsExpanded: !savedState.chatOptionsState.chatOptionsExpanded });
-        }
-
-        return Promise.resolve(true);
-    };
-
     /**
      * Serializes the current notebook to a JSON string and triggers save-to-file handling.
      * This can either be handled by the browser (not allowing to specify a target path) or by the host application
@@ -1734,123 +1676,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         }
     };
 
-    private runChatQuery = async (context: SQLExecutionContext, _options: IScriptExecutionOptions): Promise<void> => {
-        const { savedState, connection } = this.props;
-
-        // If there is no current chat, init the current chat options
-        let currentChatOptions = savedState.chatOptionsState.options ?? {
-            conversationId: uuid(),
-            reportProgress: true,
-        };
-
-        if (connection?.backend.moduleSessionId) {
-            const chatQueryId = context.id;
-            currentChatOptions.reRun = false;
-            if (currentChatOptions.chatHistory?.find((entry) => {
-                return entry.chatQueryId === chatQueryId;
-            })) {
-                currentChatOptions.reRun = true;
-            }
-
-            try {
-                let tokens = "";
-
-                // Take the current chat options, but set the chatQueryId
-                const options: IDictionary = {
-                    ...currentChatOptions,
-                    chatQueryId,
-                };
-                context.presentation.executionStarts(LoadingState.Waiting);
-                void await connection.backend.mhs.executeChatRequest(
-                    context.code, connection.backend.moduleSessionId, options, (data) => {
-                        let info;
-                        const chatData = data.result.data;
-                        if (chatData.error) {
-                            this.sqlQueryExecutor.addTimedResult(context, {
-                                type: "chat",
-                                error: chatData.error,
-                                chatQueryId,
-                            }, {
-                                resultId: chatQueryId,
-                            });
-
-                            return Promise.resolve(true);
-                        }
-
-                        currentChatOptions = {
-                            ...currentChatOptions,
-                            ...chatData,
-                            info: undefined,
-                        };
-
-                        if (chatData.info) {
-                            info = chatData.info;
-                        }
-
-                        if (chatData.usage) {
-                            info = `Used ${chatData.usage.usedUnits.inputTokens} input tokens, ` +
-                                `${chatData.usage.usedUnits.outputTokens} output tokens.`;
-                        }
-
-                        // If tokens come in, concatenate them
-                        if (chatData.token) {
-                            tokens += chatData.token.replaceAll("\\n", "\n");
-                            currentChatOptions.token = undefined;
-                        } else if (chatData.response) {
-                            tokens = chatData.response;
-                            currentChatOptions.response = undefined;
-                        }
-
-                        void context.addResultData({
-                            type: "chat",
-                            chatQueryId,
-                            info,
-                            answer: tokens.trim(),
-                            options: currentChatOptions as IDictionary,
-                            chatOptionsVisible: savedState.chatOptionsState.chatOptionsExpanded,
-                            updateOptions: this.updateChatOptionsState,
-                        }, {
-                            resultId: chatQueryId,
-                        }).then(() => {
-                            // Store chat options and refresh UI
-                            this.updateChatOptionsState({ options: currentChatOptions });
-                        });
-
-                        return Promise.resolve(true);
-                    });
-            } catch (reason) {
-                let content: string;
-
-                if (reason instanceof ResponseError) {
-                    content = reason.info.requestState.msg;
-                } else {
-                    content = reason as string;
-                }
-
-                const shellErrorHeader = "ScriptingError: genai.chat: \nException: ";
-                if (content.startsWith(shellErrorHeader)) {
-                    content = "Error: " + content.substring(shellErrorHeader.length);
-                }
-
-                this.sqlQueryExecutor.addTimedResult(context, {
-                    type: "chat",
-                    chatQueryId,
-                    error: content,
-                }, {
-                    resultId: chatQueryId,
-                });
-            }
-        }
-    };
-
-    private updateChatOptionsState = (data: Partial<IChatOptionsState>): void => {
-        const { id, onChatOptionsChange } = this.props;
-
-        if (id && onChatOptionsChange) {
-            onChatOptionsChange(id, data);
-        }
-    };
-
     private reconnect = async (context: ExecutionContext): Promise<void> => {
         const { connection } = this.props;
 
@@ -2061,19 +1886,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         }
     };
 
-    private getGenAiStatus = async () => {
-        const { connection } = this.props;
-
-        if (connection?.isOffline) {
-            return;
-        }
-
-        if (connection?.backend.moduleSessionId) {
-            const genAiStatus = await connection.backend.mhs.getMdsGetGenAiStatus(connection.backend.moduleSessionId);
-            this.setState({ genAiStatus });
-        }
-    };
-
     private confirmExplainAnalyze = async (): Promise<boolean> => {
         if (!ProfileState.get("editor.confirmVisualExplainAnalyze", true)) {
             return true;
@@ -2157,16 +1969,12 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         const temp = text.toLowerCase();
         switch (temp) {
             case "\\about": {
-                if (savedState.heatWaveEnabled) {
-                    await context.addResultData({ type: "about", title: "HeatWave Chat" }, { resultId: "" });
-                } else {
-                    const isMac = navigator.userAgent.includes("Macintosh");
-                    const content = ConnectionWorkspace.aboutMessage.replaceAll("%modifier%", isMac ? "Cmd" : "Ctrl");
-                    await context.addResultData({
-                        type: "text",
-                        text: [{ type: MessageType.Info, content, language: "ansi" }],
-                    }, { resultId: "" });
-                }
+                const isMac = navigator.userAgent.includes("Macintosh");
+                const content = ConnectionWorkspace.aboutMessage.replaceAll("%modifier%", isMac ? "Cmd" : "Ctrl");
+                await context.addResultData({
+                    type: "text",
+                    text: [{ type: MessageType.Info, content, language: "ansi" }],
+                }, { resultId: "" });
 
                 return true;
             }
@@ -2197,6 +2005,20 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             }
 
             default:
+        }
+
+        if (context.language === "text") {
+            await context.addResultData({
+                type: "text",
+                text: [{
+                    type: MessageType.Error,
+                    content: "Text cells are no longer supported.",
+                    language: "ansi",
+                }],
+                executionInfo: { type: MessageType.Error, text: "" },
+            }, { resultId: "" });
+
+            return false;
         }
 
         await context.clearResult();
@@ -2268,12 +2090,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
 
                 break;
             }
-
-            case "text": {
-                await this.runChatQuery(context as SQLExecutionContext, options);
-                break;
-            }
-
             default:
         }
 
@@ -2422,23 +2238,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             }
         } finally {
             context.executionEnded();
-        }
-    };
-
-    private handleContextLanguageChange = (context: ExecutionContext, language: EditorLanguage): void => {
-        const { savedState, onChatOptionsChange, id } = this.props;
-
-        switch (language) {
-            case "text": {
-                if (!savedState.chatOptionsState.chatOptionsExpanded && onChatOptionsChange !== undefined
-                    && id) {
-                    onChatOptionsChange(id, { chatOptionsExpanded: true });
-                }
-
-                break;
-            }
-
-            default:
         }
     };
 
@@ -3002,67 +2801,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         return firstNotebook?.document.id === editor.document.id;
     };
 
-    private handleChatAction = (action: ChatOptionAction, _options?: IMdsChatData): void => {
-        const { savedState } = this.props;
-
-        switch (action) {
-            case ChatOptionAction.SaveChatOptions: {
-                if (appParameters.embedded) {
-                    const options = {
-                        id: "saveChatOptions",
-                        title: "Save Chat Profile",
-                        saveLabel: "Save",
-                        filters: {
-
-                            HeatWaveChatOptions: ["json"],
-                        },
-                    };
-                    requisitions.executeRemote("showSaveDialog", options);
-                }
-
-                break;
-            }
-
-            case ChatOptionAction.LoadChatOptions: {
-                if (appParameters.embedded) {
-                    const options = {
-                        id: "loadChatOptions",
-                        title: "Load Chat Profile",
-                        saveLabel: "Load",
-                        canSelectFiles: true,
-                        canSelectFolders: false,
-                        canSelectMany: false,
-                        filters: {
-
-                            HeatWaveChatOptions: ["json"],
-                        },
-                    };
-                    requisitions.executeRemote("showOpenDialog", options);
-                }
-
-                break;
-            }
-
-            case ChatOptionAction.StartNewChat: {
-                // Start new chat but keep schemaName and modelId
-                this.updateChatOptionsState({
-                    options: {
-                        schemaName: savedState.chatOptionsState.options?.schemaName,
-                        modelOptions: {
-                            modelId: savedState.chatOptionsState.options?.modelOptions?.modelId,
-                        },
-                    },
-                });
-
-                break;
-            }
-
-            default:
-        }
-    };
-
     private selectFile = async (fileResult: IOpenFileDialogResult): Promise<boolean> => {
-        const { savedState, id, connection, onChatOptionsChange } = this.props;
         const scriptEditorId = this.getLoadResourceEditorId(fileResult.resourceId, "loadActiveScript");
         if (scriptEditorId) {
             const file = fileResult.file[0];
@@ -3112,80 +2851,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             });
         }
 
-        let handled = false;
-
-        switch (fileResult.resourceId) {
-            case "saveChatOptions": {
-                handled = true;
-                if (fileResult.file.length === 1) {
-                    // Save Chat Profile options
-                    const options: IDictionary = {
-                        ...savedState.chatOptionsState.options,
-                    };
-                    try {
-                        await connection?.backend.mhs.saveMdsChatOptions(fileResult.file[0].path, options);
-
-                        void ui.showInformationMessage(
-                            `The HeatWave options have been saved successfully to ${fileResult.file[0].path}`, {});
-                    } catch (reason) /* istanbul ignore next */ {
-                        let content: string;
-
-                        if (reason instanceof ResponseError) {
-                            content = reason.info.requestState.msg;
-                        } else {
-                            content = reason as string;
-                        }
-
-                        const shellErrorHeader = "ScriptingError: genai.save_chat_options: \nException: ";
-                        if (content.startsWith(shellErrorHeader)) {
-                            content = "Error: " + content.substring(shellErrorHeader.length);
-                        }
-
-                        void ui.showErrorMessage(content, {});
-                    }
-                }
-
-                break;
-            }
-
-            case "loadChatOptions": {
-                handled = true;
-                if (fileResult.file.length === 1) {
-                    try {
-                        // Load Chat Profile options
-                        const options = await connection?.backend.mhs.loadMdsChatOptions(fileResult.file[0].path);
-
-                        if (id && onChatOptionsChange) {
-                            onChatOptionsChange(id, { options });
-
-                            void ui.showInformationMessage(
-                                `The HeatWave options have been loaded successfully from ${fileResult.file[0].path}`,
-                                {});
-                        }
-                    } catch (reason) /* istanbul ignore next */ {
-                        let content: string;
-
-                        if (reason instanceof ResponseError) {
-                            content = reason.info.requestState.msg;
-                        } else {
-                            content = reason as string;
-                        }
-
-                        const shellErrorHeader = "ScriptingError: genai.load_chat_options: \nException: ";
-                        if (content.startsWith(shellErrorHeader)) {
-                            content = "Error: " + content.substring(shellErrorHeader.length);
-                        }
-
-                        void ui.showErrorMessage(content, {});
-                    }
-                }
-                break;
-            }
-
-            default:
-        }
-
-        return Promise.resolve(handled);
+        return Promise.resolve(false);
     };
 
     private handleNavigateHistory = (backwards: boolean): void => {

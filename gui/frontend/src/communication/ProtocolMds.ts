@@ -135,18 +135,8 @@ export enum ShellAPIMds {
     MdsCreateBastionSession = "mds.create.bastion_session",
     /** Deletes a Bastion Session with the given id */
     MdsDeleteBastionSession = "mds.delete.bastion_session",
-    /** Returns status information about the current GenAI setup */
-    MdsGenaiStatus = "mds.genai.status",
-    /** Configures a local model setup */
-    MdsGenaiConfigure = "mds.genai.configure",
-    /** Processes a chat request and return a generated answer */
-    MdsGenaiChat = "mds.genai.chat",
     /** Gets lakehouse status information */
-    MdsGenaiLakehouseStatus = "mds.genai.lakehouse_status",
-    /** Saves chat options to a file */
-    MdsGenaiSaveChatOptions = "mds.genai.save_chat_options",
-    /** Loads the chat options from a file */
-    MdsGenaiLoadChatOptions = "mds.genai.load_chat_options"
+    MdsGenaiLakehouseStatus = "mds.genai.lakehouse_status"
 }
 
 export interface IShellMdsListConfigProfilesKwargs {
@@ -1148,24 +1138,6 @@ export interface IShellMdsDeleteBastionSessionKwargs {
     raiseExceptions?: boolean;
 }
 
-export interface IShellMdsGenaiConfigureKwargs {
-    /** The options that store information about the request. */
-    options?: IShellDictionary;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** The function to send a message to he GUI. */
-    sendGuiMessage?: object;
-}
-
-export interface IShellMdsGenaiChatKwargs {
-    /** The options that store information about the request. */
-    options?: IShellDictionary;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-    /** The function to send a message to he GUI. */
-    sendGuiMessage?: object;
-}
-
 export interface IShellMdsGenaiLakehouseStatusKwargs {
     /** The amount of used lakehouse memory */
     memoryUsed?: number;
@@ -1179,11 +1151,6 @@ export interface IShellMdsGenaiLakehouseStatusKwargs {
     lakehouseTasksHash?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
-}
-
-export interface IShellMdsGenaiSaveChatOptionsKwargs {
-    /** The options that store information about the request. */
-    options?: IShellDictionary;
 }
 
 export interface IProtocolMdsParameters {
@@ -1238,12 +1205,7 @@ export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsGetBastionSession]: { kwargs?: IShellMdsGetBastionSessionKwargs; };
     [ShellAPIMds.MdsCreateBastionSession]: { kwargs?: IShellMdsCreateBastionSessionKwargs; };
     [ShellAPIMds.MdsDeleteBastionSession]: { kwargs?: IShellMdsDeleteBastionSessionKwargs; };
-    [ShellAPIMds.MdsGenaiStatus]: { args: { moduleSessionId?: string; }; };
-    [ShellAPIMds.MdsGenaiConfigure]: { args: { cohereApiKey?: string; }; kwargs?: IShellMdsGenaiConfigureKwargs; };
-    [ShellAPIMds.MdsGenaiChat]: { args: { prompt: string; }; kwargs?: IShellMdsGenaiChatKwargs; };
     [ShellAPIMds.MdsGenaiLakehouseStatus]: { kwargs?: IShellMdsGenaiLakehouseStatusKwargs; };
-    [ShellAPIMds.MdsGenaiSaveChatOptions]: { args: { filePath: string; }; kwargs?: IShellMdsGenaiSaveChatOptionsKwargs; };
-    [ShellAPIMds.MdsGenaiLoadChatOptions]: { args: { filePath: string; }; };
 
 }
 
@@ -1578,10 +1540,5 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsListBucketObjects]: { result: IBucketListObjects; }
     [ShellAPIMds.MdsCreateBucketObjects]: { result: IMdsCreateBucketObjectsResult; };
     [ShellAPIMds.MdsDeleteBucketObject]: {};
-    [ShellAPIMds.MdsGenaiStatus]: { result: IMdsChatStatus; };
-    [ShellAPIMds.MdsGenaiConfigure]: { result: IMdsChatConfigure; };
-    [ShellAPIMds.MdsGenaiChat]: { result: IMdsChatResult; };
     [ShellAPIMds.MdsGenaiLakehouseStatus]: { result: IMdsLakehouseStatus; };
-    [ShellAPIMds.MdsGenaiSaveChatOptions]: {};
-    [ShellAPIMds.MdsGenaiLoadChatOptions]: { result: IMdsChatData };
 }

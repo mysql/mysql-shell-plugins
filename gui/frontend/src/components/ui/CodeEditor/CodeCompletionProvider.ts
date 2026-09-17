@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -279,13 +279,6 @@ export class CodeCompletionProvider implements languages.CompletionItemProvider 
                         range,
                         insertText: "\\reconnect",
                         detail: "Reconnects the current MySQL connection.",
-                    },
-                    {
-                        label: "\\chat",
-                        kind: languages.CompletionItemKind.Keyword,
-                        range,
-                        insertText: "\\chat",
-                        detail: "Switches to HeatWave Chat.",
                     },
                     {
                         label: "\\nl",

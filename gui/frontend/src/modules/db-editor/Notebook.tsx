@@ -279,7 +279,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                     savedState={activeEditor?.state}
                     extraLibs={extraLibs}
                     language="msg"
-                    allowedLanguages={["javascript", "typescript", "sql", "text"]}
+                    allowedLanguages={["javascript", "typescript", "sql"]}
                     sqlDialect={dialect}
                     startLanguage={Settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
                     readonly={readOnly}

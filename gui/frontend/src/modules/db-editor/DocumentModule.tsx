@@ -121,7 +121,6 @@ import {
     type IOdmStandaloneDocumentEntry, type LeafDocumentEntry, type LeafDocumentType, type OpenDocumentDataModelEntry,
 } from "../../data-models/OpenDocumentDataModel.js";
 
-import type { IChatOptionsState } from "../../components/Chat/ChatOptions.js";
 import { CreateLibraryDialog } from "../../components/Dialogs/CreateLibraryDialog.js";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
 import { ShellTaskDataModel } from "../../data-models/ShellTaskDataModel.js";
@@ -1555,7 +1554,6 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                 onGraphDataChange={this.handleGraphDataChange}
                 onSaveAdminClientConnectionsState={this.handleClientConnectionsStateChange}
                 onSaveAdminEnterpriseBackupState={this.handleEnterpriseBackupStateChange}
-                onChatOptionsChange={this.onChatOptionsChange}
                 onDesktopRunStateChanged={this.handleDesktopRunStateChanged}
             />);
 
@@ -3116,14 +3114,6 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                 || data.id === workspace.dataModelEntry.id) {
                 const connectionState = this.connectionPresentation.get(workspace.dataModelEntry);
                 if (connectionState) {
-                    // Change for chat options
-                    this.onChatOptionsChange(data.id.length > 0 ? data.id : workspace.dataModelEntry.id, {
-                        options: {
-                            ...connectionState.chatOptionsState.options,
-                            schemaName: data.schema,
-                        },
-                    });
-
                     // Change existing editors.
                     connectionState.documentStates.forEach((state) => {
                         if (state.state) {
@@ -3819,18 +3809,6 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                     currentValues: new Map(),
                     computedValues: {},
                     series: new Map(),
-                },
-
-                // Chat option defaults
-                chatOptionsState: {
-                    chatOptionsExpanded: false,
-                    chatOptionsWidth: -1,
-                    options: {
-                        schemaName: currentSchema !== "" ? currentSchema : undefined,
-                        modelOptions: {
-                            modelId: "default",
-                        },
-                    },
                 },
 
                 executionHistory,
@@ -5492,28 +5470,6 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                 ...data,
             };
         }
-    };
-
-    private onChatOptionsChange = (pageId: string, data: Partial<IChatOptionsState>): void => {
-        const { connectionWorkspaces } = this.state;
-
-        const tab = connectionWorkspaces.find((entry) => {
-            return entry.dataModelEntry.id === pageId;
-        });
-
-        if (!tab) {
-            return;
-        }
-
-        const connectionState = this.connectionPresentation.get(tab.dataModelEntry);
-        if (connectionState) {
-            connectionState.chatOptionsState = {
-                ...connectionState.chatOptionsState,
-                ...data,
-            };
-        }
-
-        this.forceUpdate();
     };
 
     private afterCommit = () => {

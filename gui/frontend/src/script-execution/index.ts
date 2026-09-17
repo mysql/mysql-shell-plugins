@@ -116,18 +116,6 @@ export interface ITextResult {
     executionInfo?: IStatusInfo;
 }
 
-export interface IChatResult {
-    type: "chat",
-
-    chatQueryId: string,
-    error?: string,
-    answer?: string,
-    info?: string,
-    options?: IDictionary,
-    chatOptionsVisible?: boolean,
-    updateOptions?: (options: IDictionary) => void,
-}
-
 export interface IAboutResult {
     type: "about",
 
@@ -257,13 +245,13 @@ interface IResultIdentifiers {
 }
 
 /** A set of fields that comprise the result of a script or shell execution. */
-export type IExecutionResult = ITextResult | IResultSetRows | IGraphResult | IChatResult | IAboutResult;
+export type IExecutionResult = ITextResult | IResultSetRows | IGraphResult | IAboutResult;
 
 /** A set of fields that comprise the result of a script or shell execution. */
-export type IExecutionResultData = ITextResult | IResultSets | IGraphResult | IChatResult | IAboutResult;
+export type IExecutionResultData = ITextResult | IResultSets | IGraphResult | IAboutResult;
 
 /** A simplified form of the execution result interface, which only refers to actual data (in our storage DB). */
-export type IExecuteResultReference = ITextResult | IResultIdentifiers | IGraphResult | IChatResult | IAboutResult;
+export type IExecuteResultReference = ITextResult | IResultIdentifiers | IGraphResult | IAboutResult;
 
 /** A flag telling if the result is currently being loaded. */
 export enum LoadingState {

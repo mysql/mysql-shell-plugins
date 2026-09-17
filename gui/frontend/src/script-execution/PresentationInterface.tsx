@@ -40,7 +40,6 @@ import type {
 
 import { MessageType, type ISqlUpdateResult } from "../app-logic/general-types.js";
 import { AboutHost } from "../components/About/AboutHost.js";
-import { ChatAction, ChatHost } from "../components/Chat/ChatHost.js";
 import { ActionOutput } from "../components/ResultView/ActionOutput.js";
 import { GraphHost } from "../components/graphs/GraphHost.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
@@ -461,13 +460,10 @@ export class PresentationInterface {
                 this.waitTimer = null;
             }
 
-            // Execution is finished if either we have execution info (and no result data so far) or we got
-            // a chat result with an answer.
+            // Execution is finished if we have execution info and no result data so far.
             if (!this.resultData && "executionInfo" in data && data.executionInfo) {
                 this.changeLoadingState(LoadingState.Idle);
-            } else if (data.type === "chat" && "answer" in data && data.answer !== "") {
-                this.changeLoadingState(LoadingState.Idle);
-            } else if (data.type !== "chat") {
+            } else {
                 this.changeLoadingState(LoadingState.Loading);
             }
         }
@@ -486,8 +482,6 @@ export class PresentationInterface {
                     }
                 } else if (this.resultData.type === "graphData") {
                     // TODO: If graph data is visible, add the text as another entry to the graph page.
-                } else if (this.resultData.type === "chat") {
-                    // TODO: If a chat result is visible, add the text as another entry to the page.
                 } else if (this.resultData.type === "about") {
                     // TODO: If a about result is visible, add the text as another entry to the page.
                 } else {
@@ -698,18 +692,6 @@ export class PresentationInterface {
                 // New graph always replaces what was there before.
                 this.resultData = data;
                 this.minHeight = 200;
-
-                break;
-            }
-
-            case "chat": {
-                // Chat results display
-                this.resultData = data;
-                this.minHeight = 200;
-                if (data.answer !== "") {
-                    // We got the whole answer, so we can stop waiting.
-                    this.changeLoadingState(LoadingState.Idle);
-                }
 
                 break;
             }
@@ -943,7 +925,7 @@ export class PresentationInterface {
                 content: data.executionInfo?.text ?? "",
                 subIndex: dataOptions.subIndex,
             });
-        } else if (this.resultData.type !== "chat" && this.resultData.type !== "about") {
+        } else if (this.resultData.type !== "about") {
             this.resultData.output ??= [];
 
             this.resultData.output.push({
@@ -1107,20 +1089,6 @@ export class PresentationInterface {
                 break;
             }
 
-            case "chat": {
-                element = <ChatHost
-                    info={this.resultData.info}
-                    answer={this.resultData.answer}
-                    error={this.resultData.error}
-                    options={this.resultData.options ?? {}}
-                    onAction={this.handleChatAction}
-                    onUpdateOptions={this.resultData.updateOptions}
-                />;
-                this.minHeight = 40;
-
-                break;
-            }
-
             case "about": {
                 element = <AboutHost
                     title={this.resultData.title}
@@ -1257,28 +1225,6 @@ export class PresentationInterface {
         }
 
         return Promise.resolve(false);
-    };
-
-    private handleChatAction = (action: ChatAction): void => {
-        switch (action) {
-            case ChatAction.Execute: {
-                if (this.context) {
-                    void requisitions.execute("editorExecute",
-                        { advance: false, forceSecondaryEngine: false, asText: false, context: this.context });
-                }
-
-                break;
-            }
-
-            case ChatAction.UpdateOptions: {
-                if (this.context) {
-                    //
-                }
-                break;
-            }
-
-            default:
-        }
     };
 
     /**

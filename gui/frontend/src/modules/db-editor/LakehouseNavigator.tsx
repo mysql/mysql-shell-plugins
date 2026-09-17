@@ -3236,7 +3236,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             values: {
                 prompt: "Please enter the name of the user, add @host if needed (e.g. user@localhost):",
             },
-            description: ["A specific set of privileges is required to use HeatWave Chat and HeatWave Load.",
+            description: ["A specific set of privileges is required to use HeatWave Load.",
                 "These will be assigned to the given user."],
         });
 

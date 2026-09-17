@@ -252,7 +252,6 @@ import overlayUpdateAvailable from "../assets/images/overlays/updateAvailable.sv
 import overlayUpdateAvailableMask from "../assets/images/overlays/updateAvailableMask.svg";
 
 // Lakehouse.
-import chatOptionsIcon from "../assets/images/chatOptions.svg";
 import dataLakeIcon from "../assets/images/dataLake.svg";
 import lakehouseHouseIcon from "../assets/images/lakehouseHouse.svg";
 import lakehouseNavigatorIcon from "../assets/images/lakehouseNavigator.svg";
@@ -566,7 +565,6 @@ export class Assets {
     };
 
     public static lakehouse = {
-        chatOptionsIcon,
         dataLakeIcon,
         navigatorIcon: lakehouseNavigatorIcon,
         houseIcon: lakehouseHouseIcon,

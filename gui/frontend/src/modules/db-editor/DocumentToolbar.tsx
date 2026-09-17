@@ -406,19 +406,6 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
             );
         }
 
-        if (heatWaveEnabled) {
-            editorItems.push(
-                <Divider key="formatDividerChatOptions" vertical={true} thickness={1} />,
-                <Button
-                    key="editorChatOptionsButton"
-                    data-tooltip="Show Chat Options"
-                    imageOnly={true}
-                    requestType="showChatOptions"
-                >
-                    <Icon src={Assets.lakehouse.chatOptionsIcon} id="ChatOptionsButton" data-tooltip="inherit" />
-                </Button>);
-        }
-
         const showNavigationDivider = toolbarItems.navigation.length > 0 && editorItems.length > 0;
         const showRightDivider = executionItems.length > 0 && toolbarItems.auxiliary.length > 0;
 

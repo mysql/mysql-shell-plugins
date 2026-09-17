@@ -2137,8 +2137,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                         }
 
                         return "handled";
-                    } else if (trimmed === "chat") {
-                        trimmed = "text";
                     }
                 }
 
@@ -2195,18 +2193,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     case "python": {
                         // Python is only available in terminal mode.
                         this.prepareNextExecutionBlock(index, "python");
-
-                        break;
-                    }
-
-                    case "text": {
-                        if (terminalMode) {
-                            this.prepareNextExecutionBlock(index, "text");
-                        } else {
-                            this.switchCurrentLanguage("text", true);
-
-                            return "handled";
-                        }
 
                         break;
                     }

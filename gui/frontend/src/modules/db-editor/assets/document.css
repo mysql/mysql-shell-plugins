@@ -1998,7 +1998,7 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
     position: absolute;
     right: 6px;
     bottom: 3px;
-    z-index: 2;
+    z-index: 12;
     display: flex;
     align-items: center;
     justify-content: center;

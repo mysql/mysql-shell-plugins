@@ -719,7 +719,6 @@ export interface IRequestTypeMap {
     "job": (job: Array<IJobEntry<keyof IRequestTypeMap>>) => Promise<boolean>;
 
     "showLakehouseNavigator": SimpleCallback;
-    "showChatOptions": SimpleCallback;
 
     /**
      * A request which is a re-post of another request.

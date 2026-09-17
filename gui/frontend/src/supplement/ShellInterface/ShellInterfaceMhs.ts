@@ -23,16 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import type { IDictionary } from "../../app-logic/general-types.js";
 import {
     IBastionSession, IBastionSummary, ICompartment, IComputeInstance, IComputeShape, IMySQLDbSystem,
     IMySQLDbSystemShapeSummary, ISubnet, IVcn, LoadBalancer, type IBucketListObjects, type IBucketSummary,
 } from "../../communication/index.js";
 import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler.js";
-import { type IShellDictionary } from "../../communication/Protocol.js";
 import {
-    IRegion, IMdsChatData, IMdsChatResult, IMdsLakehouseStatus, IMdsProfileData, IShellMdsSetCurrentBastionKwargs,
-    IShellMdsSetCurrentCompartmentKwargs, ShellAPIMds, type IMdsChatStatus,
+    IRegion, IMdsLakehouseStatus, IMdsProfileData, IShellMdsSetCurrentBastionKwargs,
+    IShellMdsSetCurrentCompartmentKwargs, ShellAPIMds,
 } from "../../communication/ProtocolMds.js";
 import { Shape } from "../../oci-typings/oci-core/lib/model/shape.js";
 import { IShellInteractiveBackend } from "./ShellInteractiveBackend.js";
@@ -284,39 +282,6 @@ export class ShellInterfaceMhs {
         });
     }
 
-    public async getMdsGetGenAiStatus(moduleSessionId: string): Promise<IMdsChatStatus> {
-        const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMds.MdsGenaiStatus,
-            parameters: {
-                args: {
-                    moduleSessionId,
-                },
-            },
-        });
-
-        return response.result;
-    }
-
-    public async executeChatRequest(prompt: string, moduleSessionId: string, options?: IDictionary,
-        callback?: DataCallback<ShellAPIMds.MdsGenaiChat>,
-    ): Promise<IMdsChatResult> {
-        const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMds.MdsGenaiChat,
-            parameters: {
-                args: {
-                    prompt,
-                },
-                kwargs: {
-                    options: options as IShellDictionary,
-                    moduleSessionId,
-                },
-            },
-            onData: callback,
-        });
-
-        return response.result;
-    }
-
     public async getMdsGetLakehouseStatus(moduleSessionId: string, schemaName?: string,
         memoryUsed?: number, memoryTotal?: number,
         lakehouseTablesHash?: string, lakehouseTasksHash?: string): Promise<IMdsLakehouseStatus> {
@@ -326,33 +291,6 @@ export class ShellInterfaceMhs {
                 kwargs: {
                     schemaName, memoryUsed, memoryTotal, lakehouseTablesHash, lakehouseTasksHash,
                     moduleSessionId,
-                },
-            },
-        });
-
-        return response.result;
-    }
-
-    public async saveMdsChatOptions(filePath: string, options: IDictionary): Promise<void> {
-        await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMds.MdsGenaiSaveChatOptions,
-            parameters: {
-                args: {
-                    filePath,
-                },
-                kwargs: {
-                    options: options as IShellDictionary,
-                },
-            },
-        });
-    }
-
-    public async loadMdsChatOptions(filePath: string): Promise<IMdsChatData> {
-        const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMds.MdsGenaiLoadChatOptions,
-            parameters: {
-                args: {
-                    filePath,
                 },
             },
         });
