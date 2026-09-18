@@ -69,6 +69,7 @@ interface INotebookProperties extends IComponentProperties {
 
     dbType: DBType;
     readOnly?: boolean;
+    startLanguage?: EditorLanguage;
 
     /** If true then show the about info text on first mount. */
     showAbout: boolean;
@@ -109,7 +110,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         super(props);
 
         this.addHandledProperties("standaloneMode", "toolbarItemsTemplate", "savedState", "backend", "dbType",
-            "readOnly", "showAbout", "extraLibs", "onEdit", "onScriptExecution", "onHelpCommand",
+            "readOnly", "startLanguage", "showAbout", "extraLibs", "onEdit", "onScriptExecution", "onHelpCommand",
             "onContextLanguageChange", "onDesktopRunStateChanged");
     }
 
@@ -178,7 +179,8 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
     public render(): ComponentChild {
         const {
-            standaloneMode, toolbarItemsTemplate, savedState, backend, dbType, readOnly, extraLibs, fontSize,
+            standaloneMode, toolbarItemsTemplate, savedState, backend, dbType, readOnly, startLanguage, extraLibs,
+            fontSize,
             onScriptExecution, onHelpCommand, onDesktopRunStateChanged,
         } = this.props;
         const isElectronHost = hasElectronHostBridge();
@@ -281,7 +283,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                     language="msg"
                     allowedLanguages={["javascript", "typescript", "sql"]}
                     sqlDialect={dialect}
-                    startLanguage={Settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
+                    startLanguage={startLanguage ?? Settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
                     readonly={readOnly}
                     allowSoftWrap={true}
                     autoFocus={true}

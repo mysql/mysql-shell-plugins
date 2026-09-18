@@ -44,7 +44,7 @@ test.describe("Open editors", () => {
         await workbench.clickMenu(["File", "New SQL Script"]);
         await workbench.expectTabWithoutPassword(/^Untitled-1\.sql$/);
 
-        await workbench.clickMenu(["File", "New Notebook"]);
+        await workbench.clickMenu(["File", "New SQL Notebook"]);
         await workbench.expectTabWithoutPassword(untitledNotebookTab);
     });
 

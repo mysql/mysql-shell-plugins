@@ -83,6 +83,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
         document.body.addEventListener("mouseover", this.elementMouseOver, false); // Mouse enter doesn't work here.
         document.addEventListener(popupOpenedEvent, this.handlePopupOpened);
         document.body.addEventListener("keyup", this.handleDocumentKeyUp);
+        window.addEventListener("resize", this.handleWindowResize);
     }
 
     public override componentWillUnmount(): void {
@@ -94,6 +95,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
         document.removeEventListener(popupOpenedEvent, this.handlePopupOpened);
         document.body.removeEventListener("keyup", this.handleDocumentKeyUp);
         document.body.removeEventListener("mouseover", this.elementMouseOver);
+        window.removeEventListener("resize", this.handleWindowResize);
     }
 
     public override componentDidUpdate(): void {
@@ -139,6 +141,9 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
 
                 x = left + cursorWidth;
                 y = top + cursorHeight;
+
+                const bounds = this.innerRef.current.getBoundingClientRect();
+                [x, y] = clampToDocument(new DOMRect(x, y, bounds.width, bounds.height), 0, 0);
             }
 
             this.innerRef.current.style.transform = `translate(${x}px, ${y}px)`;
@@ -273,6 +278,12 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
 
     private handlePopupOpened = (): void => {
         this.hideTooltip();
+    };
+
+    private handleWindowResize = (): void => {
+        if (this.state.target) {
+            this.forceUpdate();
+        }
     };
 
     private hideTooltip = (): void => {

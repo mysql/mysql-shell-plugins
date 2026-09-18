@@ -1785,7 +1785,7 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                 >
                     <MenuItem
                         key="item1"
-                        command={{ title: "New DB Notebook", command: "addEditor" }}
+                        command={{ title: "New SQL Notebook", command: "addSQLNotebook" }}
                         icon={Assets.misc.newNotebookIcon}
                     />
                     <MenuItem
@@ -1801,6 +1801,16 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                     <MenuItem
                         key="item4"
                         command={{ title: "New JS Script", command: "addJSScript" }}
+                        icon={Assets.file.javascriptIcon}
+                    />
+                    <MenuItem
+                        key="item5"
+                        command={{ title: "New TS Notebook", command: "addTSNotebook" }}
+                        icon={Assets.file.typescriptIcon}
+                    />
+                    <MenuItem
+                        key="item6"
+                        command={{ title: "New JS Notebook", command: "addJSNotebook" }}
                         icon={Assets.file.javascriptIcon}
                     />
                 </Menu>
@@ -2335,8 +2345,20 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                     />
                     <MenuItem
                         id="desktopTitlebarAddNewNotebookItem"
-                        command={{ title: "New Notebook", command: "desktop.newNotebookTab" }}
+                        command={{ title: "New SQL Notebook", command: "desktop.newNotebookTab" }}
                         icon={Assets.misc.newNotebookIcon}
+                        disabled={!hasActiveConnectionPage}
+                    />
+                    <MenuItem
+                        id="desktopTitlebarAddNewTSNotebookItem"
+                        command={{ title: "New TS Notebook", command: "desktop.newTSNotebookTab" }}
+                        icon={Assets.file.typescriptIcon}
+                        disabled={!hasActiveConnectionPage}
+                    />
+                    <MenuItem
+                        id="desktopTitlebarAddNewJSNotebookItem"
+                        command={{ title: "New JS Notebook", command: "desktop.newJSNotebookTab" }}
+                        icon={Assets.file.javascriptIcon}
                         disabled={!hasActiveConnectionPage}
                     />
                     <MenuItem command={{ title: "-", command: "" }} />
@@ -2687,7 +2709,15 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
             }
 
             case "desktop.newNotebookTab": {
-                return this.handleAddNotebook(pageEntry.id) !== undefined;
+                return this.handleAddNotebook(pageEntry.id, "sql") !== undefined;
+            }
+
+            case "desktop.newTSNotebookTab": {
+                return this.handleAddNotebook(pageEntry.id, "typescript") !== undefined;
+            }
+
+            case "desktop.newJSNotebookTab": {
+                return this.handleAddNotebook(pageEntry.id, "javascript") !== undefined;
             }
 
             case "desktop.openScriptTab": {
@@ -4320,7 +4350,25 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
 
             switch (props.id) {
                 case "addEditor": {
-                    this.handleAddNotebook(page.dataModelEntry.id);
+                    this.handleAddNotebook(page.dataModelEntry.id, "sql");
+
+                    break;
+                }
+
+                case "addSQLNotebook": {
+                    this.handleAddNotebook(page.dataModelEntry.id, "sql");
+
+                    break;
+                }
+
+                case "addTSNotebook": {
+                    this.handleAddNotebook(page.dataModelEntry.id, "typescript");
+
+                    break;
+                }
+
+                case "addJSNotebook": {
+                    this.handleAddNotebook(page.dataModelEntry.id, "javascript");
 
                     break;
                 }
@@ -4574,7 +4622,7 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
      *
      * @returns A unique id for the new editor, if one was created.
      */
-    private handleAddNotebook = (pageId: string): string | undefined => {
+    private handleAddNotebook = (pageId: string, startLanguage?: EditorLanguage): string | undefined => {
         const { connectionWorkspaces } = this.state;
 
         const tab = connectionWorkspaces.find((entry) => {
@@ -4601,6 +4649,7 @@ export class DocumentModule extends Component<IDocumentModuleProperties, IDocume
                         options: defaultEditorOptions,
                     },
                     autoExecuteAbout,
+                    startLanguage,
                     currentVersion: model.getVersionId(),
                 };
                 connectionState.documentStates.push(newState as IOpenDocumentState);
@@ -6083,7 +6132,15 @@ EXAMPLES
             accelerator: "CmdOrCtrl+N",
         }, {
             id: "desktop.newNotebookTab",
-            label: "New Notebook",
+            label: "New SQL Notebook",
+            enabled: hasActiveConnectionPage,
+        }, {
+            id: "desktop.newTSNotebookTab",
+            label: "New TS Notebook",
+            enabled: hasActiveConnectionPage,
+        }, {
+            id: "desktop.newJSNotebookTab",
+            label: "New JS Notebook",
             enabled: hasActiveConnectionPage,
         }, {
             id: "file.open",
@@ -6531,6 +6588,11 @@ EXAMPLES
 
             case "desktop.newScriptTab":
             case "desktop.newNotebookTab": {
+                return this.executeDesktopTitlebarAddAction(id);
+            }
+
+            case "desktop.newTSNotebookTab":
+            case "desktop.newJSNotebookTab": {
                 return this.executeDesktopTitlebarAddAction(id);
             }
 

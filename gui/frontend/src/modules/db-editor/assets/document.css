@@ -363,6 +363,10 @@ body[theme=light] .msg #workspaceSelector>.label {
     font-size: 1rem;
 }
 
+.msg#workspaceSelectorPopup {
+    z-index: 13;
+}
+
 .msg #workspaceSelectorPopup > .popup.dropdownList,
 .msg#workspaceSelectorPopup > .popup.dropdownList {
     cursor: pointer;

@@ -62,6 +62,57 @@ describe("Tooltip component tests", (): void => {
         const rule = /\.msg\.tooltip:not\(\.expand\)\s*{(?<body>[^}]*)}/s.exec(tooltipCss)?.groups?.body;
 
         expect(rule).toContain("white-space: pre-wrap;");
+
+        const boundsRule = /\.msg\.tooltip\s*{(?<body>[^}]*)}/s.exec(tooltipCss)?.groups?.body;
+        expect(boundsRule).toContain("max-width: min(800px, 100vw);");
+        expect(boundsRule).toContain("max-height: min(500px, 100vh);");
+    });
+
+    it("clamps normal tooltips to the viewport", async () => {
+        const clampToDocument = vi.spyOn(helpers, "clampToDocument").mockReturnValue([10, 20]);
+        const { unmount, queryByText } = render(
+            <div>
+                <Label data-tooltip="tooltip">hover me</Label>
+                <TooltipProvider showDelay={0} />
+            </div>,
+        );
+
+        try {
+            fireEvent.mouseOver(queryByText("hover me") as Element);
+
+            await waitFor(() => {
+                const tooltip = queryTooltipElement() as HTMLElement;
+                expect(tooltip).toBeDefined();
+                expect(tooltip.style.transform).toBe("translate(10px, 20px)");
+            });
+
+            expect(clampToDocument).toHaveBeenCalledWith(
+                expect.objectContaining({ width: 0, height: 0 }),
+                0,
+                0,
+            );
+        } finally {
+            clampToDocument.mockRestore();
+            unmount();
+        }
+    });
+
+    it("clamps tooltip coordinates independently of the monitor origin", () => {
+        const innerWidth = vi.spyOn(window, "innerWidth", "get").mockReturnValue(1920);
+        const innerHeight = vi.spyOn(window, "innerHeight", "get").mockReturnValue(1080);
+        const screenX = vi.spyOn(window, "screenX", "get").mockReturnValue(1920);
+        const availableWidth = vi.spyOn(window.screen, "availWidth", "get").mockReturnValue(1920);
+        const availableHeight = vi.spyOn(window.screen, "availHeight", "get").mockReturnValue(1080);
+
+        try {
+            expect(helpers.clampToDocument(new DOMRect(1800, 100, 200, 100), 0, 0)).toEqual([1720, 100]);
+        } finally {
+            innerWidth.mockRestore();
+            innerHeight.mockRestore();
+            screenX.mockRestore();
+            availableWidth.mockRestore();
+            availableHeight.mockRestore();
+        }
     });
 
     it("Tooltip from data attribute", async () => {

@@ -1792,7 +1792,9 @@ const createMenu = () => {
         label: "File",
         submenu: [
             createDesktopCommandMenuItem("desktop.newScriptTab", "New SQL Script"),
-            createDesktopCommandMenuItem("desktop.newNotebookTab", "New Notebook"),
+            createDesktopCommandMenuItem("desktop.newNotebookTab", "New SQL Notebook"),
+            createDesktopCommandMenuItem("desktop.newTSNotebookTab", "New TS Notebook"),
+            createDesktopCommandMenuItem("desktop.newJSNotebookTab", "New JS Notebook"),
             { type: "separator" },
             {
                 ...createDesktopCommandMenuItem("file.open", "Open..."),

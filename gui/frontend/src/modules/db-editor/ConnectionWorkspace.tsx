@@ -130,6 +130,9 @@ export interface IOpenDocumentState {
 
     readonly state?: IEditorPersistentState;
 
+    /** The initial language for a newly created notebook. */
+    startLanguage?: EditorLanguage;
+
     /** If true, an empty notebook runs its about command the first time it is shown. */
     autoExecuteAbout?: boolean;
 
@@ -644,6 +647,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                         document = <Notebook
                             ref={this.notebookRef}
                             savedState={savedState}
+                            startLanguage={activeEditor.startLanguage}
                             backend={connection.backend}
                             toolbarItemsTemplate={toolbarItems}
                             standaloneMode={standaloneMode}

@@ -65,7 +65,7 @@ test.describe("DB notebooks", () => {
             }
         }, { timeout: 15000 }).toContain("electron-notebook-save");
 
-        await workbench.clickMenu(["File", "New Notebook"]);
+        await workbench.clickMenu(["File", "New SQL Notebook"]);
         await workbench.expectTabWithoutPassword(/^Untitled-1\.mysql-notebook$/);
         await workbench.selectTab("saved-notebook.mysql-notebook");
         await workbench.clickMenu(["File", "Close Tab"]);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -447,40 +447,7 @@ export const hasNoWrap = (element: HTMLElement): boolean => {
 };
 
 /**
- * Convert document (actually: viewport) coordinates to screen coordinates.
- *
- * @param x The x-coordinate in the document.
- * @param y The y-coordinate in the document.
- *
- * @returns The x and y coordinates in the screen coordinate system.
- */
-// istanbul ignore next
-export const documentToScreen = (x: number, y: number): [number, number] => {
-    const screenX = x + window.scrollX + window.screenX;
-    const screenY = y + window.scrollY + window.screenY;
-
-    return [screenX, screenY];
-};
-
-/**
- * Convert screen coordinates to document (viewport) coordinates.
- *
- * @param x The x-coordinate in the screen coordinate system.
- * @param y The y-coordinate in the screen coordinate system.
- *
- * @returns The x and y coordinates in the document.
- */
-// istanbul ignore next
-export const screenToDocument = (x: number, y: number): [number, number] => {
-    const documentX = x - window.scrollX - window.screenX;
-    const documentY = y - window.scrollY - window.screenY;
-
-    return [documentX, documentY];
-};
-
-/**
- * Clamps the given coordinates to the document bounds, considering also the screen position of the browser window.
- * Unfortunately, screen clamping only works for the primary screen.
+ * Clamps the given coordinates to the viewport bounds.
  *
  * @param bounds The bounds of the element to clamp.
  * @param offsetX An additional offset for the x-coordinate.
@@ -490,16 +457,10 @@ export const screenToDocument = (x: number, y: number): [number, number] => {
  */
 // istanbul ignore next
 export const clampToDocument = (bounds: DOMRect, offsetX: number, offsetY: number): [number, number] => {
-    // First compute the new x and y coordinates within the document bounds.
     const newX = Math.min(Math.max(bounds.left + offsetX, 0), window.innerWidth - bounds.width + offsetX);
     const newY = Math.min(Math.max(bounds.top + offsetY, 0), window.innerHeight - bounds.height + offsetY);
 
-    // Then clamp the new coordinates to the screen bounds.
-    let [screenX, screenY] = documentToScreen(newX, newY);
-    screenX = Math.min(Math.max(screenX, 0), window.screen.availWidth - bounds.width + offsetX);
-    screenY = Math.min(Math.max(screenY, 0), window.screen.availHeight - bounds.height + offsetY);
-
-    return screenToDocument(screenX, screenY);
+    return [newX, newY];
 };
 
 /**

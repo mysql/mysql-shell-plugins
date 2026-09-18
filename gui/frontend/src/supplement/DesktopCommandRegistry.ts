@@ -32,6 +32,8 @@ export type DesktopCommandId =
     "app.resetRememberedUiState" |
     "desktop.newScriptTab" |
     "desktop.newNotebookTab" |
+    "desktop.newJSNotebookTab" |
+    "desktop.newTSNotebookTab" |
     "dev.toggleDebugger" |
     "edit.previousCommand" |
     "edit.nextCommand" |

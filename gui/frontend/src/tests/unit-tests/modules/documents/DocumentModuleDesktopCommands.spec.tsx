@@ -2512,6 +2512,8 @@ describe("Document module desktop commands", () => {
         }), false);
         expect(document.getElementById("desktopTitlebarAddNewScriptItem")).toBeTruthy();
         expect(document.getElementById("desktopTitlebarAddNewNotebookItem")).toBeTruthy();
+        expect(document.getElementById("desktopTitlebarAddNewTSNotebookItem")).toBeTruthy();
+        expect(document.getElementById("desktopTitlebarAddNewJSNotebookItem")).toBeTruthy();
         expect(document.getElementById("desktopTitlebarAddOpenScriptItem")).toBeTruthy();
         expect(document.getElementById("desktopTitlebarAddOpenNotebookItem")).toBeTruthy();
 
@@ -2529,7 +2531,27 @@ describe("Document module desktop commands", () => {
             fireEvent.click(document.getElementById("desktopTitlebarAddNewNotebookItem")!);
             await nextRunLoop();
         });
-        expect(addNotebookSpy).toHaveBeenCalledWith("page-1");
+        expect(addNotebookSpy).toHaveBeenLastCalledWith("page-1", "sql");
+
+        await act(async () => {
+            fireEvent.click(container.querySelector("#desktopTitlebarAddButton")!);
+        });
+        await nextRunLoop();
+        await act(async () => {
+            fireEvent.click(document.getElementById("desktopTitlebarAddNewTSNotebookItem")!);
+            await nextRunLoop();
+        });
+        expect(addNotebookSpy).toHaveBeenLastCalledWith("page-1", "typescript");
+
+        await act(async () => {
+            fireEvent.click(container.querySelector("#desktopTitlebarAddButton")!);
+        });
+        await nextRunLoop();
+        await act(async () => {
+            fireEvent.click(document.getElementById("desktopTitlebarAddNewJSNotebookItem")!);
+            await nextRunLoop();
+        });
+        expect(addNotebookSpy).toHaveBeenLastCalledWith("page-1", "javascript");
 
         await act(async () => {
             fireEvent.click(container.querySelector("#desktopTitlebarAddButton")!);
@@ -2566,7 +2588,7 @@ describe("Document module desktop commands", () => {
             fireEvent.click(document.getElementById("desktopTitlebarAddOpenNotebookItem")!);
             await nextRunLoop();
         });
-        expect(addNotebookSpy).toHaveBeenCalledTimes(1);
+        expect(addNotebookSpy).toHaveBeenCalledTimes(3);
         expect(requisitionSpy).toHaveBeenCalledWith("editorLoadNotebook", { createNew: true });
 
         const showNativeMenu = vi.fn().mockResolvedValue(undefined);
@@ -2599,7 +2621,9 @@ describe("Document module desktop commands", () => {
             y: undefined,
             items: expect.arrayContaining([
                 expect.objectContaining({ label: "New Script" }),
-                expect.objectContaining({ label: "New Notebook" }),
+                expect.objectContaining({ label: "New SQL Notebook" }),
+                expect.objectContaining({ label: "New TS Notebook" }),
+                expect.objectContaining({ label: "New JS Notebook" }),
                 expect.objectContaining({ label: "Open Script..." }),
                 expect.objectContaining({ label: "Open Notebook..." }),
             ]),
@@ -3317,6 +3341,8 @@ describe("Document module desktop commands", () => {
                     expect.objectContaining({ id: "edit.nextCommand", enabled: false }),
                     expect.objectContaining({ id: "desktop.newScriptTab", enabled: true }),
                     expect.objectContaining({ id: "desktop.newNotebookTab", enabled: true }),
+                    expect.objectContaining({ id: "desktop.newTSNotebookTab", enabled: true }),
+                    expect.objectContaining({ id: "desktop.newJSNotebookTab", enabled: true }),
                     expect.objectContaining({
                         id: "edit.reformat",
                         enabled: true,
@@ -3363,7 +3389,13 @@ describe("Document module desktop commands", () => {
         );
 
         expect(await desktopCommandRegistry.execute("desktop.newNotebookTab")).toBe(true);
-        expect(addNotebookSpy).toHaveBeenCalledWith("page-1");
+        expect(addNotebookSpy).toHaveBeenLastCalledWith("page-1", "sql");
+
+        expect(await desktopCommandRegistry.execute("desktop.newTSNotebookTab")).toBe(true);
+        expect(addNotebookSpy).toHaveBeenLastCalledWith("page-1", "typescript");
+
+        expect(await desktopCommandRegistry.execute("desktop.newJSNotebookTab")).toBe(true);
+        expect(addNotebookSpy).toHaveBeenLastCalledWith("page-1", "javascript");
 
         expect(await desktopCommandRegistry.execute("file.open")).toBe(true);
         expect(openFileFromDiskSpy).toHaveBeenCalledWith({

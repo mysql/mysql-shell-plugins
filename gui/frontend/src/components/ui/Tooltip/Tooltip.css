@@ -29,10 +29,10 @@
     top: 0;
 
     width: fit-content;
-    max-width: 800px;
+    max-width: min(800px, 100vw);
 
     height: fit-content;
-    max-height: 500px;
+    max-height: min(500px, 100vh);
 
     padding: 1px 4px;
 
