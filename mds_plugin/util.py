@@ -274,7 +274,7 @@ def create_compute_instance_for_endpoint(**kwargs):
             subnet_id=subnet_id,
             public_subnet=public_ip,
             init_script_file_path=os.path.join(
-                os.path.join(Path(__file__).parent.absolute(), "internal"),
+                os.path.join(Path(__file__).parent.absolute(), "scripts"),
                 "init_router_script.sh",
             ),
             interactive=False,

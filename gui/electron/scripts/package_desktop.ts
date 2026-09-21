@@ -488,7 +488,7 @@ const cleanPluginArtifacts = (folder) => {
         const fullPath = join(folder, entry);
         const stats = lstatSync(fullPath);
 
-        if ([".vscode", "__pycache__", "docs", "examples", "htmlcov", "node_modules", "tests"]
+        if ([".vscode", "__pycache__", "docs", "examples", "htmlcov", "internal", "node_modules", "tests"]
             .includes(entry) && (stats.isDirectory() || stats.isSymbolicLink())) {
             rmSync(fullPath, { recursive: true, force: true });
             continue;

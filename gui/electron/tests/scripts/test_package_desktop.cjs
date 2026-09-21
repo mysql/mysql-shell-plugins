@@ -290,7 +290,7 @@ test("Python compilation retains sources and writes checked-hash bytecode", {
     assert.equal(inspection.stdout.trim(), "lib/module.py");
 });
 
-test("final Shell cleanup removes Unix runtime and plugin test artifacts", () => {
+test("final Shell cleanup removes Unix runtime and plugin development artifacts", () => {
     const root = mkdtempSync(join(tmpdir(), "shell-cleanup-unix-"));
     try {
         const shell = join(root, "shell");
@@ -308,6 +308,10 @@ test("final Shell cleanup removes Unix runtime and plugin test artifacts", () =>
             join(plugins, "gui_plugin", "docs", "development.md"),
             join(plugins, "gui_plugin", "pytest.ini"),
             join(plugins, "gui_plugin", "cached.pyc"),
+            join(plugins, "gui_plugin", "internal", "certificates", "server.key"),
+            join(plugins, "gui_plugin", "migration", "internal", "update_api_metadata.py"),
+            join(plugins, "mds_plugin", "internal", "testutils", "testutils.py"),
+            join(plugins, "mrs_plugin", "internal", "login_complete.html"),
             join(plugins, "mrs_plugin", "grammar", "test", "query.sql"),
             join(plugins, "mrs_plugin", "scripts", "run_grammar_test.sh"),
             join(plugins, "mrs_plugin", "db_schema", "mrs.msm.project",
@@ -324,6 +328,7 @@ test("final Shell cleanup removes Unix runtime and plugin test artifacts", () =>
             join(python, "site-packages", "cryptography-45.0.0.dist-info",
                 "licenses", "LICENSE"),
             join(plugins, "debug", "test", "keep.py"),
+            join(plugins, "mds_plugin", "scripts", "init_router_script.sh"),
             join(plugins, "mrs_plugin", "grammar", "MySQLParser.g4"),
             join(plugins, "mrs_plugin", "lib", "mrs_parser", "parser.py"),
         ];
@@ -335,6 +340,8 @@ test("final Shell cleanup removes Unix runtime and plugin test artifacts", () =>
         const outsideTests = join(outside, "tests", "keep.py");
         writeFixtureFile(outsideTests);
         symlinkSync(outside, join(plugins, "debug", "outside-link"), "dir");
+        const internalLink = join(plugins, "debug", "internal");
+        symlinkSync(outside, internalLink, "dir");
 
         cleanShellBundle(shell);
 
@@ -345,6 +352,7 @@ test("final Shell cleanup removes Unix runtime and plugin test artifacts", () =>
             assert.equal(existsSync(path), true, `expected retained file: ${path}`);
         }
         assert.equal(existsSync(outsideTests), true);
+        assert.equal(existsSync(internalLink), false);
     } finally {
         rmSync(root, { recursive: true, force: true });
     }
@@ -361,10 +369,13 @@ test("final Shell cleanup supports the Windows Python layout", () => {
             join(python, "__phello__", "spam.py"),
             join(python, "idlelib", "idle_test", "test_idle.py"),
             join(python, "site-packages", "tests", "test_dependency.py"),
+            join(plugins, "gui_plugin", "internal", "certificates", "server.key"),
+            join(plugins, "gui_plugin", "migration", "internal", "update_api_metadata.py"),
         ];
         const retain = [
             join(python, "unittest", "__init__.py"),
             join(python, "unittest", "mock.py"),
+            join(plugins, "mds_plugin", "scripts", "init_router_script.sh"),
         ];
         for (const path of [...remove, ...retain]) {
             writeFixtureFile(path);
