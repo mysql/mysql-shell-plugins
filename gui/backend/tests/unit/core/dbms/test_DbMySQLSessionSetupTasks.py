@@ -21,6 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+import mysqlsh
 import pytest
 import gui_plugin.core.dbms.DbMySQLSessionSetupTasks as Tasks
 import gui_plugin.core.dbms.DbMySQLSession as DbMySQLSession
@@ -128,6 +129,8 @@ class MockDbSession(DbMySQLSession.DbMysqlSession):
             eparams == params
         ), f"Unexpected SQL Parameters Received, expected {eparams}, received {params}"
         self._next_query += 1
+        if isinstance(result, Exception):
+            raise result
         return result
 
 
@@ -173,10 +176,11 @@ class TestSessionInfoTask:
 
 
 class TestExplainJsonFormatVersionTask:
-    def test_connection_supported_version(self):
+    @pytest.mark.parametrize("version", ["8.3.0", "8.4.6", "9.0.0", "26.7.0"])
+    def test_connection_supported_version(self, version):
         options = {"scheme": "mysql"}
         on_connect_options = options.copy()
-        data = {common.MySQLData.VERSION_INFO: "8.3.0"}
+        data = {common.MySQLData.VERSION_INFO: version}
         session = MockDbSession(
             Tasks.ExplainJsonFormatVersionTask,
             True,
@@ -189,6 +193,71 @@ class TestExplainJsonFormatVersionTask:
             ],
         )
         session.reconnect()
+
+    @pytest.mark.parametrize("version", [None, "5.7.44", "8.0.30", "8.2.0"])
+    def test_connection_unsupported_version(self, version):
+        options = {"scheme": "mysql"}
+        data = {} if version is None else {common.MySQLData.VERSION_INFO: version}
+        session = MockDbSession(
+            Tasks.ExplainJsonFormatVersionTask,
+            True,
+            options,
+            options.copy(),
+            data,
+            known_data=data,
+        )
+        session.reconnect()
+
+    @pytest.mark.parametrize("version", ["10.11.19-MariaDB-ubu2404", "11.4.8-MariaDB"])
+    def test_connection_without_explain_json_format_version(self, version):
+        options = {"scheme": "mysql"}
+        data = {common.MySQLData.VERSION_INFO: version}
+        session = MockDbSession(
+            Tasks.ExplainJsonFormatVersionTask,
+            True,
+            options,
+            options.copy(),
+            data,
+            known_data=data,
+            expected_queries=[
+                (
+                    ("SET SESSION explain_json_format_version=2", None),
+                    mysqlsh.DBError(
+                        1193,
+                        "Unknown system variable 'explain_json_format_version'",
+                        "HY000",
+                    ),
+                )
+            ],
+        )
+        session.reconnect()
+
+    @pytest.mark.parametrize(
+        "error",
+        [
+            mysqlsh.DBError(
+                2013, "Lost connection to MySQL server during query", "HY000"
+            ),
+            mysqlsh.DBError(1227, "Access denied", "42000"),
+            RuntimeError("Unexpected setup failure"),
+        ],
+    )
+    def test_connection_error_is_not_ignored(self, error):
+        options = {"scheme": "mysql"}
+        data = {common.MySQLData.VERSION_INFO: "8.4.6"}
+        with pytest.raises(type(error)) as exp:
+            MockDbSession(
+                Tasks.ExplainJsonFormatVersionTask,
+                True,
+                options,
+                options.copy(),
+                data,
+                known_data=data,
+                expected_queries=[
+                    (("SET SESSION explain_json_format_version=2", None), error)
+                ],
+            )
+        assert exp.value is error
 
 
 class TestHeatWaveCheckTask:

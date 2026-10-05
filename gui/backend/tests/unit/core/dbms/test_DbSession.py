@@ -36,7 +36,7 @@ import config
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
-from gui_plugin.core.dbms.DbSession import ReconnectionMode
+from gui_plugin.core.dbms.DbSession import DbSession, ReconnectionMode
 from gui_plugin.core.dbms.DbSqliteSession import DbSqliteSession
 from gui_plugin.db_connections import DbConnections
 from tests.lib.utils import backend_callback, backend_callback_with_pending
@@ -154,6 +154,29 @@ def mysql_sessions(mysql_connections_exists):  # pragma: no cover
     for session in sessions:
         session.close()
         session._term_complete.wait()
+
+
+class TestDbSession:
+    def test_terminate_thread_reports_original_error(self, monkeypatch):
+        session = DbSession("test-session", True, {})
+        session.thread_error = mysqlsh.DBError(
+            1193, "Unknown system variable 'gtid_mode'", "HY000"
+        )
+        closed = []
+        messages = []
+        monkeypatch.setattr(
+            session, "_close_database", lambda finalize: closed.append(finalize)
+        )
+
+        def message_callback(type, message, result):
+            messages.append((type, message, result))
+
+        session._message_callback = message_callback
+        session.terminate_thread()
+
+        assert closed == [True]
+        assert messages == [("ERROR", session.thread_error, None)]
+        assert session._term_complete.is_set()
 
 
 class TestDbSessionSqlite:

@@ -37,7 +37,7 @@ def get_binlog_info(
     gtid_mode = None
 
     if log_bin:
-        if session.nversion >= 56000:
+        if session.nversion >= 50605 and session.server_type != ServerType.MariaDB:
             gtid_mode = session.run_sql("select @@gtid_mode").fetch_one()[0]
 
         if session.server_type in [ServerType.RDS, ServerType.Aurora]:
@@ -46,6 +46,15 @@ def get_binlog_info(
             for row in iter(res.fetch_one, None):
                 if row[0] == "binlog retention hours":
                     expiration = int(row[1] or 0) * 3600
+        elif session.server_type == ServerType.MariaDB:
+            # Zero retention disables automatic binlog purging.
+            if session.nversion >= 100601:
+                row = session.run_sql("select @@binlog_expire_logs_seconds").fetch_one()
+                expiration = int(row[0]) or None
+            else:
+                row = session.run_sql("select @@expire_logs_days").fetch_one()
+                days = float(row[0])
+                expiration = int(days * 86400) if days else None
         elif session.nversion >= 80000:
             row = session.run_sql(
                 "select @@binlog_expire_logs_seconds /*!80029 , @@binlog_expire_logs_auto_purge */"

@@ -22,6 +22,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from asyncio import current_task
+import mysqlsh
 import gui_plugin.core.dbms.DbMySQLSessionCommon as common
 from gui_plugin.core.dbms.DbSessionSetupTask import DbSessionSetupTask
 from gui_plugin.core.dbms.DbSessionUtils import DbSessionData
@@ -57,7 +58,12 @@ class ExplainJsonFormatVersionTask(DbSessionSetupTask):
         if int(major) < 8 or int(major) == 8 and int(minor) < 3:
             return
 
-        self.execute("SET SESSION explain_json_format_version=2")
+        try:
+            self.execute("SET SESSION explain_json_format_version=2")
+        except mysqlsh.DBError as e:
+            # Skip unsupported setting (error 1193 = unknown system variable).
+            if e.code != 1193:
+                raise
 
 
 class HeatWaveCheckTask(DbSessionSetupTask):

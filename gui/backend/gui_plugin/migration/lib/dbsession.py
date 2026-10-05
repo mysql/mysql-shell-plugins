@@ -146,7 +146,7 @@ class MigrationSession(Session):
 
 def detect_server_type(session: MigrationSession) -> ServerType:
     # Checked with mariadb 10.3.39
-    if "MariaDB" in session.version_comment:
+    if "MariaDB" in session.version or "mariadb" in session.version_comment.lower():
         return ServerType.MariaDB
     # Checked with percona 5.7.44
     if "Percona" in session.version_comment:
