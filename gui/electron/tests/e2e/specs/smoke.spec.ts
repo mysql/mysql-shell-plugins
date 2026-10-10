@@ -279,24 +279,25 @@ test.describe("Electron desktop shell", () => {
     });
 
     test("keeps the renderer viewport aligned with the native content area", async ({ electronApp, page }) => {
-        const nativeContentSize = await electronApp.evaluate(({ BrowserWindow }) => {
-            const browserWindow = BrowserWindow.getAllWindows()[0];
+        expect(page.viewportSize()).toBeNull();
 
-            return browserWindow.getContentSize();
-        });
-        const viewportSize = page.viewportSize();
-        const rendererSize = await page.evaluate(() => {
-            return {
-                width: window.innerWidth,
-                height: window.innerHeight,
-            };
-        });
+        // Native menu initialization can resize the content area during startup.
+        await expect(async () => {
+            const nativeContentSize = await electronApp.evaluate(({ BrowserWindow }) => {
+                return BrowserWindow.getAllWindows()[0].getContentSize();
+            });
+            const rendererSize = await page.evaluate(() => {
+                return {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                };
+            });
 
-        expect(viewportSize).toBeNull();
-        expect(rendererSize).toEqual({
-            width: nativeContentSize[0],
-            height: nativeContentSize[1],
-        });
+            expect(rendererSize).toEqual({
+                width: nativeContentSize[0],
+                height: nativeContentSize[1],
+            });
+        }).toPass({ timeout: 15000 });
     });
 
     test("uses isolated Electron user data for desktop state", async ({ electronApp }, testInfo) => {
