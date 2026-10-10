@@ -415,6 +415,32 @@ test.describe("SQL execution", () => {
         await expect(page.locator(".resultTabview")).toContainText("electron-text-result", { timeout: 30000 });
     });
 
+    test("visually explains tables in the schema selected after connecting",
+        async ({ page, workbench }, testInfo) => {
+            await workbench.waitForShell();
+            const connection = { ...localMySQLConnection("E2E Visual Explain Current Schema"), schema: "" };
+            await workbench.createMySQLConnection(connection);
+            await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password,
+                untitledSqlScriptTab);
+            await workbench.waitForSchemasTreeReady();
+            await workbench.selectSchemaTreeAction("sakila", ["Set As Current Database Schema"]);
+            await workbench.insertInActiveEditor("SELECT actor_id FROM actor WHERE actor_id = 1;");
+            await workbench.clickMenu(["Run", "Execute"]);
+            await workbench.expectResultGridCellText(0, "actor_id", "1");
+
+            await workbench.clickMenu(["Run", "Visual Explain"]);
+            await expectVisualExplainImageResult(page, "Visual Explain");
+            await expectVisualExplainSvg(page);
+            await page.screenshot({ path: testInfo.outputPath("current-schema-explain.png") });
+
+            await workbench.clickResultActionMenuItem(["Close Result Set"]);
+            await workbench.clickMenu(["Run", "Visual Explain Analyze"]);
+            await acceptVisualExplainAnalyzeConfirm(page);
+            await expectVisualExplainImageResult(page);
+            await expectVisualExplainSvg(page);
+            await page.screenshot({ path: testInfo.outputPath("current-schema-analyze.png") });
+        });
+
     test("uses SQL script visual explain controls from the native Run menu",
         async ({ electronApp, page, workbench }, testInfo) => {
             await resizeWorkbenchContent(electronApp);

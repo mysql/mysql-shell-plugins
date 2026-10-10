@@ -647,6 +647,7 @@ class ShellGuiStdioBridge:
                     "gui.sql_editor.commit_transaction",
                     "gui.sql_editor.rollback_transaction",
                     "gui.sql_editor.execute",
+                    "gui.sql_editor.visual_explain",
                     "gui.sql_editor.default_user_schema",
                     "gui.sql_editor.get_current_schema",
                     "gui.sql_editor.set_current_schema",

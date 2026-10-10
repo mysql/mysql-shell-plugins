@@ -740,7 +740,18 @@ def test_stdio_transport_execute_injects_local_profile(monkeypatch):
     assert started_requests[0].kwargs["profile_id"] == 21
 
 
-def test_stdio_transport_routes_sql_editor_execute_to_user_session(monkeypatch):
+@pytest.mark.parametrize(
+    "command, options",
+    [
+        ("execute", {}),
+        ("visual_explain", {}),
+        ("visual_explain", {"analyze": True}),
+        ("visual_explain", {"plan": "{}"}),
+    ],
+)
+def test_stdio_transport_routes_sql_editor_queries_to_user_session(
+    monkeypatch, command, options
+):
     started_requests = []
 
     class FakeRequestHandler:
@@ -775,11 +786,12 @@ def test_stdio_transport_routes_sql_editor_execute_to_user_session(monkeypatch):
     bridge.process_message(
         {
             "request": "execute",
-            "request_id": "sql-editor-execute",
-            "command": "gui.sqlEditor.execute",
+            "request_id": "sql-editor-query",
+            "command": f"gui.sqlEditor.{command}",
             "args": {
                 "module_session_id": "module",
-                "sql": "select sleep(30)",
+                "sql": "select * from parent",
+                "options": options,
             },
         }
     )
