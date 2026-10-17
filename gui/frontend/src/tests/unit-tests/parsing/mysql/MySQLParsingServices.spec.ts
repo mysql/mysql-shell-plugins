@@ -139,6 +139,40 @@ describe("MySQL Parsing Services Tests", () => {
     }); */
 });
 
+describe("JSON_VALUE optional response clauses", () => {
+    beforeAll(async () => {
+        await MySQLParsingServices.loaded;
+    });
+
+    const expressions = [
+        "JSON_VALUE(doc, '$.a')",
+        "JSON_VALUE(doc, '$.a' RETURNING CHAR(512))",
+        "JSON_VALUE(doc, '$.a' NULL ON EMPTY)",
+        "JSON_VALUE(doc, '$.a' ERROR ON ERROR)",
+        "JSON_VALUE(doc, '$.a' RETURNING CHAR(512) DEFAULT 'missing' ON EMPTY NULL ON ERROR)",
+    ];
+
+    it.each(expressions)("accepts %s", (expression) => {
+        for (const version of [80024, 80400, 90700]) {
+            expect(services.errorCheck(`SELECT ${expression} FROM t`, MySQLParseUnit.Generic, version, ""))
+                .toBe(true);
+        }
+    });
+
+    it("accepts JSON_VALUE in a stored generated column", () => {
+        const sql = "CREATE TABLE t (doc JSON, v VARCHAR(512) GENERATED ALWAYS AS " +
+            "(JSON_VALUE(doc, _utf8mb4'$.a' RETURNING CHAR(512))) STORED)";
+        expect(services.errorCheck(sql, MySQLParseUnit.Generic, 80400, "")).toBe(true);
+    });
+
+    it.each(["NULL ON", "DEFAULT ON EMPTY", "RETURNING", "NULL ON EMPTY NULL ON EMPTY"])(
+        "rejects malformed response clause %s", (clause) => {
+            const sql = `SELECT JSON_VALUE(doc, '$.a' ${clause}) FROM t`;
+            expect(services.errorCheck(sql, MySQLParseUnit.Generic, 80400, "")).toBe(false);
+        },
+    );
+});
+
 describe("MySQL Parsing Service test for dollar quote", () => {
     const queryStart = "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS ";
 

@@ -3210,7 +3210,7 @@ runtimeFunctionCall:
     | INTERVAL_SYMBOL OPEN_PAR_SYMBOL expr (COMMA_SYMBOL expr)+ CLOSE_PAR_SYMBOL
     | {this.serverVersion >= 90500}? JSON_DUALITY_OBJECT_SYMBOL OPEN_PAR_SYMBOL jdvWithTableTags? jdvNameValueList
         CLOSE_PAR_SYMBOL
-    | JSON_VALUE_SYMBOL OPEN_PAR_SYMBOL simpleExpr COMMA_SYMBOL textLiteral returningType? onEmptyOrError CLOSE_PAR_SYMBOL
+    | JSON_VALUE_SYMBOL OPEN_PAR_SYMBOL simpleExpr COMMA_SYMBOL textLiteral returningType? onEmptyOrError? CLOSE_PAR_SYMBOL
     | LEFT_SYMBOL OPEN_PAR_SYMBOL expr COMMA_SYMBOL expr CLOSE_PAR_SYMBOL
     | MINUTE_SYMBOL exprWithParentheses
     | MONTH_SYMBOL exprWithParentheses

@@ -239,6 +239,36 @@ test.describe("SQL execution", () => {
         await workbench.expectResultGridText("electron-run-menu");
     });
 
+    test("accepts JSON_VALUE RETURNING without response clauses", async ({ page, workbench }, testInfo) => {
+        await workbench.waitForShell();
+        await openSqlScript(workbench, "E2E JSON_VALUE Optional Clauses");
+        const errors = page.locator(".monaco-editor .view-line .error");
+        await workbench.writeInActiveEditor("SELECT JSON_VALUE('{}', '$.a' RETURNING);");
+        await expect(errors).not.toHaveCount(0);
+
+        await workbench.writeInActiveEditor(
+            "SELECT JSON_VALUE('{\"a\":\"json-value-ok\"}', '$.a' RETURNING CHAR(512)) AS value;");
+        await expect(errors).toHaveCount(0);
+        await workbench.clickMenu(["Run", "Execute"]);
+        await workbench.expectResultGridText("json-value-ok");
+        await page.screenshot({ path: join(testInfo.outputDir, "json-value-select.png") });
+
+        const schema = uniqueSchemaName(testInfo, "json_value");
+        await workbench.writeInActiveEditor([
+            ...createScratchSchemaSql(schema),
+            "CREATE TABLE t (doc JSON, v VARCHAR(512) GENERATED ALWAYS AS " +
+                "(JSON_VALUE(doc, _utf8mb4'$.a' RETURNING CHAR(512))) STORED);",
+            "INSERT INTO t (doc) VALUES ('{\"a\":\"generated-value-ok\"}');",
+            "SELECT v FROM t;",
+        ].join("\n"));
+        await workbench.clickMenu(["Run", "Execute"]);
+        await workbench.expectResultGridText("generated-value-ok");
+        await expect(errors).toHaveCount(0);
+        await page.screenshot({ path: join(testInfo.outputDir, "json-value-generated-column.png") });
+        await workbench.writeInActiveEditor(`DROP SCHEMA ${schema};`);
+        await workbench.clickMenu(["Run", "Execute"]);
+    });
+
     test("renders SQL script result sets in the result grid", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
